@@ -22,5 +22,15 @@ setuptools.setup(
     ],
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
-    python_requires = ">= 3.9"
+    python_requires = ">= 3.9",
+    requires = [
+        "numpy >= 1.21.1", 
+        "matplotlib >= 3.4.2", 
+        "scipy >= 1.7.1",
+        "scikit-learn >= 0.24.2",
+        "networkx >= 2.6.2",
+        "pandas >= 1.3.2",
+        "openturns >= 1.17",
+        "traci >= 1.11"
+    ]
 )
