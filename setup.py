@@ -23,7 +23,7 @@ setuptools.setup(
     package_dir = {"": "src"},
     packages = setuptools.find_packages(where="src"),
     python_requires = ">= 3.9",
-    requires = [
+    install_requires = [
         "numpy >= 1.21.1", 
         "matplotlib >= 3.4.2", 
         "scipy >= 1.7.1",
