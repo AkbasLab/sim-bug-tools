@@ -6,7 +6,7 @@ Author: Quentin Goss
 import numpy as np
 import pickle
 from sim_bug_tools.constants import *
-
+import re
 
 def as_position(position: np.ndarray) -> np.ndarray:
     """
@@ -198,51 +198,6 @@ def is_prime(x: np.int32) -> bool:
     return x in PRIME_VECTOR_SET
 
 
-# This shouldn't be here...
-
-
-# def sample_sequence(
-#     name: str, i_element: np.int32, number_of_parameters: np.int32, base: np.int32 = 10
-# ) -> np.ndarray:
-#     """
-#     Get a sample from a low discrepency sequence.
-
-#     -- Parameters --
-#     name : str
-#         Name of sequence
-#     i_element : int
-#         Index of element (aka. seed)
-#     number_of_parameters : int
-#         Number of parameters to sample.
-#     base : int
-#         Number base. Used in hammersley.
-
-#     -- Return --
-#     np.array
-#         A sample for each dimension
-#     """
-#     name = name.lower()
-
-#     if name == "sobol":
-#         return sobol.i4_sobol(dim_num=number_of_parameters, seed=i_element)[0]
-
-#     elif name == "halton":
-#         return halton.halton(i=i_element, m=number_of_parameters)
-
-#     elif name == "hammersley":
-#         return hammersley.hammersley(i=i_element, m=number_of_parameters, n=base)
-
-#     elif name == "lattice":
-#         raise NotImplementedError("Lattice sequence not implemented.")
-
-#     elif name == "random":
-#         random.seed(int(i_element))
-#         return np.array([random.random() for i in range(number_of_parameters)])
-
-#     elif name == "force_yield":
-#         return np.array([0.2 for i in range(number_of_parameters)])
-
-#     raise NotImplementedError('Unhandled sequence "%s"' % name)
 
 
 
@@ -260,3 +215,10 @@ def filter_unique(array : list[np.ndarray]) -> list[np.ndarray]:
         """
         unique, counts = np.unique(np.sort(np.array(array)), axis=0, return_counts=True)
         return unique[counts == 1]
+
+
+def parse_float(s : str) -> float:
+    return float(re.findall(r'-?\d+\.?\d*', s)[0])
+
+def parse_int(s : str) -> int:
+    return int(parse_float(s))

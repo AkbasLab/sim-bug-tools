@@ -24,7 +24,9 @@ class BugGeneratorWindow:
                 sg.T("Min."), sg.InputText(s=5,key="cluster_size_min"), 
                 sg.T("Max."), sg.InputText(s=5, key="cluster_size_max")],
             [sg.T("Number of profiles.",s=20), sg.InputText(s=10, key="n_profiles")],
-            [sg.T("Output filename.", s=20), sg.Input(key="output_fn"), sg.FileBrowse()],
+            [sg.T("Output filename.", s=20), sg.Input(key="output_fn"), 
+                sg.FileSaveAs(default_extension=".json", 
+                    file_types=[("JSON files", "*.json")])],
             [sg.Button("Generate")],
             [sg.ProgressBar(1, orientation="h", s=(50,20), key="prog")],
             [sg.Output(s=(75,5), key="output", )]
