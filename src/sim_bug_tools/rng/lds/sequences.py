@@ -1,3 +1,4 @@
+
 import numpy as np
 from numpy import int32
 from abc import abstractmethod
@@ -21,6 +22,7 @@ class Sequence:
         self._domain = domain
         self._axes_names = axes_names
         self._seed = np.int32(-1)
+        self._offset = 0
         # self._granularity = np.float63(0.01)
         self.__post_init__()
 
@@ -98,14 +100,9 @@ class Sequence:
         np.random.seed(self._seed)
         return
 
-    # @property
-    # def granularity(self) -> np.float64:
-    #     return self._granularity
-
-    # @granularity.setter
-    # def granularity(self, grain_sz : np.float64):
-    #     self._granularity = grain_sz
-    #     return
+    @property
+    def offset(self) -> int:
+        return self._offset
 
 ## Currently Supported Sequences ##
 
@@ -120,6 +117,7 @@ class HaltonSequence(Sequence):
                 lambda point: Point(np.array(point)), self._ot_sequence.generate(int(n))
             )
         )
+        self._offset += n
         return points
 
 
@@ -133,6 +131,7 @@ class SobolSequence(Sequence):
                 lambda point: Point(np.array(point)), self._ot_sequence.generate(int(n))
             )
         )
+        self._offset += n
         return points
 
 
@@ -146,6 +145,7 @@ class FaureSequence(Sequence):
                 lambda point: Point(np.array(point)), self._ot_sequence.generate(int(n))
             )
         )
+        self._offset += n
         return points
 
 
@@ -154,7 +154,9 @@ class RandomSequence(Sequence):
         return
 
     def get_points(self, n: np.int32) -> list[Point]:
-        return [Point(point) for point in np.random.rand(n, len(self._domain))]
+        points = [Point(point) for point in np.random.rand(n, len(self._domain))]
+        self._offset += n
+        return points
 
 
 class LatticeSequence(Sequence):
@@ -207,8 +209,9 @@ class LatticeSequence(Sequence):
         return Point(self._next_point)
 
     def get_points(self, n: np.int32) -> list[Point]:
-        # self._index += 1
-        return [self._get_next_point() for i in range(n)]
+        points = [self._get_next_point() for i in range(n)]
+        self._offset += n
+        return points
 
 
 

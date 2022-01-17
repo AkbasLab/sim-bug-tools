@@ -2,8 +2,8 @@
 For development
 Add sim_bug_tools to the python path.
 """
-import os, sys
-sys.path.insert(0, "D:\\git-projects\\sim-bug-tools\\src\\sim_bug_tools")
+# import os, sys
+# sys.path.insert(0, "D:\\git-projects\\sim-bug-tools\\src\\sim_bug_tools")
 
 
 import PySimpleGUI as sg
@@ -12,15 +12,26 @@ import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.bugger as bugger
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.utils as utils
-import re
+import sim_bug_tools.simulators as simulators
+
+from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
+
 
 print()
 
 class DashboardWindow:
 
-    def __init__(self):
-        # self._domain = structs.Domain([])
+    _window = None
+    _values = None
+    _bug_profiles = None
+    _n_dim = None
+    _domain = None
+    _seq = None
+    _axis_name = None
+    _rrt = None
+    _simulators = None
 
+    def __init__(self):
         self._init_window()
         self._window_loop()
         return
@@ -49,6 +60,18 @@ class DashboardWindow:
     def seq(self) -> sequences.Sequence:
         return self._seq
 
+    @property
+    def axis_names(self) -> list[str]:
+        return self._axis_names
+
+    @property
+    def rrt(self) -> RapidlyExploringRandomTree:
+        return self._rrt
+
+    @property
+    def simulators(self) -> list[simulators.Simulator]:
+        return self._simulators
+
     def _init_window(self):
         """
         Intitialize the GUI window
@@ -69,7 +92,8 @@ class DashboardWindow:
                 sg.Combo(["No local search.", "RRT"], readonly=True,
                     default_value="No local search.", key="LS:strategy")],
             [sg.T("Branch size."), sg.InputText(s=10, key="RRT:branch_size")],
-            [sg.T("# Branches."), sg.InputText(s=10, key="RRT:n_branches")]
+            [sg.T("# Branches."), sg.InputText(s=10, key="RRT:n_branches")],
+            [sg.T("Seed."), sg.InputText(s=10, key="RRT:seed", default_text="0")]
         ]
 
         layout = [
@@ -83,7 +107,11 @@ class DashboardWindow:
             [sg.T("Bug profiles:"), sg.In(key="bug_profiles_fn"),
                 sg.FileBrowse(target="bug_profiles_fn", 
                 file_types=([("JSON files", "*.json")]) )],
-            [sg.Button("Tada")]
+            [
+                sg.Button("New", k="new"), sg.Button("Run", k="run", disabled=True),
+                sg.InputText("5", k="n_runs", s=5)
+            ],
+            [sg.Column([[]], k="col_simulation_status")]
         ] 
 
         self._window = sg.Window("Dashboard", layout)
@@ -104,15 +132,20 @@ class DashboardWindow:
             self._values["bug_profiles_fn"] = "D:/git-projects/sim-bug-tools/tools/test_bugs.json"
             self._values["RRT:n_branches"] = "5"
             self._values["RRT:branch_size"] = "0.01"
+            self._values["LS:strategy"] = "RRT"
+            # print(event)
             print(self.values)
 
-            if self._check_input(self.values):
-                self._initialize_simulation()
+            if self._check_input(self.values, event):
+                if event == "new":
+                    self._new_simulation()
+                if event == "run":
+                    self._run_simulation()
         self.window.close()
         return
 
 
-    def _check_input(self, values : dict) -> bool:
+    def _check_input(self, values : dict, event : str = "") -> bool:
         """
         Check the values/validates forms.
         """
@@ -182,10 +215,36 @@ class DashboardWindow:
                 print("ERR: n_branches must be an int.")
                 flag = False
         
+        seed_rrt = values["RRT:seed"].strip()
+        if seed_rrt in ["",None]:
+            print("ERR: seed_rrt field is blank.")
+            flag = False
+        else:
+            try: 
+                seed_rrt = utils.parse_int(seed_rrt)  
+            except IndexError:
+                print("ERR: seed_rrt must be an int.")
+                flag = False
+
+        if event == "run":
+            n_runs = values["n_runs"].strip()
+            if n_runs in ["", None]:
+                print("ERR:n_runs field is blank.")
+                flag = False
+            else:
+                try: 
+                    n_runs = utils.parse_int(n_runs)
+                    if n_runs < 0:
+                        print("ERR:n_runs must be >= 0.")
+                        flag = False    
+                except IndexError:
+                    print("ERR:n_runs must be an int.")
+                    flag = False
+
         return flag
 
 
-    def _initialize_simulation(self):
+    def _new_simulation(self):
         # Load bugs
         print("Loading bug profiles from %s" % self.values["bug_profiles_fn"].strip())
         bug_profile_fn = self.values["bug_profiles_fn"].strip()
@@ -217,20 +276,71 @@ class DashboardWindow:
             seq = sequences.FaureSequence
         else:
             raise Exception("Unsupported sequence > %s", choice)
-        self._seq = seq(self.domain, ["dim_%d" % (n+1) for n in range(self.n_dim)])
+        self._axis_names = ["dim_%d" % (n+1) for n in range(self.n_dim)]
+        self._seq = seq(self.domain, self.axis_names)
         self._seq.seed = seed # For random sequence
 
         # Skip ahead
         n_skip_at_start = utils.parse_int( self.values["LW:n_skip_at_start"] )
         self.seq.get_points(n_skip_at_start)
 
+        # Select Strategy
         strategy = self.values["LS:strategy"].lower()
         if strategy == "no local search.":
-            print("NO LOCAL SEARCH")
+            # print("NO LOCAL SEARCH")
+            self._simulators = [simulators.SimpleSimulatorKnownBugs(
+                bug_profile = bug_profile,
+                sequence = self.seq,
+            ) for bug_profile in self.bug_profiles]
         elif strategy == "rrt":
-            print("RRT")
+            # print("RRT")
+            seq_rrt = sequences.RandomSequence(self.domain, self.axis_names)
+            seq_rrt.seed = utils.parse_int( self.values["RRT:seed"] )
+            self._rrt = RapidlyExploringRandomTree(
+                seq = seq_rrt,
+                step_size = utils.parse_int( self.values["RRT:branch_size"] ),
+                exploration_radius = 1
+            )
+            self._simulators = [simulators.SimpleSimulatorKnownBugsRRT(
+                bug_profile = bug_profile,
+                sequence = self.seq,
+                rrt = self.rrt,
+                n_branches = utils.parse_int( self.values["RRT:n_branches"] )
+            ) for bug_profile in self.bug_profiles]
+        
+        # Update simulator state
+        msg = "".join(["%d: %s\n" % (i_sim, sim.state.value) for \
+                i_sim, sim in enumerate(self.simulators)])[:-1]
+
+
+        # Add state and bars for all simulations
+        [self.window.extend_layout(
+            self.window["col_simulation_status"],
+            self._new_simulation_status_row_layout(i)
+        ) for i in range(len(self.bug_profiles))]
+
+
+        # Disable new button
+        self.window["new"].update(disabled=True)
+        self.window["run"].update(disabled=False)
         return
 
+    
+    def _new_simulation_status_row_layout(self, i):
+        return [[
+            sg.T("%d: %s" % (i, simulators.State.NO_SIMULATOR_LOADED.value), 
+                s=len(simulators.State.NO_SIMULATOR_LOADED.value), 
+                k="SS:state_%d" % i),
+            sg.ProgressBar(1, expand_x = True, orientation = "h",
+                key="SS:progress_%d" % i)
+        ]]
+
+
+    def _run_simulation(self):
+        for sim in self.simulators:
+            sim.run(5)
+            break
+        return
     
 
 def main():

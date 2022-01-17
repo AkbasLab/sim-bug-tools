@@ -5,6 +5,7 @@ src/sim_bug_tools/__init__.py
 src/sim_bug_tools/constants.py
 src/sim_bug_tools/decorators.py
 src/sim_bug_tools/graphics.py
+src/sim_bug_tools/simulators.py
 src/sim_bug_tools/structs.py
 src/sim_bug_tools/utils.py
 src/sim_bug_tools/rng/__init__.py

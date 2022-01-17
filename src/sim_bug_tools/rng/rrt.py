@@ -6,7 +6,6 @@ class RapidlyExploringRandomTree:
     def __init__(self, 
                 seq : sequences.Sequence,
                 step_size : np.float64,
-                seed : np.int32,
                 exploration_radius : np.float64):
         """
         Rapidly exploring random tree implementation
@@ -18,13 +17,10 @@ class RapidlyExploringRandomTree:
             Sequence for exploration space sampling.
         step_size : np.float64
             Amount of exploration performed during each step.
-        seed : np.int32
-            Seed for RNG
         exploration_radius : np.float64
             The size of the RRT is this square radius value measured from the root. 
         """
         self._seq = seq
-        self._seq.seed = seed
         self._step_size = np.float64(step_size)
         self._exploration_radius = np.float64(exploration_radius)
         self._root = None
@@ -39,17 +35,10 @@ class RapidlyExploringRandomTree:
     def seq(self) -> sequences.Sequence:
         return self._seq
 
-    # @property
-    # def domain(self) -> structs.Domain:
-    #     return self._seq.domain
     
     @property
     def step_size(self) -> np.float64:
         return self._step_size
-
-    @property
-    def seed(self) -> np.int32:
-        return np.int32(self._seq.seed)
 
     @property
     def contents(self) -> list[structs.Point]:
