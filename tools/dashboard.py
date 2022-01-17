@@ -129,7 +129,7 @@ class DashboardWindow:
             if event == sg.WIN_CLOSED:
                 break
 
-            self._values["bug_profiles_fn"] = "D:/git-projects/sim-bug-tools/tools/test_bugs.json"
+            self._values["bug_profiles_fn"] = "tools/test_bugs.json"
             self._values["RRT:n_branches"] = "5"
             self._values["RRT:branch_size"] = "0.01"
             self._values["LS:strategy"] = "RRT"

@@ -31,6 +31,7 @@ setuptools.setup(
         "networkx >= 2.6.2",
         "pandas >= 1.3.2",
         "openturns >= 1.17",
-        "traci >= 1.11"
+        "traci >= 1.11",
+        "PySimpleGUI >= 4.56.0"
     ]
 )
