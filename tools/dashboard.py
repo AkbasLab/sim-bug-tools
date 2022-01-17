@@ -307,7 +307,11 @@ class DashboardWindow:
                 rrt = self.rrt,
                 n_branches = utils.parse_int( self.values["RRT:n_branches"] )
             ) for bug_profile in self.bug_profiles]
-        
+
+        # Set IDs for all simulators
+        for i, sim in enumerate(self.simulators):
+            sim.set_id("%d" % i)
+
         # Update simulator state
         msg = "".join(["%d: %s\n" % (i_sim, sim.state.value) for \
                 i_sim, sim in enumerate(self.simulators)])[:-1]
@@ -337,8 +341,9 @@ class DashboardWindow:
 
 
     def _run_simulation(self):
+        n_runs = utils.parse_int(self.values["n_runs"])
         for sim in self.simulators:
-            sim.run(5)
+            sim.run(n_runs)
             break
         return
     

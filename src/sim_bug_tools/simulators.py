@@ -31,6 +31,8 @@ class Simulator():
         self._n_steps_to_run = 0
         self._last_observed_point = None
         self._local_search_enabled = False
+        self._id = "0"
+        self._log_to_console = True
         self.paused()
         return
 
@@ -81,25 +83,47 @@ class Simulator():
     @property
     def local_search_enabled(self) -> bool:
         return self._local_search_enabled
+
+    @property
+    def log_to_console(self) -> bool:
+        return self._log_to_console
+
+    @property
+    def id(self) -> str:
+        return self._id
     
     def enable_local_search(self):
         self._local_search_enabled = True
         return
+    
+    def enable_log_to_console(self):
+        self._log_to_console = True
+        return
 
+    def set_id(self, id : str):
+        self._id = id
+        return
+
+    def log(self, msg : str) -> str:
+        msg = "%s:%s" % (self.id, msg)
+        if self.log_to_console:
+            print(msg)
+        return msg
+
+    # States
     def paused(self):
         self._state = State.PAUSED
         return
 
-    @abstractmethod
+
     def long_walk(self, point : structs.Point, is_bug : bool):
         self._state = State.LONG_WALK
         self._step += 1
         self._n_long_walks += 1
         self._n_steps_to_run -= 1
         self.add_to_history(point, is_bug)
-        print("long walk")
-
         is_bug = True
+        self.log("Long Walk")
 
         # Change state
         if self.n_steps_to_run <= 0:
@@ -113,13 +137,35 @@ class Simulator():
         return
 
     
-    def local_search(self):
-        if self.local_search_enabled:
-            self._state = State.LOCAL_SEARCH
-            self._step += 1
-            self._n_local_searches += 1
-            self._n_steps_to_run -= 1
-            print("local search")
+    def local_search(self, point : structs.Point = None, is_bug : bool = None):
+        if not self.local_search_enabled:
+            return
+        elif point is None:
+            raise ValueError("point is None.")
+        elif is_bug is None:
+            raise ValueError("is_bug is None.")
+
+        self._state = State.LOCAL_SEARCH
+        self._step += 1
+        self._n_local_searches += 1
+        self._n_steps_to_run -= 1
+        self.add_to_history(point, is_bug)
+        self.log("Local Search")
+
+        # Change state
+        if self.n_steps_to_run <= 0:
+            if self.local_search_exit_condition():
+                self.local_search_to_paused()
+                self.paused()
+                return
+            else:
+                self.local_search_to_incomplete_local_search()
+                self.incomplete_local_search()
+                return
+        elif self.local_search_exit_condition():
+            self.local_search_to_long_walk()
+            self.long_walk()
+        self.local_search()
         return
 
     
@@ -132,15 +178,32 @@ class Simulator():
         return 
 
     def local_search_to_paused(self):
-        return 
+        return
+
+    def local_search_to_long_walk(self):
+        return
     
+    def local_search_to_paused(self):
+        return
+
+    def local_search_to_incomplete_local_search(self):
+        return
+
+
+    #  Exit conditions
+    def local_search_exit_condition(self) -> bool:
+        return True
+    
+
+
+
     def run(self, n : int):
         self._n_steps_to_run = n
         del n
 
         if self.state == State.PAUSED:
             self.long_walk()
-        elif self.stae == State.INCOMPLETE_LOCAL_SEARCH:
+        elif self.state == State.INCOMPLETE_LOCAL_SEARCH:
             self.local_search()
         return    
 
@@ -186,12 +249,16 @@ class SimpleSimulatorKnownBugs(Simulator):
         # Sample from the sequence
         point = self.sequence.get_points(1)[0]
 
-        # Check if it's in any bug boundary
-        is_bug = any([point in bug_envelope for bug_envelope in self.bug_profile])
+        # Check if it's in the bug profile
+        is_bug = self.is_point_in_bug_profile(point)
 
         # Call the parent function
-        super().long_walk(point, is_bug)         
-        return 
+        return super().long_walk(point, is_bug)         
+        
+
+
+    def is_point_in_bug_profile(self, point : structs.Point) -> bool:
+        return any([point in bug_envelope for bug_envelope in self.bug_profile])
 
 
 class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
@@ -209,6 +276,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         super().__init__(bug_profile, sequence)
         self._rrt = rrt
         self._n_branches = n_branches
+        self._n_branches_remaining = n_branches
         self.enable_local_search()
         return
 
@@ -219,17 +287,34 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
     @property
     def n_branches(self) -> int:
         return self._n_branches
+
+    @property
+    def n_branches_remaining(self) -> int:
+        return self._n_branches_remaining
     
 
     def long_walk_to_local_search(self):
         # Reset the RRT
         self.rrt.reset(self.last_observed_point)
+        self._n_branches_remaining = self.n_branches
         return
 
     def local_search(self):
+        # Generate the next point
+        point = self.rrt.step()[2]
 
-        super().local_search()
-        return
+        # Check if it's in the bug profile
+        is_bug = self.is_point_in_bug_profile(point)
+
+        # Reduce branches remaining.
+        self._n_branches_remaining -= 1
+
+        #  Call parent function
+        return super().local_search(point, is_bug)
+        
+    
+    def local_search_exit_condition(self) -> bool:
+        return self.n_branches_remaining <= 0
 
     
     
