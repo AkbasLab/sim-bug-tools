@@ -416,9 +416,9 @@ class SimpleSimulatorKnownBugs(Simulator):
 
     def as_dict(self) -> dict:
         return {
-            # "bug_profile" : [domain.as_dict() for domain in self.bug_profile],
-            "sequence" : self.sequence,
-            # "parent" : super().as_dict()
+            "bug_profile" : [domain.as_dict() for domain in self.bug_profile],
+            "sequence" : self.sequence.as_dict(),
+            "parent" : super().as_dict()
         }
 
 
@@ -496,9 +496,9 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
     def as_dict(self) -> dict:
         return {
             # "rrt" : self.rrt,
-            # "n_branches" : self.n_branches,
-            # "n_branches_remaining" : self.n_branches_remaining,
-            "parent" : super().as_dict()
+            "n_branches" : self.n_branches,
+            "n_branches_remaining" : self.n_branches_remaining,
+            # "parent" : super().as_dict()
         }
     
 

@@ -1,3 +1,4 @@
+from selectors import EpollSelector
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 import numpy as np
@@ -23,10 +24,10 @@ class RapidlyExploringRandomTree:
         self._seq = seq
         self._step_size = np.float64(step_size)
         self._exploration_radius = np.float64(exploration_radius)
-        self._root = None
+        self._root = structs.Point([])
         self._contents = []
         return
-    
+
     @property
     def root(self) -> structs.Point:
         return self._root
@@ -35,7 +36,6 @@ class RapidlyExploringRandomTree:
     def seq(self) -> sequences.Sequence:
         return self._seq
 
-    
     @property
     def step_size(self) -> np.float64:
         return self._step_size
@@ -45,12 +45,33 @@ class RapidlyExploringRandomTree:
         return self._contents
 
     @property
-    def size(self) -> np.int32:
-        return np.int32(len(self.contents))
+    def size(self) -> int:
+        return len(self.contents)
 
     @property
     def exploration_radius(self) -> np.float64:
         return self._exploration_radius
+
+    def as_dict(self) -> dict:
+        return {
+            "seq" : self.seq.as_dict(),
+            "step_size" : self.step_size,
+            "exploration_radius" : self.exploration_radius,
+            "root" : self.root.to_list(),
+            "contents" : [point.to_list() for point in self.contents]
+        }
+    
+    @staticmethod
+    def from_dict(d : dict):
+        rrt = RapidlyExploringRandomTree(
+            seq = sequences.from_dict(d["seq"]),
+            step_size = d["step_size"],
+            exploration_radius = d["exploration_radius"] 
+        )
+        rrt._root = structs.Point(d["root"])
+        rrt._contents = [structs.Point(arr) for arr in d["contents"]]
+        return rrt
+
 
     def step(self):
         """

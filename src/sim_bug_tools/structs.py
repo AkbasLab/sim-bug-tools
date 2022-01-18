@@ -99,6 +99,12 @@ class Point:
         """
         return np.array([float64(x) for x in array])
 
+    def to_list(self):
+        return self.array.tolist()
+
+    def as_json(self):
+        return json.dumps(self.to_list())
+
     @staticmethod
     def is_point(array: tuple) -> bool:
         """
@@ -209,8 +215,8 @@ class Domain:
     def as_dict(self) -> dict[str, Point]:
         arr = self.bounding_points
         return {
-            "lower_bounds": arr[0], 
-            "upper_bounds": arr[1],
+            "lower_bounds": arr[0].array.tolist(), 
+            "upper_bounds": arr[1].array.tolist(),
             "granularity": self.granularity
         }
 

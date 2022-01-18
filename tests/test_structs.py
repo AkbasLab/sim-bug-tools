@@ -1,6 +1,6 @@
 import sim_bug_tools.structs as structs, sim_bug_tools.utils as utils
 import unittest, random
-from sim_bug_tools.tests._testdata import PointTestData, DomainTestData
+# from sim_bug_tools.tests._testdata import PointTestData, DomainTestData
 from unittest import TestCase
 import math
 import numpy as np
