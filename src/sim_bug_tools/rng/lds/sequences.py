@@ -104,6 +104,13 @@ class Sequence:
     def offset(self) -> int:
         return self._offset
 
+    
+    # def as_dict(self) -> dict:
+    #     return {
+    #         "domain" : self.domain,
+    #         "axes_names" : self.axes_names,
+    #     }
+
 ## Currently Supported Sequences ##
 
 

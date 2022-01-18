@@ -308,9 +308,11 @@ class DashboardWindow:
                 n_branches = utils.parse_int( self.values["RRT:n_branches"] )
             ) for bug_profile in self.bug_profiles]
 
-        # Set IDs for all simulators
+        # Set IDs for all simulators and transition into paused state.
         for i, sim in enumerate(self.simulators):
             sim.set_id("%d" % i)
+            sim.paused()
+            continue
 
         # Update simulator state
         msg = "".join(["%d: %s\n" % (i_sim, sim.state.value) for \

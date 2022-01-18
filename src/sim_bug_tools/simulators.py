@@ -3,6 +3,7 @@ import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 import pandas as pd
+import json
 
 class State(enum.Enum):
     PAUSED = "PAUSED"
@@ -10,6 +11,7 @@ class State(enum.Enum):
     LOCAL_SEARCH = "LOCAL_SEARCH"
     NO_SIMULATOR_LOADED = "NO_SIMULATOR_LOADED"
     INCOMPLETE_LOCAL_SEARCH = "INCOMPLETE_LOCAL_SEARCH"
+    INITIALIZED = "INITIALIZED"
 
 class Simulator():
     """
@@ -18,6 +20,7 @@ class Simulator():
     class provides methods of I/O.
     """
     def __init__(self, domain : structs.Domain):
+        self._state = State.INITIALIZED
         self._step = 0
         self._domain = domain
         self._n_long_walks = 0
@@ -37,8 +40,6 @@ class Simulator():
         })
         self._n_steps_to_run = 0
         self._last_observed_point = None
-
-        self.paused()
         return
 
     @property
@@ -146,24 +147,21 @@ class Simulator():
         self._id = id
         return
 
-    def log(self, msg : str) -> str:
-        """
-        A wrapper for print() to log messages to various I/O.
-        Appends the ID to the front of the message.
+    def as_dict(self) -> dict:
+        return {
+            "step": self.step,
+            "domain": self.domain.as_dict(),
+            "n_long_walks" : self.n_long_walks,
+            "n_local_searches" : self.n_local_searches,
+            "n_bugs" : self.n_bugs,
+            "local_search_enabled" : self.local_search_enabled,
+            "id" : self.id,
+            "state" : self.state.value
+        }
 
-        --- Parameters ---
-        msg : str
-            Message to be printed.
-
-        --- Return --
-        str
-            The transformed message.
-        """
-        msg = "%s:%s" % (self.id, msg)
-        if self.log_to_console:
-            print(msg)
-        return msg
-
+    def as_json(self) -> str:
+        return json.dumps(self.as_dict())
+    
 
     # Internal
     def _clear_temp_data(self):
@@ -340,7 +338,9 @@ class Simulator():
             self.long_walk()
         elif self.state == State.INCOMPLETE_LOCAL_SEARCH:
             self.local_search()
-        return    
+
+        print(self.as_dict())
+        return  
 
 
     def add_to_history(self, point : structs.Point, is_bug : bool):
@@ -361,6 +361,24 @@ class Simulator():
         }, ignore_index = True)
         self._last_observed_point = point
         return
+
+    def log(self, msg : str) -> str:
+        """
+        A wrapper for print() to log messages to various I/O.
+        Appends the ID to the front of the message.
+
+        --- Parameters ---
+        msg : str
+            Message to be printed.
+
+        --- Return --
+        str
+            The transformed message.
+        """
+        msg = "%s:%s" % (self.id, msg)
+        if self.log_to_console:
+            print(msg)
+        return msg
 
 
 class SimpleSimulatorKnownBugs(Simulator):
@@ -394,6 +412,15 @@ class SimpleSimulatorKnownBugs(Simulator):
         Sequence used to generate points.
         """
         return self._sequence
+
+
+    def as_dict(self) -> dict:
+        return {
+            # "bug_profile" : [domain.as_dict() for domain in self.bug_profile],
+            "sequence" : self.sequence,
+            # "parent" : super().as_dict()
+        }
+
 
     def long_walk(self):
         """
@@ -438,6 +465,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         n_branches : int
     ):
         super().__init__(bug_profile, sequence)
+
         self._rrt = rrt
         self._n_branches = n_branches
         self._n_branches_remaining = n_branches
@@ -464,6 +492,14 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         The number of branches left for the RRT to grow.
         """
         return self._n_branches_remaining
+
+    def as_dict(self) -> dict:
+        return {
+            # "rrt" : self.rrt,
+            # "n_branches" : self.n_branches,
+            # "n_branches_remaining" : self.n_branches_remaining,
+            "parent" : super().as_dict()
+        }
     
 
     def long_walk_to_local_search(self):
