@@ -17,11 +17,11 @@ class Sequence:
     """
 
     @abstractmethod
-    def __init__(self, domain: Domain, axes_names: tuple[str]):
+    def __init__(self, domain: Domain, axes_names: tuple[str], seed : int = -1):
         "Initializes the sequence with the number of dimensions of the points."
         self._domain = domain
         self._axes_names = axes_names
-        self._seed = np.int32(-1)
+        self._seed = np.int32(seed)
         self._offset = 0
         # self._granularity = np.float63(0.01)
         self.__post_init__()
@@ -104,16 +104,18 @@ class Sequence:
     def offset(self) -> int:
         return self._offset
 
-    
-    # def as_dict(self) -> dict:
-    #     return {
-    #         "domain" : self.domain,
-    #         "axes_names" : self.axes_names,
-    #     }
+    @abstractmethod
+    def as_dict(self) -> dict:
+        return {
+            "class" : self.__class__.__name__,
+            "domain" : self.domain.as_dict(),
+            "axes_names" : self.axes_names,
+            "seed" : self.seed,
+            "offset" : self.offset
+        }
+
 
 ## Currently Supported Sequences ##
-
-
 class HaltonSequence(Sequence):
     def __post_init__(self):
         self._ot_sequence = ot.HaltonSequence(len(self._domain))
@@ -220,6 +222,35 @@ class LatticeSequence(Sequence):
         self._offset += n
         return points
 
+
+
+
+def from_dict(d : dict) -> Sequence:
+    """
+    Reconstructs a sequence from a dictionary
+
+    --- Parameters ---
+    d : dict
+        Dictionary which defines a sequence
+
+    --- Return ---
+    Sequence
+        A sequence generated from the given dictionary.
+    """
+    sequence_constructors = {
+        "HaltonSequence" : HaltonSequence,
+        "SobolSequence" : SobolSequence,
+        "FaureSequence" : FaureSequence,
+        "RandomSequence" : RandomSequence,
+        "LatticeSequence" : LatticeSequence
+    }
+    seq : Sequence = sequence_constructors[d["class"]](
+        domain = Domain.from_dict(d["domain"]),
+        axes_names = d["axes_names"],
+        seed = d["seed"]
+    )
+    seq.get_points(d["offset"])
+    return seq
 
 
 def main():

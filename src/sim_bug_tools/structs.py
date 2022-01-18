@@ -419,9 +419,14 @@ class Domain:
     @staticmethod
     def from_json(string: str):
         d = json.loads(string)
+        return Domain.from_dict(d)
+
+    @staticmethod
+    def from_dict(d : dict):
         a = d["lower_bounds"]
         b = d["upper_bounds"]
         return Domain.from_bounding_points(a, b)
+    
 
     @staticmethod
     def is_domain(array):
