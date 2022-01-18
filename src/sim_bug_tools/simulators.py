@@ -1,5 +1,3 @@
-from abc import abstractmethod
-from abc import ABC
 import enum
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
@@ -14,14 +12,23 @@ class State(enum.Enum):
     INCOMPLETE_LOCAL_SEARCH = "INCOMPLETE_LOCAL_SEARCH"
 
 class Simulator():
+    """
+    Simulator base class. This base class collects common statistics
+    and defines the four states of operation. In addition, this base
+    class provides methods of I/O.
+    """
     def __init__(self, domain : structs.Domain):
         self._step = 0
         self._domain = domain
         self._n_long_walks = 0
-        self._n_temp_long_walks = 0
         self._n_local_searches = 0
-        self._n_temp_local_searches = 0
         self._n_bugs = 0
+        self._local_search_enabled = False
+        self._id = "0"
+        self._log_to_console = True
+        self._file_name = "hhh.sim"
+
+        # Temp Data
         self._history = pd.DataFrame({
             "step" : [],
             "point" : [],
@@ -30,93 +37,180 @@ class Simulator():
         })
         self._n_steps_to_run = 0
         self._last_observed_point = None
-        self._local_search_enabled = False
-        self._id = "0"
-        self._log_to_console = True
+
         self.paused()
         return
 
     @property
     def state(self) -> State:
+        """
+        The simulation state.
+        """
         return self._state
 
     @property
     def step(self) -> int:
+        """
+        The current simulation step.
+        """
         return self._step
 
     @property
     def domain(self) -> structs.Domain:
+        """
+        The domain which defines the simulation space.
+        """
         return self._domain
 
     @property
     def n_long_walks(self) -> int:
+        """
+        The number of long walk steps perfomed so far.
+        """
         return self._n_long_walks
-        
-    @property
-    def n_temp_long_walks(self) -> int:
-        return self._n_temp_long_walks
     
     @property
     def n_local_searches(self) -> int:
+        """
+        The number of local search steps performed so far.
+        """
         return self._n_local_searches
 
     @property
-    def n_temp_local_searches(self) -> int:
-        return self._n_temp_local_searches
-
-    @property
     def n_bugs(self) -> int:
+        """
+        The number of bugs observed so far.
+        """
         return self._n_bugs
 
     @property
     def history(self) -> pd.DataFrame:
+        """
+        A temporary history of simulation results of the current run.
+        """
         return self._history
 
     @property
     def n_steps_to_run(self) -> int:
+        """
+        Number of steps left to run.
+        """
         return self._n_steps_to_run
 
     @property
     def last_observed_point(self) -> structs.Point:
+        """
+        The last observed point from the previous step.
+        """
         return self._last_observed_point
 
     @property
     def local_search_enabled(self) -> bool:
+        """
+        If local search is enabled.
+        """
         return self._local_search_enabled
 
     @property
     def log_to_console(self) -> bool:
+        """
+        If the self.log() function will print to console.
+        """
         return self._log_to_console
 
     @property
     def id(self) -> str:
+        """
+        A unique ID.
+        """
         return self._id
     
     def enable_local_search(self):
+        """
+        Enables local search.
+        """
         self._local_search_enabled = True
         return
     
     def enable_log_to_console(self):
+        """
+        Enables logging messages to console with self.log()
+        """
         self._log_to_console = True
         return
 
     def set_id(self, id : str):
+        """
+        Set the id.
+        """
         self._id = id
         return
 
     def log(self, msg : str) -> str:
+        """
+        A wrapper for print() to log messages to various I/O.
+        Appends the ID to the front of the message.
+
+        --- Parameters ---
+        msg : str
+            Message to be printed.
+
+        --- Return --
+        str
+            The transformed message.
+        """
         msg = "%s:%s" % (self.id, msg)
         if self.log_to_console:
             print(msg)
         return msg
 
+
+    # Internal
+    def _clear_temp_data(self):
+        """
+        Clears tempory data.
+        """
+        self._history = pd.DataFrame({
+            "step" : [],
+            "point" : [],
+            "is_bug" : [],
+            "state" : []
+        })
+        self._n_steps_to_run = 0
+        self._last_observed_point = None
+        return
+
+
     # States
     def paused(self):
+        """
+        Paused State
+        """
         self._state = State.PAUSED
+        self._clear_temp_data()
+        self.log("Paused")
+        return
+
+    def incomplete_local_search(self):
+        """
+        Incomplete Local Search State
+        """
+        self._state = State.INCOMPLETE_LOCAL_SEARCH
+        self._clear_temp_data()
+        self.log("Incomplete Local Search")
         return
 
 
     def long_walk(self, point : structs.Point, is_bug : bool):
+        """
+        Long Walk State.
+
+        -- Parameters --
+        point : structs.Point
+            Point observed.
+        is_bug : bool
+            If the observed point was a bug.
+        """
         self._state = State.LONG_WALK
         self._step += 1
         self._n_long_walks += 1
@@ -138,6 +232,15 @@ class Simulator():
 
     
     def local_search(self, point : structs.Point = None, is_bug : bool = None):
+        """
+        Local Search State
+
+        -- Parameters --
+        point : structs.Point
+            Point observed.
+        is_bug : bool
+            If the observed point was a bug.
+        """
         if not self.local_search_enabled:
             return
         elif point is None:
@@ -169,35 +272,67 @@ class Simulator():
         return
 
     
-    def incomplete_local_search(self):
-        self._state = State.INCOMPLETE_LOCAL_SEARCH
-        return
+    
 
     # Transitions
     def long_walk_to_local_search(self):
+        """
+        Transition function.
+        Long Walk State -> Local Search State
+        """
         return 
 
     def local_search_to_paused(self):
+        """
+        Transition function.
+        Local Search State -> Paused State
+        """
         return
 
     def local_search_to_long_walk(self):
+        """
+        Transition function.
+        Local Search State -> Long Walk State
+        """
         return
     
     def local_search_to_paused(self):
+        """
+        Transition function.
+        Local Search State -> Paused State
+        """
         return
 
     def local_search_to_incomplete_local_search(self):
+        """
+        Transition function.
+        Local Search State -> Incomplete Local Search State
+        """
         return
 
 
     #  Exit conditions
     def local_search_exit_condition(self) -> bool:
+        """
+        Exit Condition function to leave Local Search State.
+
+        -- Return --
+        bool
+            Will leave Local Search State when True.
+        """
         return True
     
 
 
-
+    #  Other Functions
     def run(self, n : int):
+        """
+        Runs the simulation for n_steps
+
+        --- Parameters --
+        n : int
+            Steps to run.
+        """
         self._n_steps_to_run = n
         del n
 
@@ -207,16 +342,25 @@ class Simulator():
             self.local_search()
         return    
 
+
     def add_to_history(self, point : structs.Point, is_bug : bool):
+        """
+        Adds a new row to the history dataframe
+
+        --- Parameters ---
+        point : structs.Point
+            A point in space.
+        is_bug : bool
+            If a bug was observed at that point in space.
+        """
         self._history = self._history.append({
             "step" : self.step,
             "point" : point,
             "is_bug" : is_bug,
-            "state" : self.state,
+            "state" : self.state.value,
         }, ignore_index = True)
         self._last_observed_point = point
         return
-    
 
 
 class SimpleSimulatorKnownBugs(Simulator):
@@ -226,7 +370,7 @@ class SimpleSimulatorKnownBugs(Simulator):
     """
     def __init__(self,
         bug_profile : list[structs.Domain],
-        sequence : sequences.Sequence
+        sequence : sequences.Sequence,
     ):
         n_dim = len(sequence.domain)
         super().__init__(
@@ -239,13 +383,22 @@ class SimpleSimulatorKnownBugs(Simulator):
 
     @property
     def bug_profile(self) -> list[structs.Domain]:
+        """
+        A list of domains which form the bug profile.
+        """
         return self._bug_profile
     
     @property
     def sequence(self) -> sequences.Sequence:
+        """
+        Sequence used to generate points.
+        """
         return self._sequence
 
     def long_walk(self):
+        """
+        The sequence generates a point which is compared to the bug profile.
+        """
         # Sample from the sequence
         point = self.sequence.get_points(1)[0]
 
@@ -258,6 +411,17 @@ class SimpleSimulatorKnownBugs(Simulator):
 
 
     def is_point_in_bug_profile(self, point : structs.Point) -> bool:
+        """
+        Checks if a point is within the bug profile.
+
+        --- Parameters ---
+        point : structs.Point
+            A point in space
+
+        --- Return --
+        bool
+            True when the point exists within the bug profile.
+        """
         return any([point in bug_envelope for bug_envelope in self.bug_profile])
 
 
@@ -282,24 +446,40 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
 
     @property
     def rrt(self) -> RapidlyExploringRandomTree:
+        """
+        A Rapidly Exploring Random Tree
+        """
         return self._rrt
 
     @property
     def n_branches(self) -> int:
+        """
+        The number of branches the RRT will grow before resetting to 0 branches.
+        """
         return self._n_branches
 
     @property
     def n_branches_remaining(self) -> int:
+        """
+        The number of branches left for the RRT to grow.
+        """
         return self._n_branches_remaining
     
 
     def long_walk_to_local_search(self):
+        """
+        The RRT is reset and centered on the last observed point.
+        """
         # Reset the RRT
         self.rrt.reset(self.last_observed_point)
         self._n_branches_remaining = self.n_branches
         return
 
     def local_search(self):
+        """
+        Local Exploration using the RRT for point selection, until the
+        specified amount of branches are grown.
+        """
         # Generate the next point
         point = self.rrt.step()[2]
 
@@ -314,6 +494,10 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         
     
     def local_search_exit_condition(self) -> bool:
+        """
+        The local search ends when the RRT does not need to grow anymore
+        branches.
+        """
         return self.n_branches_remaining <= 0
 
     

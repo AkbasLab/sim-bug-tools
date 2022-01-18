@@ -317,11 +317,11 @@ class DashboardWindow:
                 i_sim, sim in enumerate(self.simulators)])[:-1]
 
 
-        # Add state and bars for all simulations
-        [self.window.extend_layout(
-            self.window["col_simulation_status"],
-            self._new_simulation_status_row_layout(i)
-        ) for i in range(len(self.bug_profiles))]
+        # # Add state and bars for all simulations
+        # [self.window.extend_layout(
+        #     self.window["col_simulation_status"],
+        #     self._new_simulation_status_row_layout(i)
+        # ) for i in range(len(self.bug_profiles))]
 
 
         # Disable new button
