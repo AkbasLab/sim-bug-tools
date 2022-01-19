@@ -10,6 +10,7 @@ from sim_bug_tools.rng.lds.sequences import (
 import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.structs import Domain
 from unittest import TestCase
+import unittest
 
 class TestSequencesIO(TestCase):
 
@@ -44,4 +45,9 @@ class TestSequencesIO(TestCase):
         
         self.assertRaises(KeyError, sequences.from_dict, {})
         self.assertRaises(KeyError, sequences.from_dict, {"class" : "FakeClass"})
+
+        [seq.as_json() for seq in imported_sequences]
         return
+
+def main():
+    unittest.main()

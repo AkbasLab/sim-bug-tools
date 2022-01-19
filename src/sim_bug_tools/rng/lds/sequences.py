@@ -2,8 +2,8 @@
 import numpy as np
 from numpy import int32
 from abc import abstractmethod
-import logging
 import openturns as ot
+import json
 
 from sim_bug_tools.rng.lds.coverage import Sample
 from sim_bug_tools.structs import Point, Domain
@@ -21,7 +21,7 @@ class Sequence:
         "Initializes the sequence with the number of dimensions of the points."
         self._domain = domain
         self._axes_names = axes_names
-        self._seed = np.int32(seed)
+        self._seed = int(seed)
         self._offset = 0
         # self._granularity = np.float63(0.01)
         self.__post_init__()
@@ -91,12 +91,12 @@ class Sequence:
         return self._axes_names
 
     @property
-    def seed(self) -> np.int32:
+    def seed(self) -> int:
         return self._seed
 
     @seed.setter
-    def seed(self, n: np.int32):
-        self._seed = np.int32(n)
+    def seed(self, n: int):
+        self._seed = int(n)
         np.random.seed(self._seed)
         return
 
@@ -104,7 +104,6 @@ class Sequence:
     def offset(self) -> int:
         return self._offset
 
-    @abstractmethod
     def as_dict(self) -> dict:
         return {
             "class" : self.__class__.__name__,
@@ -113,6 +112,10 @@ class Sequence:
             "seed" : self.seed,
             "offset" : self.offset
         }
+
+    def as_json(self) -> str:
+        return json.dumps(self.as_dict())
+    
 
 
 ## Currently Supported Sequences ##
@@ -174,8 +177,6 @@ class LatticeSequence(Sequence):
         return
     
     def _reset(self):
-        x = self._domain.granularity
-
         self._lower_point = np.array([arr[0] for arr in self.domain.array])
         self._upper_point = np.array([arr[1] for arr in self.domain.array])
         self._next_point = np.array([np.nan for i in range(len(self._domain.array[0]))])

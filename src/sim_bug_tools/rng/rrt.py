@@ -2,6 +2,7 @@ from selectors import EpollSelector
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 import numpy as np
+import json
 
 class RapidlyExploringRandomTree:
     def __init__(self, 
@@ -61,6 +62,9 @@ class RapidlyExploringRandomTree:
             "contents" : [point.to_list() for point in self.contents]
         }
     
+    def as_json(self) -> str:
+        return json.dumps(self.as_dict())
+
     @staticmethod
     def from_dict(d : dict):
         rrt = RapidlyExploringRandomTree(
@@ -70,6 +74,16 @@ class RapidlyExploringRandomTree:
         )
         rrt._root = structs.Point(d["root"])
         rrt._contents = [structs.Point(arr) for arr in d["contents"]]
+        return rrt
+
+    def copy(self):
+        rrt = RapidlyExploringRandomTree(
+            seq = self.seq,
+            step_size = self.step_size,
+            exploration_radius = self.exploration_radius
+        )
+        rrt._root = self.root
+        rrt._contents = self.contents.copy()
         return rrt
 
 

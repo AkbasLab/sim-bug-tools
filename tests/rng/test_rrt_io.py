@@ -7,8 +7,6 @@ import json
 class TestRRTIO(unittest.TestCase):
 
     def test_rrt_io(self):
-        print("\n\n")
-
         n_dim = 4
         seed = 555
         seq = sequences.RandomSequence(
@@ -26,7 +24,21 @@ class TestRRTIO(unittest.TestCase):
         empty_rrt_dict = empty_rrt.as_dict()
         empty_rrt_new = RapidlyExploringRandomTree.from_dict(empty_rrt_dict)
 
-        # print(json.dumps(empty_rrt_dict))
+        self.assertEqual(
+            empty_rrt.as_json(),
+            empty_rrt_new.as_json()
+        )
 
-        print("\n\n")
+        
+        rrt = empty_rrt.copy()
+        point = structs.Point([1.,2.,3.,4.])
+        rrt.reset(point)
+        [rrt.step() for n in range(10)]
+        rrt_dict = rrt.as_dict()
+        rrt_new = RapidlyExploringRandomTree.from_dict(rrt_dict)
+
+        self.assertEqual(rrt.as_json(), rrt_new.as_json())
         return
+
+def main():
+    unittest.main()
