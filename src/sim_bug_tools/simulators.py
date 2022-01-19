@@ -6,7 +6,7 @@ from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 import sim_bug_tools.utils as utils
 import pandas as pd
 import json
-
+import os
 
 def from_dict(d : dict):
     return
@@ -131,6 +131,13 @@ class Simulator():
         A unique ID.
         """
         return self._id
+
+    @property
+    def file_name(self) -> str:
+        """
+        Filename of the simulator record file.
+        """
+        return self._file_name
     
     def enable_local_search(self):
         """
@@ -152,6 +159,7 @@ class Simulator():
         """
         self._id = id
         return
+
 
     @abstractmethod
     def as_dict(self) -> dict:
@@ -209,6 +217,25 @@ class Simulator():
         self._last_observed_point = None
         return
 
+    def _write_to_file(self):
+        # File does not exist
+        if not os.path.exists(self.file_name):
+            with open(self.file_name, "r+") as f:
+                f.write(self.as_json())
+                f.write(self.history.to_csv(index=False))
+
+        # File exists.
+        else:
+            # The first line is the simulation configuration.
+            with open(self.file_name, "r+") as f:
+                f.seek(0) # Point to first line
+                f.write(self.as_json())
+            
+            # Now add the temporary records to the end.
+            with open(self.file_name, "a") as f:
+                f.write(self.history.to_csv(index=False, header=False))
+        return
+
 
     # States
     def paused(self):
@@ -218,6 +245,7 @@ class Simulator():
         self._state = State.PAUSED
         self._clear_temp_data()
         self.log("Paused")
+        self._write_to_file()
         return
 
     def incomplete_local_search(self):
