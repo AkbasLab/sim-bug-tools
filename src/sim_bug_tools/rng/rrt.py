@@ -86,6 +86,8 @@ class RapidlyExploringRandomTree:
         rrt._contents = self.contents.copy()
         return rrt
 
+        
+
 
     def step(self):
         """

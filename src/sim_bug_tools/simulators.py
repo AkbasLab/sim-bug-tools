@@ -338,8 +338,6 @@ class Simulator():
             self.long_walk()
         elif self.state == State.INCOMPLETE_LOCAL_SEARCH:
             self.local_search()
-
-        print(self.as_dict())
         return  
 
 
@@ -495,10 +493,10 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
 
     def as_dict(self) -> dict:
         return {
-            # "rrt" : self.rrt,
+            "rrt" : self.rrt.as_dict(),
             "n_branches" : self.n_branches,
             "n_branches_remaining" : self.n_branches_remaining,
-            # "parent" : super().as_dict()
+            "parent" : super().as_dict()
         }
     
 

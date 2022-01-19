@@ -346,6 +346,8 @@ class DashboardWindow:
         n_runs = utils.parse_int(self.values["n_runs"])
         for sim in self.simulators:
             sim.run(n_runs)
+            with open("tiger.json", "w") as f:
+                f.write(sim.as_json())
             break
         return
     
