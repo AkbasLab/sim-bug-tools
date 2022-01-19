@@ -222,3 +222,12 @@ def parse_float(s : str) -> float:
 
 def parse_int(s : str) -> int:
     return int(parse_float(s))
+
+def flatten_dicts(dicts : list[dict]) -> dict:
+    """
+    Flatten multiple dicts by keys
+    """
+    for i in range(1,len(dicts)):
+        for key, value in dicts[i].items():
+            dicts[0][key] = value
+    return dicts[0]

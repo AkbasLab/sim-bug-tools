@@ -1,9 +1,15 @@
+from abc import abstractmethod
 import enum
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
+import sim_bug_tools.utils as utils
 import pandas as pd
 import json
+
+
+def from_dict(d : dict):
+    return
 
 class State(enum.Enum):
     PAUSED = "PAUSED"
@@ -147,8 +153,10 @@ class Simulator():
         self._id = id
         return
 
+    @abstractmethod
     def as_dict(self) -> dict:
         return {
+            "class" : self.__class__.__name__,
             "step": self.step,
             "domain": self.domain.as_dict(),
             "n_long_walks" : self.n_long_walks,
@@ -160,8 +168,31 @@ class Simulator():
         }
 
     def as_json(self) -> str:
-        return json.dumps(self.as_dict())
-    
+        return json.dumps(self.as_dict())        
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(d : dict, sim = None):
+        """
+        Create a simulator instance from a dictionary
+
+        -- Parameters --
+        d : dict
+            Instance properties
+        sim : Simulator (default = None)
+            simulator to inherit properties. Will construct a new instance
+            if None.
+        """
+        if sim is None:
+            sim = Simulator(  structs.Domain.from_dict(d["domain"])  )
+        sim._step = int(d["step"])
+        sim._n_long_walks = int(d["n_long_walks"])
+        sim._n_local_searches = int(d["n_local_searches"])
+        sim._n_bugs = int(d["n_bugs"])
+        sim._local_search_enabled = bool(d["local_search_enabled"])
+        sim._id = str(d["id"])
+        sim._state = State(str(d["state"]))
+        return sim
 
     # Internal
     def _clear_temp_data(self):
@@ -411,13 +442,34 @@ class SimpleSimulatorKnownBugs(Simulator):
         """
         return self._sequence
 
-
+    @abstractmethod
     def as_dict(self) -> dict:
-        return {
+        d = {
             "bug_profile" : [domain.as_dict() for domain in self.bug_profile],
-            "sequence" : self.sequence.as_dict(),
-            "parent" : super().as_dict()
+            "sequence" : self.sequence.as_dict()
         }
+        return utils.flatten_dicts([d, super().as_dict()])
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(d : dict, sim = None):
+        """
+        Create a simulator instance from a dictionary
+
+        -- Parameters --
+        d : dict
+            Instance properties
+        sim : Simulator (default = None)
+            simulator to inherit properties. Will construct a new instance
+            if None.
+        """
+        if sim is None:
+            sim = SimpleSimulatorKnownBugs(
+                bug_profile = [structs.Domain.from_dict(domain) \
+                    for domain in d["bug_profile"]],
+                sequence = sequences.from_dict(d["sequence"])
+            )
+        return Simulator.from_dict(d, sim)
 
 
     def long_walk(self):
@@ -492,12 +544,36 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         return self._n_branches_remaining
 
     def as_dict(self) -> dict:
-        return {
+        d = {
             "rrt" : self.rrt.as_dict(),
             "n_branches" : self.n_branches,
-            "n_branches_remaining" : self.n_branches_remaining,
-            "parent" : super().as_dict()
+            "n_branches_remaining" : self.n_branches_remaining
         }
+        return utils.flatten_dicts([d, super().as_dict()])
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(d : dict, sim = None):
+        """
+        Create a simulator instance from a dictionary
+
+        -- Parameters --
+        d : dict
+            Instance properties
+        sim : Simulator (default = None)
+            simulator to inherit properties. Will construct a new instance
+            if None.
+        """
+        if sim is None:
+            sim = SimpleSimulatorKnownBugsRRT(
+                bug_profile = [structs.Domain.from_dict(domain) \
+                    for domain in d["bug_profile"]],
+                sequence = sequences.from_dict(d["sequence"]),
+                rrt = RapidlyExploringRandomTree.from_dict(d["rrt"]),
+                n_branches = int(d["n_branches"])
+            )
+        sim._n_branches_remaining = int(d["n_branches_remaining"])
+        return SimpleSimulatorKnownBugs.from_dict(d, sim)
     
 
     def long_walk_to_local_search(self):
