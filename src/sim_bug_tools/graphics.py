@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import itertools
-import random
 import networkx as nx
 import warnings
 import sklearn.decomposition
