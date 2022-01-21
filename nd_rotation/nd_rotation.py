@@ -9,67 +9,80 @@ def generate_rotation_matric_function(
     
     return
 
-def rotate_stackoverflow():
-    """
-    Source:
-    https://math.stackexchange.com/questions/2144153/n-dimensional-rotation-matrix
 
-    Similar to
+
+
+
+
+def rotation_matrix(theta: float, n_1 : np.ndarray, n_2 : np.ndarray) -> np.ndarray:
+    """
+    This method returns a rotation matrix which rotates any vector 
+    in the 2 dimensional plane spanned by 
+    @n1 and @n2 an angle @theta. The vectors @n1 and @n2 have to be orthogonal.
+    Inspired by 
+    https://analyticphysics.com/Higher%20Dimensions/Rotations%20in%20Higher%20Dimensions.htm
     https://github.com/davidblitz/torch-rot/blob/main/torch_rot/rotations.py
+    :param @n1: first vector spanning 2-d rotation plane, needs to be orthogonal to @n2
+    :param @n2: second vector spanning 2-d rotation plane, needs to be orthogonal to @n1
+    :param @theta: rotation angle
+    :returns : rotation matrix
     """
-    # input vectors
-    v1 = np.array( [1,1,1,1,1,1] )
-    v2 = np.array( [2,3,4,5,6,7] )
+    dim = len(n_1)
+    assert len(n_1) == len(n_2)
+    assert (np.abs(np.dot(n_1, n_2)) < 1e-4)
+    return (np.eye(dim) +
+        (np.outer(n_2, n_1) - np.outer(n_1, n_2)) * np.sin(theta) +
+        (np.outer(n_1, n_1) + np.outer(n_2, n_2)) * (np.cos(theta) - 1)
+    )
 
-    # Gram-Schmidt orthogonalization
-    n1 = v1 / np.linalg.norm(v1)
-    v2 = v2 - np.dot(n1,v2) * n1
-    n2 = v2 / np.linalg.norm(v2)
+def rotate_matrix(theta : float, v1 : np.array, v2 : np.array, enforce_orthogonal : bool = True) -> np.array:
+    """
+    This method returns a rotation matrix which rotates any vector 
+    in the 2 dimensional plane spanned by @v1 and @v2 an angle @theta. 
+    The vectors @v1 and @v2 should be orthogonal when @enforce_orthogonal is 
+    True (default.)
+
+    Inspired by:
+    https://math.stackexchange.com/questions/2144153/n-dimensional-rotation-matrix
+    https://github.com/davidblitz/torch-rot/blob/main/torch_rot/rotations.py
+    https://analyticphysics.com/Higher%20Dimensions/Rotations%20in%20Higher%20Dimensions.htm
+
+
+
+    """
+
+    # input vectors
+    if len(v1) != len(v2):
+        raise ValueError("Input vectors are not the same length.")
+    n_dim = len(v1)
+
+
+    if not enforce_orthogonal:
+        # Gram-Schmidt orthogonalization
+        n1 = v1 / np.linalg.norm(v1)
+        v2 = v2 - np.dot(n1,v2) * n1
+        n2 = v2 / np.linalg.norm(v2)
+    else:
+        n1 = v1
+        n2 = v2
 
     
+    if not (np.dot(n1,n2) < 1e-4):
+        raise Exception("Vectors %s and %s not orthogonal." % (n1, n2))
 
-    # rotation by pi/2
-    a = np.pi/2
+    I = np.identity(n_dim)
 
-    I = np.identity(6)
-
-    R = I + ( np.outer(n2,n1) - np.outer(n1,n2) ) * np.sin(a) \
-        + ( np.outer(n1,n1) + np.outer(n2,n2) ) * (np.cos(a)-1)
-    return
-
-
-
-def rotation(n, dims, angle):
-    """
-    https://github.com/scipy/scipy/issues/12693#issuecomment-674419426
-
-    Parameters
-    ------------
-    n : int
-        dimension of the space
-    dims : 2-tuple of ints
-        the vector indices which form the plane to perform the rotation in
-    angle : array_like of shape (M...,)
-        broadcasting angle to rotate by
-
-    Returns
-    --------
-    m : array_like of shape (M..., n, n)
-        (stack of) rotation matrix
-    """
-    i, j = dims
-    assert i != j
-    c = np.cos(angle)
-    s = np.sin(angle)
-    arr = np.eye(c.shape + (n, n), dtype=c.dtype)
-    arr[..., i, i] = c
-    arr[..., i, j] = -s
-    arr[..., j, i] = s
-    arr[..., j, j] = c
-    return arr
+    R = I + ( np.outer(n2,n1) - np.outer(n1,n2) ) * np.sin(theta) \
+        + ( np.outer(n1,n1) + np.outer(n2,n2) ) * (np.cos(theta)-1)
+    return R
 
 def main():
-    
+    r1 = rotation_matrix(np.pi/2, [0,0,1], [0,1,0])
+    print(r1)
+    print()
+
+    r2 = rotate_matrix(np.pi/2, [0,0,1], [0,1,0])
+    print(r2)
     return
 
 if __name__ == "__main__":
