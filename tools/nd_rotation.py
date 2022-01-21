@@ -1,6 +1,6 @@
-import sim_bug_tools.graphics as graphics
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.axes
 
 def rotate_matrix(
         theta : float, 
@@ -61,11 +61,19 @@ def rotate_matrix(
         + ( np.outer(n1,n1) + np.outer(n2,n2) ) * (np.cos(theta)-1)
     return R
 
+def new_axes() -> matplotlib.axes.Axes:
+    """
+    Creates a new plot and axes
 
+    -- Return --
+    matplotlib.axes
+    """
+    plt.figure(figsize = (5,5))
+    return plt.axes()
 
 def rotate_2d_test():
     # Setup the plot
-    ax = graphics.new_axes()
+    ax = new_axes()
 
     ax.hlines(0, -.5, .5, linestyles="dashed", color="black")
     ax.vlines(0, -.5, .5, linestyles="dashed", color="black")
@@ -91,7 +99,7 @@ def rotate_2d_test():
 
 def rotate_3d_test():
     # Setup figure
-    fig = plt.figure()
+    plt.figure(figsize=(5,5))
     ax = plt.axes(projection="3d")
 
     bounds = [-.2,.2]
