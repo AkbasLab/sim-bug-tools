@@ -48,6 +48,9 @@ class Simulator():
         self._last_observed_point = None
         return
 
+    def ___GETTERS_AND_SETTERS___(self):
+        return
+
     @property
     def state(self) -> State:
         """
@@ -161,6 +164,10 @@ class Simulator():
         return
 
 
+
+    def ___IO___(self):
+        return
+
     @abstractmethod
     def as_dict(self) -> dict:
         return {
@@ -202,7 +209,11 @@ class Simulator():
         sim._state = State(str(d["state"]))
         return sim
 
-    # Internal
+
+
+    def ___INTERNAL___(self):
+        return
+    
     def _clear_temp_data(self):
         """
         Clears tempory data.
@@ -237,10 +248,14 @@ class Simulator():
         return
 
 
+
+    def ____STATES___(self):
+        return
+
     # States
-    def paused(self):
+    def paused_on_update(self):
         """
-        Paused State
+        Paused State. Called on update.
         """
         self._state = State.PAUSED
         self._clear_temp_data()
@@ -248,19 +263,47 @@ class Simulator():
         self._write_to_file()
         return
 
-    def incomplete_local_search(self):
+    def paused_on_enter(self):
         """
-        Incomplete Local Search State
+        Paused State. Called on enter.
+        """
+        return
+
+    def paused_on_exit(self):
+        """
+        Paused State. Called on exit.
+        """
+        return
+
+
+
+    def incomplete_local_search_on_update(self):
+        """
+        Incomplete Local Search State. Called on update.
         """
         self._state = State.INCOMPLETE_LOCAL_SEARCH
         self._clear_temp_data()
         self.log("Incomplete Local Search")
         return
 
-
-    def long_walk(self, point : structs.Point, is_bug : bool):
+    def incomplete_local_search_on_enter(self):
         """
-        Long Walk State.
+        Incomplete Local Search State. Called on enter.
+        """
+        return
+
+    def incomplete_local_search_on_exit(self):
+        """
+        Incomplete Local Search State. Called on exit.
+        """
+        return
+
+
+
+
+    def long_walk_on_update(self, point : structs.Point, is_bug : bool):
+        """
+        Long Walk State. Called on update.
 
         -- Parameters --
         point : structs.Point
@@ -287,10 +330,24 @@ class Simulator():
         self.long_walk()
         return
 
-    
-    def local_search(self, point : structs.Point = None, is_bug : bool = None):
+    def long_walk_on_enter(self):
         """
-        Local Search State
+        Long Walk State. Called on enter.
+        """
+        return
+
+    def long_walk_on_exit(self):
+        """
+        Long Walk State. Called on exit.
+        """
+        return
+
+
+
+
+    def local_search_on_update(self, point : structs.Point = None, is_bug : bool = None):
+        """
+        Local Search State. Called on update.
 
         -- Parameters --
         point : structs.Point
@@ -328,58 +385,112 @@ class Simulator():
         self.local_search()
         return
 
+    def local_search_on_enter(self):
+        """
+        Local Search. Called on enter.
+        """
+        return
+
+    def local_search_on_exit(self):
+        """
+        Local Search. Called on exit.
+        """
+        return
+
     
     
+    
+    def ___TRANSITIONS___(self):
+        return
 
     # Transitions
-    def long_walk_to_local_search(self):
+    def long_walk_to_local_search_on_enter(self):
         """
         Transition function.
         Long Walk State -> Local Search State
+        Called on enter.
         """
         return 
 
-    def local_search_to_paused(self):
+    def long_walk_to_local_search_trigger(self) -> bool:
+        """
+        Transition function.
+        Long Walk State -> Local Search State
+        Trigger condition.
+        """
+        return False
+
+
+    def local_search_to_paused_on_enter(self):
         """
         Transition function.
         Local Search State -> Paused State
+        Called on enter.
         """
         return
 
-    def local_search_to_long_walk(self):
+    def local_search_to_paused_trigger(self) -> bool:
+        """
+        Transition function.
+        Local Search State -> Paused State
+        Trigger condition.
+        """
+        return False
+
+    def local_search_to_long_walk_on_enter(self):
         """
         Transition function.
         Local Search State -> Long Walk State
+        Called on enter.
         """
         return
+
+    def local_search_to_long_walk_trigger(self) -> bool:
+        """
+        Transition function.
+        Local Search State -> Long Walk State
+        Trigger Condition
+        """
+        return False
     
-    def local_search_to_paused(self):
+    def local_search_to_paused_on_enter(self):
         """
         Transition function.
         Local Search State -> Paused State
+        Called on enter.
         """
         return
 
-    def local_search_to_incomplete_local_search(self):
+    def local_search_to_paused_trigger(self) -> bool:
+        """
+        Transition function.
+        Local Search State -> Paused State
+        Trigger Condition
+        """
+        return False
+
+
+    def local_search_to_incomplete_local_search_on_enter(self):
         """
         Transition function.
         Local Search State -> Incomplete Local Search State
+        Called on enter.
         """
         return
 
-
-    #  Exit conditions
-    def local_search_exit_condition(self) -> bool:
+    def local_search_to_incomplete_local_search_trigger(self) -> bool:
         """
-        Exit Condition function to leave Local Search State.
-
-        -- Return --
-        bool
-            Will leave Local Search State when True.
+        Transition function.
+        Local Search State -> Incomplete Local Search State
+        Trigger Condition.
         """
-        return True
-    
+        return False
 
+
+
+
+    def ___OTHER_FUNCTIONS___(self):
+        return
 
     #  Other Functions
     def run(self, n : int):
