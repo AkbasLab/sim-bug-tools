@@ -141,6 +141,13 @@ class Simulator():
         Filename of the simulator record file.
         """
         return self._file_name
+
+    @property
+    def run_complete(self) -> bool:
+        """
+        True when there are no steps left to run.
+        """
+        return self.n_steps_to_run <= 0
     
     def enable_local_search(self):
         """
@@ -168,7 +175,7 @@ class Simulator():
     def ___IO___(self):
         return
 
-    @abstractmethod
+    
     def as_dict(self) -> dict:
         return {
             "class" : self.__class__.__name__,
@@ -257,16 +264,15 @@ class Simulator():
         """
         Paused State. Called on update.
         """
-        self._state = State.PAUSED
-        self._clear_temp_data()
-        self.log("Paused")
-        self._write_to_file()
         return
 
     def paused_on_enter(self):
         """
         Paused State. Called on enter.
         """
+        self._state = State.PAUSED
+        self._clear_temp_data()
+        self.log("Paused")
         return
 
     def paused_on_exit(self):
@@ -301,7 +307,7 @@ class Simulator():
 
 
 
-    def long_walk_on_update(self, point : structs.Point, is_bug : bool):
+    def long_walk_on_update(self, point : structs.Point =None, is_bug : bool = None):
         """
         Long Walk State. Called on update.
 
@@ -311,29 +317,18 @@ class Simulator():
         is_bug : bool
             If the observed point was a bug.
         """
-        self._state = State.LONG_WALK
-        self._step += 1
-        self._n_long_walks += 1
-        self._n_steps_to_run -= 1
         self.add_to_history(point, is_bug)
-        is_bug = True
         self.log("Long Walk")
-
-        # Change state
-        if self.n_steps_to_run <= 0:
-            self.local_search_to_paused()
-            self.paused()
-            return
-        elif is_bug:
-            self.long_walk_to_local_search()
-            self.local_search()
-        self.long_walk()
         return
 
     def long_walk_on_enter(self):
         """
         Long Walk State. Called on enter.
         """
+        self._state = State.LONG_WALK
+        self._step += 1
+        self._n_long_walks += 1
+        self._n_steps_to_run -= 1
         return
 
     def long_walk_on_exit(self):
@@ -368,21 +363,6 @@ class Simulator():
         self._n_steps_to_run -= 1
         self.add_to_history(point, is_bug)
         self.log("Local Search")
-
-        # Change state
-        if self.n_steps_to_run <= 0:
-            if self.local_search_exit_condition():
-                self.local_search_to_paused()
-                self.paused()
-                return
-            else:
-                self.local_search_to_incomplete_local_search()
-                self.incomplete_local_search()
-                return
-        elif self.local_search_exit_condition():
-            self.local_search_to_long_walk()
-            self.long_walk()
-        self.local_search()
         return
 
     def local_search_on_enter(self):
@@ -403,7 +383,24 @@ class Simulator():
     def ___TRANSITIONS___(self):
         return
 
-    # Transitions
+    
+    def paused_to_long_walk_on_enter(self):
+        """
+        Transition function.
+        Paused State -> Long Walk State
+        Called on enter.
+        """
+        return
+
+    def paused_to_long_walk_trigger(self) -> bool:
+        """
+        Transition function.
+        Paused State -> Long Walk State.
+        Trigger condition.
+        """
+        return False
+    
+
     def long_walk_to_local_search_on_enter(self):
         """
         Transition function.
@@ -416,6 +413,23 @@ class Simulator():
         """
         Transition function.
         Long Walk State -> Local Search State
+        Trigger condition.
+        """
+        return False
+
+
+    def long_walk_to_paused_on_enter(self):
+        """
+        Transition function.
+        Long Walk State -> Paused State
+        Called on enter.
+        """
+        return
+
+    def long_walk_to_paused_trigger(self) -> bool:
+        """
+        Transition function.
+        Long Walk State -> Paused State
         Trigger condition.
         """
         return False
@@ -492,7 +506,51 @@ class Simulator():
     def ___OTHER_FUNCTIONS___(self):
         return
 
-    #  Other Functions
+    
+    def update(self):
+        """
+        Update the simulation.
+        1 simulation step. 
+        """
+
+        if self.state is State.INITIALIZED:
+            self.long_walk_on_enter()
+        
+        if self.state is State.LONG_WALK:
+            self.long_walk_on_update()
+            if self.run_complete or self.long_walk_to_paused_trigger():
+                self.local_search_on_exit()
+                self.long_walk_to_paused_on_enter()
+                self.paused_on_enter()
+            elif self.long_walk_to_local_search_trigger():
+                self.local_search_on_exit()
+                self.long_walk_to_local_search_on_enter()
+                self.local_search_on_enter()
+
+        elif self.state is State.LOCAL_SEARCH:
+            self.local_search_on_update()
+            if self.run_complete:
+                self.local_search_on_exit()
+                if self.local_search_to_paused_trigger():
+                    self.local_search_to_paused_on_enter()
+                    self.paused_on_enter()
+                else:
+                    self.local_search_to_incomplete_local_search_on_enter()
+                    self.incomplete_local_search_on_enter()
+            elif self.local_search_to_long_walk_trigger():
+                self.local_search_on_exit()
+                self.local_search_to_long_walk_on_enter()
+                self.long_walk_on_enter()
+
+        elif self.state is State.PAUSED:
+            self.paused_on_update()
+            if self.paused_to_long_walk_trigger()
+
+        print(self.as_dict())
+        return
+
+
+
     def run(self, n : int):
         """
         Runs the simulation for n_steps
@@ -611,7 +669,7 @@ class SimpleSimulatorKnownBugs(Simulator):
         return Simulator.from_dict(d, sim)
 
 
-    def long_walk(self):
+    def long_walk_on_update(self):
         """
         The sequence generates a point which is compared to the bug profile.
         """
@@ -622,7 +680,7 @@ class SimpleSimulatorKnownBugs(Simulator):
         is_bug = self.is_point_in_bug_profile(point)
 
         # Call the parent function
-        return super().long_walk(point, is_bug)         
+        return super().long_walk_on_update(point, is_bug)         
         
 
 
@@ -715,7 +773,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         return SimpleSimulatorKnownBugs.from_dict(d, sim)
     
 
-    def long_walk_to_local_search(self):
+    def long_walk_to_local_search_on_enter(self):
         """
         The RRT is reset and centered on the last observed point.
         """
@@ -724,7 +782,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         self._n_branches_remaining = self.n_branches
         return
 
-    def local_search(self):
+    def local_search_on_update(self):
         """
         Local Exploration using the RRT for point selection, until the
         specified amount of branches are grown.
@@ -739,10 +797,10 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         self._n_branches_remaining -= 1
 
         #  Call parent function
-        return super().local_search(point, is_bug)
+        return super().local_search_on_update(point, is_bug)
         
     
-    def local_search_exit_condition(self) -> bool:
+    def local_search_to_long_walk_trigger(self) -> bool:
         """
         The local search ends when the RRT does not need to grow anymore
         branches.
