@@ -500,6 +500,38 @@ class Simulator():
         """
         return False
 
+    def incomplete_local_search_to_local_search_on_enter(self):
+        """
+        Transition function.
+        Incomplete Local Search State --> Local Search State
+        Called on enter.
+        """
+        return
+
+    def incomplete_local_search_to_local_search_trigger(self) -> bool:
+        """
+        Transition function.
+        Incomplete Local Search State --> Local Search State
+        Trigger Condition
+        """
+        return False
+
+    def incomplete_paused_to_paused_on_enter(self):
+        """
+        Transition function.
+        Incomplete Paused State --> Paused State
+        Called on enter.
+        """
+        return
+
+    def incomplete_paused_to_paused_trigger(self) -> bool:
+        """
+        Transition function.
+        Incomplete Paused State --> Paused State
+        Trigger Condition
+        """
+        return False
+
 
 
 
@@ -544,7 +576,18 @@ class Simulator():
 
         elif self.state is State.PAUSED:
             self.paused_on_update()
-            if self.paused_to_long_walk_trigger()
+            if self.paused_to_long_walk_trigger():
+                self.paused_to_long_walk_on_enter()
+                self.long_walk_on_enter()
+
+        elif self.state is State.INCOMPLETE_LOCAL_SEARCH:
+            self.incomplete_local_search_on_update()
+            if self.incomplete_paused_to_paused_trigger():
+                self.incomplete_paused_to_paused_on_enter()
+                self.paused_on_enter()
+
+        
+            
 
         print(self.as_dict())
         return
