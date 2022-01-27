@@ -2,6 +2,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.axes
 
+
+def gram_schmidt_orthogonalization(
+        v1 : np.ndarray, 
+        v2 : np.ndarray
+    ) -> list[np.ndarray, np.ndarray]:
+    """
+    Generates orthogonal vectors given two vectors @v1, @v2 which form a plane.
+
+    -- Parameters --
+    v1, v2 : np.ndarray
+        Two n-d vectors of the same length
+    -- Return --
+    (n1, n2)
+        Orthogonal vectors for the plane defined by @v1, @v2
+    """
+    assert len(v1) == len(v2)
+
+    n1 = v1 / np.linalg.norm(v1)
+    v2 = v2 - np.dot(n1,v2) * n1
+    n2 = v2 / np.linalg.norm(v2)
+
+    if not (np.dot(n1,n2) < 1e-4):
+        raise Exception("Vectors %s and %s are already orthogonal." % (n1, n2))
+    return n1, n2
+
 def rotate_matrix(
         theta : float, 
         v1 : np.ndarray, 
@@ -87,7 +112,7 @@ def rotate_2d_test():
 
 
     # Rotate 45 degrees clockwise
-    r45cw_2d = rotate_matrix(np.pi/4, [0,1], [1,0])
+    r45cw_2d = rotate_matrix(np.pi/4, [0.1,0.7], [0.5,0.2], False)
     square2 = np.dot(r45cw_2d, square)
     ax.plot(square2[0], square2[1], color="red")
 
@@ -117,7 +142,7 @@ def rotate_3d_test():
         seg = np.array([
             [vals[0],vals[3]],
             [vals[1],vals[4]],
-            [vals[2], vals[5]]
+            [vals[2], vals[5]] 
         ])
         cube.append(seg)
         continue
