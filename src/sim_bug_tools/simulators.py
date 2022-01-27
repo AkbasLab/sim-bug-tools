@@ -25,16 +25,31 @@ class Simulator():
     and defines the four states of operation. In addition, this base
     class provides methods of I/O.
     """
-    def __init__(self, domain : structs.Domain):
+    def __init__(self, domain : structs.Domain, **kwargs):
         self._state = State.INITIALIZED
         self._step = 0
-        self._domain = domain
         self._n_long_walks = 0
         self._n_local_searches = 0
         self._n_bugs = 0
-        self._id = "0"
-        self._log_to_console = True
-        self._file_name = "hhh.sim"
+
+        self._domain = domain
+        try:
+            self._id = kwargs["id"]
+        except KeyError:
+            self._id = ""
+        assert isinstance(self.id, str)
+        
+        try:
+            self._log_to_console = kwargs["log_to_console"]
+        except KeyError:
+            self._log_to_console = False
+        assert isinstance(self.log_to_console, bool)
+
+        try:
+            self._file_name = kwargs["file_name"]
+        except KeyError:
+            self._file_name = ""
+        assert isinstance(self.file_name, str)
 
         # Temp Data
         self._history = pd.DataFrame({
@@ -220,22 +235,9 @@ class Simulator():
         return
 
     def _write_to_file(self):
-        # File does not exist
-        if not os.path.exists(self.file_name):
-            with open(self.file_name, "r+") as f:
-                f.write(self.as_json())
-                f.write(self.history.to_csv(index=False))
-
-        # File exists.
-        else:
-            # The first line is the simulation configuration.
-            with open(self.file_name, "r+") as f:
-                f.seek(0) # Point to first line
-                f.write(self.as_json())
-            
-            # Now add the temporary records to the end.
-            with open(self.file_name, "a") as f:
-                f.write(self.history.to_csv(index=False, header=False))
+        if not self.file_name:
+            return
+        
         return
 
 
@@ -255,14 +257,15 @@ class Simulator():
         Paused State. Called on enter.
         """
         self._state = State.PAUSED
-        self._clear_temp_data()
         self.log("Paused")
+        self._write_to_file()
         return
 
     def paused_on_exit(self):
         """
         Paused State. Called on exit.
         """
+        self._clear_temp_data()
         return
 
 
@@ -576,11 +579,11 @@ class Simulator():
             Steps to run.
         """
         self._n_steps_to_run = n
+
         for i in range(n):
-            if self.run_complete or \
-                self.state is State.PAUSED \
-                or self.state is State.INCOMPLETE_LOCAL_SEARCH:
+            if self.run_complete:
                 break
+            self.update()
         return  
 
 
@@ -630,10 +633,12 @@ class SimpleSimulatorKnownBugs(Simulator):
     def __init__(self,
         bug_profile : list[structs.Domain],
         sequence : sequences.Sequence,
+        **kwargs
     ):
         n_dim = len(sequence.domain)
         super().__init__(
-            domain = structs.Domain([(0,1) for _ in range(n_dim)])
+            domain = structs.Domain([(0,1) for _ in range(n_dim)]),
+            **kwargs
         )
 
         self._bug_profile = bug_profile

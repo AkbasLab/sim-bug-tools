@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 from sim_bug_tools.constants import *
 import re
+from itertools import (takewhile,repeat)
 
 def as_position(position: np.ndarray) -> np.ndarray:
     """
@@ -231,3 +232,19 @@ def flatten_dicts(dicts : list[dict]) -> dict:
         for key, value in dicts[i].items():
             dicts[0][key] = value
     return dicts[0]
+
+def rawincount(filename : str) -> int:
+    """
+    Returns the number of \n in a file.
+
+    -- Parameters --
+    filename : str
+        Filename to count newline characters
+    
+    -- Return --
+    int
+        Number of newline charachters in file.
+    """
+    f = open(filename, 'rb')
+    bufgen = takewhile(lambda x: x, (f.raw.read(1024*1024) for _ in repeat(None)))
+    return sum( buf.count(b'\n') for buf in bufgen )

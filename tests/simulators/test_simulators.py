@@ -1,10 +1,14 @@
 import unittest
 import sim_bug_tools.simulators as simulators
 import sim_bug_tools.structs as structs
+import sim_bug_tools.rng.lds.sequences as sequences
+import sim_bug_tools.utils as utils
+import json
 
 class TestSimulators(unittest.TestCase):
 
     def test_simulator(self):
+
         n_dim = 4
         sim = simulators.Simulator(
             structs.Domain([(0,1) for n in range(n_dim)])
@@ -55,3 +59,42 @@ class TestSimulators(unittest.TestCase):
         
         sim.run(10)
         return
+
+
+
+
+
+
+    def test_simulator_known_bugs(self):
+        print("\n\n")
+
+        with open("tests/simulators/test_bugs.json", "r") as f:
+            for line in f:
+                hhh = json.loads(line)
+                break
+        bug_profile = [structs.Domain.from_json(d) for d in hhh[0]]
+        
+        n_dim = len(bug_profile[0])
+        domain = structs.Domain([(0,1) for n in range(n_dim)])
+        seq = sequences.RandomSequence(
+            domain, 
+            ["dim_%d" % n for n in range(n_dim)],
+            seed = 300
+        )
+
+        sim = simulators.SimpleSimulatorKnownBugs(
+            bug_profile, seq, 
+            file_name = "tests/simulators/out/sskb.sim"
+        )
+        with open(sim.file_name, "w") as f:
+            f.write("")
+        sim.run(10)
+        sim.run(10)
+
+        # self.assertEqual(utils.rawincount(sim.file_name), 20)
+
+        
+
+        print("\n\n")
+        return
+
