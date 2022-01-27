@@ -32,7 +32,6 @@ class Simulator():
         self._n_long_walks = 0
         self._n_local_searches = 0
         self._n_bugs = 0
-        self._local_search_enabled = False
         self._id = "0"
         self._log_to_console = True
         self._file_name = "hhh.sim"
@@ -115,13 +114,6 @@ class Simulator():
         return self._last_observed_point
 
     @property
-    def local_search_enabled(self) -> bool:
-        """
-        If local search is enabled.
-        """
-        return self._local_search_enabled
-
-    @property
     def log_to_console(self) -> bool:
         """
         If the self.log() function will print to console.
@@ -149,12 +141,6 @@ class Simulator():
         """
         return self.n_steps_to_run <= 0
     
-    def enable_local_search(self):
-        """
-        Enables local search.
-        """
-        self._local_search_enabled = True
-        return
     
     def enable_log_to_console(self):
         """
@@ -184,7 +170,6 @@ class Simulator():
             "n_long_walks" : self.n_long_walks,
             "n_local_searches" : self.n_local_searches,
             "n_bugs" : self.n_bugs,
-            "local_search_enabled" : self.local_search_enabled,
             "id" : self.id,
             "state" : self.state.value
         }
@@ -211,7 +196,6 @@ class Simulator():
         sim._n_long_walks = int(d["n_long_walks"])
         sim._n_local_searches = int(d["n_local_searches"])
         sim._n_bugs = int(d["n_bugs"])
-        sim._local_search_enabled = bool(d["local_search_enabled"])
         sim._id = str(d["id"])
         sim._state = State(str(d["state"]))
         return sim
@@ -287,15 +271,15 @@ class Simulator():
         """
         Incomplete Local Search State. Called on update.
         """
-        self._state = State.INCOMPLETE_LOCAL_SEARCH
-        self._clear_temp_data()
-        self.log("Incomplete Local Search")
         return
 
     def incomplete_local_search_on_enter(self):
         """
         Incomplete Local Search State. Called on enter.
         """
+        self._state = State.INCOMPLETE_LOCAL_SEARCH
+        self._clear_temp_data()
+        self.log("Incomplete Local Search")
         return
 
     def incomplete_local_search_on_exit(self):
@@ -307,7 +291,7 @@ class Simulator():
 
 
 
-    def long_walk_on_update(self, point : structs.Point =None, is_bug : bool = None):
+    def long_walk_on_update(self, point : structs.Point = None, is_bug : bool = None):
         """
         Long Walk State. Called on update.
 
@@ -317,6 +301,9 @@ class Simulator():
         is_bug : bool
             If the observed point was a bug.
         """
+        self._step += 1
+        self._n_long_walks += 1
+        self._n_steps_to_run -= 1
         self.add_to_history(point, is_bug)
         self.log("Long Walk")
         return
@@ -326,9 +313,6 @@ class Simulator():
         Long Walk State. Called on enter.
         """
         self._state = State.LONG_WALK
-        self._step += 1
-        self._n_long_walks += 1
-        self._n_steps_to_run -= 1
         return
 
     def long_walk_on_exit(self):
@@ -350,14 +334,6 @@ class Simulator():
         is_bug : bool
             If the observed point was a bug.
         """
-        if not self.local_search_enabled:
-            return
-        elif point is None:
-            raise ValueError("point is None.")
-        elif is_bug is None:
-            raise ValueError("is_bug is None.")
-
-        self._state = State.LOCAL_SEARCH
         self._step += 1
         self._n_local_searches += 1
         self._n_steps_to_run -= 1
@@ -369,6 +345,7 @@ class Simulator():
         """
         Local Search. Called on enter.
         """
+        self._state = State.LOCAL_SEARCH
         return
 
     def local_search_on_exit(self):
@@ -563,6 +540,7 @@ class Simulator():
             self.local_search_on_update()
             if self.run_complete:
                 self.local_search_on_exit()
+                
                 if self.local_search_to_paused_trigger():
                     self.local_search_to_paused_on_enter()
                     self.paused_on_enter()
@@ -585,11 +563,6 @@ class Simulator():
             if self.incomplete_paused_to_paused_trigger():
                 self.incomplete_paused_to_paused_on_enter()
                 self.paused_on_enter()
-
-        
-            
-
-        print(self.as_dict())
         return
 
 
@@ -603,12 +576,11 @@ class Simulator():
             Steps to run.
         """
         self._n_steps_to_run = n
-        del n
-
-        if self.state == State.PAUSED:
-            self.long_walk()
-        elif self.state == State.INCOMPLETE_LOCAL_SEARCH:
-            self.local_search()
+        for i in range(n):
+            if self.run_complete or \
+                self.state is State.PAUSED \
+                or self.state is State.INCOMPLETE_LOCAL_SEARCH:
+                break
         return  
 
 
