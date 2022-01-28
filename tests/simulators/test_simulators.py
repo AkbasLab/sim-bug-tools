@@ -4,6 +4,7 @@ import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.utils as utils
 import json
+import os
 
 class TestSimulators(unittest.TestCase):
 
@@ -84,14 +85,17 @@ class TestSimulators(unittest.TestCase):
 
         sim = simulators.SimpleSimulatorKnownBugs(
             bug_profile, seq, 
-            file_name = "tests/simulators/out/sskb.sim"
+            file_name = "tests/simulators/out/sskb.tsv"
         )
-        with open(sim.file_name, "w") as f:
-            f.write("")
+
+        if os.path.exists(sim.file_name):
+            os.remove(sim.file_name)
+
         sim.run(10)
+        sim.long_walk_on_enter()
         sim.run(10)
 
-        # self.assertEqual(utils.rawincount(sim.file_name), 20)
+        self.assertEqual(utils.rawincount(sim.file_name), 21)
 
         
 

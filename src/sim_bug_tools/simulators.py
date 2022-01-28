@@ -5,6 +5,7 @@ import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 import sim_bug_tools.utils as utils
 import pandas as pd
+import numpy as np
 import json
 import os
 
@@ -47,6 +48,8 @@ class Simulator():
 
         try:
             self._file_name = kwargs["file_name"]
+            if not self.file_name[-4:] == ".tsv":
+                self._file_name = "%s.tsv" % self.file_name
         except KeyError:
             self._file_name = ""
         assert isinstance(self.file_name, str)
@@ -54,9 +57,9 @@ class Simulator():
         # Temp Data
         self._history = pd.DataFrame({
             "step" : [],
-            "point" : [],
             "is_bug" : [],
-            "state" : []
+            "state" : [],
+            "point" : [],
         })
         self._n_steps_to_run = 0
         self._last_observed_point = None
@@ -145,7 +148,7 @@ class Simulator():
     @property
     def file_name(self) -> str:
         """
-        Filename of the simulator record file.
+        Filename of the history file.
         """
         return self._file_name
 
@@ -226,20 +229,31 @@ class Simulator():
         """
         self._history = pd.DataFrame({
             "step" : [],
-            "point" : [],
             "is_bug" : [],
-            "state" : []
+            "state" : [],
+            "point" : [],
         })
         self._n_steps_to_run = 0
         self._last_observed_point = None
         return
 
     def _write_to_file(self):
+        """
+        Append the history to the .tsv file and update the .json file with
+        the simulator statistics.
+        """
         if not self.file_name:
             return
 
+        use_header = not os.path.exists(self.file_name)
+        with open(self.file_name, "a") as f:
+            f.write(
+                self.history.to_csv(header=use_header, index=False, sep = "\t")
+            )
         
-        
+        settings_fn = "%s.json" % self.file_name[:-4]
+        with open(settings_fn, "w") as f:
+            f.write(json.dumps(self.as_dict(), indent=4))
         return
 
 
@@ -261,13 +275,13 @@ class Simulator():
         self._state = State.PAUSED
         self.log("Paused")
         self._write_to_file()
+        self._clear_temp_data()
         return
 
     def paused_on_exit(self):
         """
         Paused State. Called on exit.
         """
-        self._clear_temp_data()
         return
 
 
@@ -599,11 +613,13 @@ class Simulator():
         is_bug : bool
             If a bug was observed at that point in space.
         """
+        if point is None:
+            return
         self._history = self._history.append({
             "step" : self.step,
-            "point" : point,
             "is_bug" : is_bug,
             "state" : self.state.value,
+            "point" : point.array.tolist(),
         }, ignore_index = True)
         self._last_observed_point = point
         return
