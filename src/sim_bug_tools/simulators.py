@@ -63,6 +63,7 @@ class Simulator():
         })
         self._n_steps_to_run = 0
         self._last_observed_point = None
+        self._last_observed_point_is_bug = False
         return
 
     def ___GETTERS_AND_SETTERS___(self):
@@ -130,6 +131,13 @@ class Simulator():
         The last observed point from the previous step.
         """
         return self._last_observed_point
+
+    @property
+    def last_observed_point_is_bug(self) -> bool:
+        """
+        If the last observed point is a bug.
+        """
+        return self._last_observed_point_is_bug
 
     @property
     def log_to_console(self) -> bool:
@@ -297,8 +305,9 @@ class Simulator():
         Incomplete Local Search State. Called on enter.
         """
         self._state = State.INCOMPLETE_LOCAL_SEARCH
-        self._clear_temp_data()
         self.log("Incomplete Local Search")
+        self._write_to_file()
+        self._clear_temp_data()
         return
 
     def incomplete_local_search_on_exit(self):
@@ -622,6 +631,7 @@ class Simulator():
             "point" : point.array.tolist(),
         }, ignore_index = True)
         self._last_observed_point = point
+        self._last_observed_point_is_bug = is_bug
         return
 
     def log(self, msg : str) -> str:
@@ -747,14 +757,14 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         bug_profile : list[structs.Domain],
         sequence : sequences.Sequence,
         rrt : RapidlyExploringRandomTree,
-        n_branches : int
+        n_branches : int,
+        **kwargs
     ):
-        super().__init__(bug_profile, sequence)
+        super().__init__(bug_profile, sequence, **kwargs)
 
         self._rrt = rrt
         self._n_branches = n_branches
         self._n_branches_remaining = n_branches
-        self.enable_local_search()
         return
 
     @property
@@ -845,7 +855,20 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         """
         return self.n_branches_remaining <= 0
 
+    def local_search_to_paused_trigger(self) -> bool:
+        """
+        When the sim is complete (implied in base class), and there are no
+        branches remaining. Transition to Paused State.
+        """
+        return self.n_branches_remaining <= 0
+
+    def long_walk_to_local_search_trigger(self) -> bool:
+        """
+        Move to local search when a bug is observed
+        """
+        return self.last_observed_point_is_bug
     
+
     
 
 
