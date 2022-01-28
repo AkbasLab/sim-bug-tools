@@ -237,6 +237,8 @@ class Simulator():
     def _write_to_file(self):
         if not self.file_name:
             return
+
+        
         
         return
 

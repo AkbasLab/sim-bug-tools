@@ -1,4 +1,3 @@
-from selectors import EpollSelector
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 import numpy as np
