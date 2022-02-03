@@ -79,9 +79,17 @@ class LSHash:
         """
         Generate hyperplanes for a single hash table.
         """
-        points = self.rng.uniform(size=(self.hash_size, self.n_dim, self.n_dim))
-        print(points)
+        points = self.rng.uniform(
+            size=(self.hash_size, self.n_dim, self.n_dim))
+        equations = np.array([self._generate_hyperplane_equation(pts) \
+            for pts in points])
+        for i, pts in enumerate(points):
+            print()
+            print("Points")
+            print(pts)
+            print("Equation")
+            print(equations[i])
         return
 
-    def generate_hash_tables(self):
-        return
+    # def _generate_hash_tables(self):
+    #     return
