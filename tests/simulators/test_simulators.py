@@ -7,6 +7,7 @@ import json
 import os
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 import pandas as pd
+import traci
 
 class TestSimulators(unittest.TestCase):
 
@@ -167,10 +168,15 @@ class TestSimulators(unittest.TestCase):
             # RNG
             "--seed" : 333
         }
+
+        # SHould raise error when no config is given.
         self.assertRaises(ValueError, simulators.TraCIClient)
+        sim = simulators.TraCIClient(config=config)        
+        sim.run_to_end()
+        sim.close()
 
-        sim = simulators.TraCIClient(config=config)
 
-
+        
+        
         print("\n\n")
         return

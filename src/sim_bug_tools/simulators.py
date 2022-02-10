@@ -872,8 +872,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
 
 
 class TraCIClient(Simulator):
-    def __init__(self, 
-        **kwargs):
+    def __init__(self, **kwargs):
         """
         Barebones TraCI client.
 
@@ -884,17 +883,18 @@ class TraCIClient(Simulator):
             SUMO arguments stored as a python dictionary.
         """
         try:
+            self._config = kwargs["config"]
+        except KeyError:
+            raise ValueError("No config given.")
+        
+        try:
             self._priority = kwargs["priority"]
         except KeyError:
             self._priority = 1
         assert isinstance(self.priority, int)
 
-        try:
-            self._config = kwargs["config"]
-        except KeyError:
-            raise ValueError("No config given.")
-
         self.connect()
+        super().__init__(**kwargs)
         return
 
     @property
@@ -960,9 +960,4 @@ class TraCIClient(Simulator):
         traci.setOrder(self.priority)
         return    
 
-
-
-class VehiclePopulation(TraCIClient):
-
-    def __init__(self, id_prefix : str = "veh_", **kwargs):
-        return
+    
