@@ -1,5 +1,6 @@
 import unittest
-import sim_bug_tools.simulators as simulators
+import sim_bug_tools.simulators.base as sim_base
+import sim_bug_tools.simulators.sumo as sim_sumo
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.utils as utils
@@ -8,14 +9,15 @@ import os
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 import pandas as pd
 import traci
+import sys
 
-class TestSimulators(unittest.TestCase):
+class Testsim_base(unittest.TestCase):
 
     def test_simulator(self):
 
         n_dim = 4
-        sim = simulators.Simulator(
-            structs.Domain([(0,1) for n in range(n_dim)])
+        sim = sim_base.Simulator(
+            domain = structs.Domain([(0,1) for n in range(n_dim)])
         )
         sim.long_walk_to_local_search_trigger = lambda : True
         sim.local_search_to_long_walk_trigger = lambda  : True
@@ -29,16 +31,16 @@ class TestSimulators(unittest.TestCase):
             states.append(sim.state)
 
         self.assertEqual(states,[
-            simulators.State.LOCAL_SEARCH,
-            simulators.State.LONG_WALK,
-            simulators.State.LOCAL_SEARCH,
-            simulators.State.LONG_WALK,
-            simulators.State.LOCAL_SEARCH,
-            simulators.State.LONG_WALK,
-            simulators.State.LOCAL_SEARCH,
-            simulators.State.LONG_WALK,
-            simulators.State.LOCAL_SEARCH,
-            simulators.State.PAUSED
+            sim_base.State.LOCAL_SEARCH,
+            sim_base.State.LONG_WALK,
+            sim_base.State.LOCAL_SEARCH,
+            sim_base.State.LONG_WALK,
+            sim_base.State.LOCAL_SEARCH,
+            sim_base.State.LONG_WALK,
+            sim_base.State.LOCAL_SEARCH,
+            sim_base.State.LONG_WALK,
+            sim_base.State.LOCAL_SEARCH,
+            sim_base.State.PAUSED
         ])
 
         
@@ -54,11 +56,11 @@ class TestSimulators(unittest.TestCase):
             states.append(sim.state)
         states.append(sim.state)
         
-        self.assertEqual(states[-1], simulators.State.INCOMPLETE_LOCAL_SEARCH)
+        self.assertEqual(states[-1], sim_base.State.INCOMPLETE_LOCAL_SEARCH)
 
         self.assertEqual(
             sim.as_json(),
-            simulators.Simulator.from_dict(sim.as_dict()).as_json()
+            sim_base.Simulator.from_dict(sim.as_dict()).as_json()
         )
         
         sim.run(10)
@@ -84,7 +86,7 @@ class TestSimulators(unittest.TestCase):
             seed = 300
         )
 
-        sim = simulators.SimpleSimulatorKnownBugs(
+        sim = sim_base.SimpleSimulatorKnownBugs(
             bug_profile, seq, 
             file_name = "tests/simulators/out/sskb.tsv"
         )
@@ -118,7 +120,7 @@ class TestSimulators(unittest.TestCase):
             exploration_radius = 1
         )
         
-        sim = simulators.SimpleSimulatorKnownBugsRRT(
+        sim = sim_base.SimpleSimulatorKnownBugsRRT(
             bug_profile = bug_profile,
             sequence = seq,
             rrt = rrt,
@@ -146,7 +148,6 @@ class TestSimulators(unittest.TestCase):
     def test_traci_client(self):
         print("\n\n")
 
-
         map_dir = "sumo/tl_race"
         config = {
             "gui" : True,
@@ -170,13 +171,16 @@ class TestSimulators(unittest.TestCase):
         }
 
         # SHould raise error when no config is given.
-        self.assertRaises(ValueError, simulators.TraCIClient)
-        sim = simulators.TraCIClient(config=config)        
+        self.assertRaises(ValueError, sim_sumo.TraCIClient)
+
+        # Should run fine.
+        sim = sim_sumo.TraCIClient(config=config)        
         sim.run_to_end()
         sim.close()
 
 
+
         
-        
+
         print("\n\n")
         return

@@ -1,6 +1,5 @@
 from abc import abstractmethod
 import enum
-import warnings
 import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
@@ -9,7 +8,7 @@ import pandas as pd
 import numpy as np
 import json
 import os
-import traci
+
 
 class State(enum.Enum):
     PAUSED = "PAUSED"
@@ -25,14 +24,20 @@ class Simulator():
     and defines the four states of operation. In addition, this base
     class provides methods of I/O.
     """
-    def __init__(self, domain : structs.Domain = None, **kwargs):
+    def __init__(self, **kwargs):
         self._state = State.INITIALIZED
         self._step = 0
         self._n_long_walks = 0
         self._n_local_searches = 0
         self._n_bugs = 0
 
-        self._domain = domain
+
+        try:
+            self._domain = kwargs["domain"]
+        except KeyError:
+            self._domain = None
+
+        
         try:
             self._id = kwargs["id"]
         except KeyError:
@@ -216,7 +221,7 @@ class Simulator():
             if None.
         """
         if sim is None:
-            sim = Simulator(  structs.Domain.from_dict(d["domain"])  )
+            sim = Simulator(  domain = structs.Domain.from_dict(d["domain"])  )
         sim._step = int(d["step"])
         sim._n_long_walks = int(d["n_long_walks"])
         sim._n_local_searches = int(d["n_local_searches"])
@@ -663,8 +668,10 @@ class SimpleSimulatorKnownBugs(Simulator):
         **kwargs
     ):
         n_dim = len(sequence.domain)
+
+        
+        kwargs["domain"] = structs.Domain([(0,1) for _ in range(n_dim)])
         super().__init__(
-            domain = structs.Domain([(0,1) for _ in range(n_dim)]),
             **kwargs
         )
 
@@ -871,93 +878,3 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
     
 
 
-class TraCIClient(Simulator):
-    def __init__(self, **kwargs):
-        """
-        Barebones TraCI client.
-
-        --- Parameters ---
-        priority : int
-            Priority of clients. MUST BE UNIQUE
-        config : dict
-            SUMO arguments stored as a python dictionary.
-        """
-        try:
-            self._config = kwargs["config"]
-        except KeyError:
-            raise ValueError("No config given.")
-        
-        try:
-            self._priority = kwargs["priority"]
-        except KeyError:
-            self._priority = 1
-        assert isinstance(self.priority, int)
-
-        self.connect()
-        super().__init__(**kwargs)
-        return
-
-    @property
-    def priority(self) -> int:
-        """
-        Priority of TraCI client.
-        """
-        return self._priority
-
-    @property
-    def config(self) -> dict:
-        """
-        SUMO arguments stored as a python dictionary.
-        """
-        return self._config
-
-    def run_to_end(self):
-        """
-        Runs the client until the end.
-        """
-        while traci.simulation.getMinExpectedNumber() > 0:
-            traci.simulationStep()
-            # more traci commands
-        return
-
-    def close(self):
-        """
-        Closes the client.
-        """
-        traci.close()
-        return
-
-
-    def connect(self):
-        """
-        Start or initialize the TraCI connection.
-        """
-        warnings.simplefilter("ignore", ResourceWarning)
-        # Start the traci server with the first client
-        if self.priority == 1:
-            cmd = []
-
-            for key, val in self.config.items():
-                if key == "gui":
-                    sumo = "sumo"
-                    if val: sumo +="-gui"
-                    cmd.append(sumo)
-                    continue
-                
-                if key == "--remote-port":
-                    continue
-
-                cmd.append(key)
-                cmd.append(str(val))
-                continue
-
-            traci.start(cmd,port=self.config["--remote-port"])
-            traci.setOrder(self.priority)
-            return
-        
-        # Initialize every client after the first.
-        traci.init(port=self.config["--remote-port"])
-        traci.setOrder(self.priority)
-        return    
-
-    
