@@ -25,7 +25,7 @@ class Simulator():
     and defines the four states of operation. In addition, this base
     class provides methods of I/O.
     """
-    def __init__(self, domain : structs.Domain, **kwargs):
+    def __init__(self, domain : structs.Domain = None, **kwargs):
         self._state = State.INITIALIZED
         self._step = 0
         self._n_long_walks = 0
@@ -873,8 +873,6 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
 
 class TraCIClient(Simulator):
     def __init__(self, 
-        config : dict, 
-        priority : int = 1,  
         **kwargs):
         """
         Barebones TraCI client.
@@ -885,8 +883,17 @@ class TraCIClient(Simulator):
         config : dict
             SUMO arguments stored as a python dictionary.
         """
-        self._priority = priority
-        self._config = config
+        try:
+            self._priority = kwargs["priority"]
+        except KeyError:
+            self._priority = 1
+        assert isinstance(self.priority, int)
+
+        try:
+            self._config = kwargs["config"]
+        except KeyError:
+            raise ValueError("No config given.")
+
         self.connect()
         return
 
@@ -952,3 +959,10 @@ class TraCIClient(Simulator):
         traci.init(port=self.config["--remote-port"])
         traci.setOrder(self.priority)
         return    
+
+
+
+class VehiclePopulation(TraCIClient):
+
+    def __init__(self, id_prefix : str = "veh_", **kwargs):
+        return

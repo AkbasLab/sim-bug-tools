@@ -139,3 +139,38 @@ class TestSimulators(unittest.TestCase):
         self.assertEqual( df[df.state == "LONG_WALK"].state.count(), 4 )
         self.assertEqual( df[df.state == "LOCAL_SEARCH"].state.count(), 20 )
         return
+
+
+
+    def test_traci_client(self):
+        print("\n\n")
+
+
+        map_dir = "sumo/tl_race"
+        config = {
+            "gui" : True,
+
+            # Street network
+            "--net-file" : "%s/tl-race.net.xml" % map_dir,
+
+            # Logging
+            "--error-log" : "%s/error-log.txt" % map_dir,
+
+            # Traci Connection
+            "--num-clients" : 1,
+            "--remote-port" : 5522,
+
+            # GUI Options
+            "--delay" : 100,
+            "--start" : "--quit-on-end",
+
+            # RNG
+            "--seed" : 333
+        }
+        self.assertRaises(ValueError, simulators.TraCIClient)
+
+        sim = simulators.TraCIClient(config=config)
+
+
+        print("\n\n")
+        return
