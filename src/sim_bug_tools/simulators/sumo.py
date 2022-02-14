@@ -12,8 +12,8 @@ import traci
 import pandas as pd
 import numpy as np
 
-class TraCIClient(sim_base.Simulator):
-    def __init__(self, **kwargs):
+class TraCIClient:
+    def __init__(self, config : dict, priority : int = 1):
         """
         Barebones TraCI client.
 
@@ -23,19 +23,12 @@ class TraCIClient(sim_base.Simulator):
         config : dict
             SUMO arguments stored as a python dictionary.
         """
-        try:
-            self._config = kwargs["config"]
-        except KeyError:
-            raise ValueError("No config given.")
         
-        try:
-            self._priority = kwargs["priority"]
-        except KeyError:
-            self._priority = 1
-        assert isinstance(self.priority, int)
+        self._config = config
+        self._priority = priority
+        
 
         self.connect()
-        super().__init__(**kwargs)
         return
 
     @property
@@ -102,12 +95,17 @@ class TraCIClient(sim_base.Simulator):
         return    
 
     
-class TrafficLightRace(TraCIClient):
+
+
+class TrafficLightRace(sim_base.Simulator):
 
     def __init__(self, sequence_generator : sequences.Sequence, **kwargs):
+        super().__init__(**kwargs)
+
         map_dir = "sumo/tl_race"
-        kwargs["config"] = {
+        config = {
             "gui" : False,
+            # "gui" : True,
 
             # Street network
             "--net-file" : "%s/tl-race.net.xml" % map_dir,
@@ -129,18 +127,16 @@ class TrafficLightRace(TraCIClient):
             # RNG
             "--seed" : 333
         }
-        super().__init__(**kwargs)
-
+        self._client = TraCIClient(config)
+        self._tlid = traci.trafficlight.getIDList()[0]
         
 
         # Setup sequence
-        self._n_parameters = self.n_vehicles * 8
+        self._n_parameters = self.n_vehicles * 7
         self._seq = sequence_generator(
             domain = [(0,1) for n in range(self.n_parameters)],
             axes_names = ["dim%d" % n for n in range(self.n_parameters)]
         )
-        
-        
 
         # Add the route
         traci.route.add(self.route_id, ["before_tl","after_tl"])
@@ -149,14 +145,27 @@ class TrafficLightRace(TraCIClient):
         self._vehicles = []
         self._n_vehicles_added = 0
 
-
+        # Add Vehicles
         point = self.seq.get_points(1)[0]
-        self.add_vehicles()
+        self.add_vehicles(point)
         
+        # Traffic Light
+        print(
+            traci.trafficlight.getCompleteRedYellowGreenDefinition(self.tlid)
+        )
 
-        self.run_to_end()
-        self.close()
+
+        # TODO: Remove later
+        self.client.run_to_end()
+        self.client.close()
         return
+
+    @property
+    def client(self) -> TraCIClient:
+        """
+        TraCI CLient
+        """
+        return self._client
 
     @property
     def n_vehicles(self) -> int:
@@ -212,11 +221,18 @@ class TrafficLightRace(TraCIClient):
         """
         return self._vehicles
 
+    @property
+    def tlid(self) -> str:
+        """
+        TraCI Traffic Light ID
+        """
+        return self._tlid
+
 
     def add_vehicles(self, point : structs.Point):
-        
-        n_veh_params = 8
-        
+        n_veh_params = 7
+        [ self.add_veh(point[i*n_veh_params : i*n_veh_params+n_veh_params]) \
+            for i in range(self.n_vehicles) ]
         return
     
     def add_veh(self, point : np.ndarray ):
@@ -225,7 +241,7 @@ class TrafficLightRace(TraCIClient):
 
         --- Parameters --
         point : np.ndarray
-            normal array of size (1,8)
+            normal array of size (1,7)
         """
         vid = "%s_%d" % (self.vehicle_id_prefix, self.n_vehicles_added)
         self.vehicles.append(vid)
@@ -236,7 +252,6 @@ class TrafficLightRace(TraCIClient):
         setters = [
             traci.vehicle.setLength,
             traci.vehicle.setWidth,
-            traci.vehicle.setHeight,
             traci.vehicle.setMinGap,
             traci.vehicle.setAccel,
             traci.vehicle.setDecel,
@@ -245,7 +260,7 @@ class TrafficLightRace(TraCIClient):
         ]
 
         attributes = [
-            [.215, 16.5], [.478, 2.55], [1.5, 4.], [.25, 2.5],
+            [.215, 16.5], [.478, 2.55], [.25, 2.5],
             [1.1, 6.], [2., 10.], [5., 10.], [5.4, 200]
         ]
 

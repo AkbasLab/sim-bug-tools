@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-02-11 16:20:57 by Eclipse SUMO netedit Version 1.12.0
+<!-- generated on 2022-02-14 16:27:17 by Eclipse SUMO netedit Version 1.12.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
@@ -40,16 +40,16 @@
 
     <location netOffset="0.00,0.00" convBoundary="0.00,0.00,1100.00,0.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
 
-    <edge id=":tl_0" function="internal">
-        <lane id=":tl_0_0" index="0" speed="200.00" length="0.10" shape="1000.00,-4.80 1000.00,-4.80"/>
-        <lane id=":tl_0_1" index="1" speed="200.00" length="0.10" shape="1000.00,-1.60 1000.00,-1.60"/>
+    <edge id=":B_0" function="internal">
+        <lane id=":B_0_0" index="0" speed="200.00" length="0.10" shape="1000.00,-4.80 1000.00,-4.80"/>
+        <lane id=":B_0_1" index="1" speed="200.00" length="0.10" shape="1000.00,-1.60 1000.00,-1.60"/>
     </edge>
 
-    <edge id="after_tl" from="tl" to="C" priority="-1">
+    <edge id="after_tl" from="B" to="C" priority="-1">
         <lane id="after_tl_0" index="0" speed="200.00" length="100.00" shape="1000.00,-4.80 1100.00,-4.80"/>
         <lane id="after_tl_1" index="1" speed="200.00" length="100.00" shape="1000.00,-1.60 1100.00,-1.60"/>
     </edge>
-    <edge id="before_tl" from="A" to="tl" priority="-1">
+    <edge id="before_tl" from="A" to="B" priority="-1">
         <lane id="before_tl_0" index="0" speed="200.00" length="1000.00" shape="0.00,-4.80 1000.00,-4.80"/>
         <lane id="before_tl_1" index="1" speed="200.00" length="1000.00" shape="0.00,-1.60 1000.00,-1.60"/>
     </edge>
@@ -61,16 +61,16 @@
     </tlLogic>
 
     <junction id="A" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes="" shape="0.00,0.00 0.00,-6.40"/>
-    <junction id="C" type="dead_end" x="1100.00" y="0.00" incLanes="after_tl_0 after_tl_1" intLanes="" shape="1100.00,-6.40 1100.00,0.00"/>
-    <junction id="tl" type="traffic_light" x="1000.00" y="0.00" incLanes="before_tl_0 before_tl_1" intLanes=":tl_0_0 :tl_0_1" shape="1000.00,0.00 1000.00,-6.40 1000.00,0.00">
+    <junction id="B" type="traffic_light" x="1000.00" y="0.00" incLanes="before_tl_0 before_tl_1" intLanes=":B_0_0 :B_0_1" shape="1000.00,0.00 1000.00,-6.40 1000.00,0.00">
         <request index="0" response="00" foes="00" cont="0"/>
         <request index="1" response="00" foes="00" cont="0"/>
     </junction>
+    <junction id="C" type="dead_end" x="1100.00" y="0.00" incLanes="after_tl_0 after_tl_1" intLanes="" shape="1100.00,-6.40 1100.00,0.00"/>
 
-    <connection from="before_tl" to="after_tl" fromLane="0" toLane="0" via=":tl_0_0" tl="B" linkIndex="0" dir="s" state="O"/>
-    <connection from="before_tl" to="after_tl" fromLane="1" toLane="1" via=":tl_0_1" tl="B" linkIndex="1" dir="s" state="O"/>
+    <connection from="before_tl" to="after_tl" fromLane="0" toLane="0" via=":B_0_0" tl="B" linkIndex="0" dir="s" state="O"/>
+    <connection from="before_tl" to="after_tl" fromLane="1" toLane="1" via=":B_0_1" tl="B" linkIndex="1" dir="s" state="O"/>
 
-    <connection from=":tl_0" to="after_tl" fromLane="0" toLane="0" dir="s" state="M"/>
-    <connection from=":tl_0" to="after_tl" fromLane="1" toLane="1" dir="s" state="M"/>
+    <connection from=":B_0" to="after_tl" fromLane="0" toLane="0" dir="s" state="M"/>
+    <connection from=":B_0" to="after_tl" fromLane="1" toLane="1" dir="s" state="M"/>
 
 </net>
