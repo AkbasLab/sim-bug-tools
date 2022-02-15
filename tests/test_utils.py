@@ -44,6 +44,14 @@ class TestUtils(TestCase):
         return
 
 
+    def test_project(self):
+        print("\n\n")
+
+        utils.project(1.2, 5.1, 0.3, by=0.5)
+
+        print("\n\n")
+        return
+
 def main():
     unittest.main()
 

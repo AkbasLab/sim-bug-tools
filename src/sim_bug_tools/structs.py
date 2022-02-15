@@ -1,7 +1,7 @@
 """
 Contains a general collection of classes to provide necessary data structures.
 """
-import numpy
+
 from sim_bug_tools.decorators import typecheck
 from functools import reduce
 import logging
@@ -654,6 +654,65 @@ class PolyLine:
             y = [p.array[1] for p in polyline.points]
             ax.plot(x, y)
         return
+
+
+
+class DiscreteCollection:
+    def __init__(self, min : np.float64, max : np.float64, by : np.float64):
+        """
+        Discrete Collection defined by a @min, @max, and a granularity @by.
+
+        -- Parameters --
+        min : np.float64
+            Lower end of range
+        max : np.float64
+            Upper end of range
+        by : np.float64
+            Granularity of range
+        """
+        self._min = np.float64(min)
+        self._max = np.float64(max)
+        self._by = np.float64(by)
+
+        # keys
+        keys = []
+        val = self.min
+        while val <= self.max:
+            next_val = val + self.by    
+            keys.append( val )
+            val = next_val
+            continue
+        if keys[-1] != self.max:
+            keys.append(self.max)
+        self._keys = tuple(keys)
+        print(self.keys)
+
+
+        return
+
+    @property
+    def min(self) -> np.float64:
+        return self._min
+
+    @property
+    def max(self) -> np.float64:
+        return self._max
+
+    @property
+    def by(self) -> np.float64:
+        return self._by
+
+    @property
+    def keys(self) -> tuple[np.float64]:
+        return self._keys
+
+    
+    def get(self, n : np.float64) -> np.float64:
+        x = n * (self.max - self.min) + self.min
+        return
+
+    
+
 
 
 def main():

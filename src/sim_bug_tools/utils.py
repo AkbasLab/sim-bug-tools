@@ -49,9 +49,14 @@ def denormalize(a: np.float64, b: np.float64, x: np.float64) -> np.float64:
     return x * (b - a) + a
 
 
-def project(a: np.float64, b: np.float64, x: np.float64) -> np.float64:
+def project(
+        a: float, 
+        b: float, 
+        x: float, 
+        by: float = None
+    ) -> float:
     """
-    Project a normal value x between a and b.
+    Project a normal value @x between @a and @b.
 
      -- Parameters --
     a : float or np.ndarray
@@ -60,12 +65,19 @@ def project(a: np.float64, b: np.float64, x: np.float64) -> np.float64:
         Upper bound
     x : float or np.ndarray
         Normal value between 0 and 1
+    by : float
+        Granularity of range 
+
 
     -- Return --
     float or np.ndarray
         x applied within the range of a and b
     """
-    return x * (b - a) + a
+    if by is None:
+        return x * (b - a) + a
+
+    
+    return
 
 
 def pretty_dict(d: dict, indent: np.int32 = 0):
