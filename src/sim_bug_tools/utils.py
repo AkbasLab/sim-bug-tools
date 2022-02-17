@@ -52,7 +52,7 @@ def denormalize(a: np.float64, b: np.float64, x: np.float64) -> np.float64:
 def project(
         a: float, 
         b: float, 
-        x: float, 
+        n: float, 
         by: float = None
     ) -> float:
     """
@@ -63,21 +63,26 @@ def project(
         Lower bound
     b : float or np.ndarray
         Upper bound
-    x : float or np.ndarray
+    n : float or np.ndarray
         Normal value between 0 and 1
     by : float
         Granularity of range 
-
 
     -- Return --
     float or np.ndarray
         x applied within the range of a and b
     """
-    if by is None:
-        return x * (b - a) + a
+    if not (b > a):
+        raise ValueError
 
-    
-    return
+    # Continous
+    if by is None:
+        return n * (b - a) + a
+
+    #  Discrete
+    norm_interval = by/(b-a)
+    interval = np.round(n / norm_interval, decimals=0)
+    return a + interval * by
 
 
 def pretty_dict(d: dict, indent: np.int32 = 0):

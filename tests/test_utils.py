@@ -45,11 +45,16 @@ class TestUtils(TestCase):
 
 
     def test_project(self):
-        print("\n\n")
+        # print("\n\n")
 
-        utils.project(1.2, 5.1, 0.3, by=0.5)
+        x0 = utils.project(1.2, 5.1, 0.3, by=0.5)
+        self.assertEqual(x0, 2.2)
+        x1 = utils.project(1.2, 5.1, 0.35, by=0.5)
+        self.assertEqual(x1, 2.7)
 
-        print("\n\n")
+        self.assertRaises(ValueError, utils.project, 5, 3, .1)
+
+        # print("\n\n")
         return
 
 def main():
