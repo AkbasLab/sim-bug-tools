@@ -56,11 +56,6 @@ class Voronoi(scipy.spatial.Voronoi):
         return self._dimension
 
 
-    # def test(self):
-
-    #     return
-
-
     def _filter_bug_edges(self) -> list[int]:
         """
         Selects and returns the edges around bug regions.

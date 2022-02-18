@@ -12,7 +12,7 @@ import sim_bug_tools.structs as structs
 import sim_bug_tools.rng.bugger as bugger
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.utils as utils
-import sim_bug_tools.simulators as simulators
+import sim_bug_tools.simulator as simulator
 
 from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
 
@@ -69,7 +69,7 @@ class DashboardWindow:
         return self._rrt
 
     @property
-    def simulators(self) -> list[simulators.Simulator]:
+    def simulators(self) -> list[simulator.Simulator]:
         return self._simulators
 
     def _init_window(self):
@@ -288,7 +288,7 @@ class DashboardWindow:
         strategy = self.values["LS:strategy"].lower()
         if strategy == "no local search.":
             # print("NO LOCAL SEARCH")
-            self._simulators = [simulators.SimpleSimulatorKnownBugs(
+            self._simulators = [simulator.SimpleSimulatorKnownBugs(
                 bug_profile = bug_profile,
                 sequence = self.seq,
             ) for bug_profile in self.bug_profiles]
@@ -301,7 +301,7 @@ class DashboardWindow:
                 step_size = utils.parse_int( self.values["RRT:branch_size"] ),
                 exploration_radius = 1
             )
-            self._simulators = [simulators.SimpleSimulatorKnownBugsRRT(
+            self._simulators = [simulator.SimpleSimulatorKnownBugsRRT(
                 bug_profile = bug_profile,
                 sequence = self.seq,
                 rrt = self.rrt,
@@ -334,8 +334,8 @@ class DashboardWindow:
     
     def _new_simulation_status_row_layout(self, i):
         return [[
-            sg.T("%d: %s" % (i, simulators.State.NO_SIMULATOR_LOADED.value), 
-                s=len(simulators.State.NO_SIMULATOR_LOADED.value), 
+            sg.T("%d: %s" % (i, simulator.State.NO_SIMULATOR_LOADED.value), 
+                s=len(simulator.State.NO_SIMULATOR_LOADED.value), 
                 k="SS:state_%d" % i),
             sg.ProgressBar(1, expand_x = True, orientation = "h",
                 key="SS:progress_%d" % i)
