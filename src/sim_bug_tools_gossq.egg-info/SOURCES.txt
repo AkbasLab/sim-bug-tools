@@ -17,9 +17,6 @@ src/sim_bug_tools/rng/rrt.py
 src/sim_bug_tools/rng/lds/__init__.py
 src/sim_bug_tools/rng/lds/coverage.py
 src/sim_bug_tools/rng/lds/sequences.py
-src/sim_bug_tools/simulators_old/__init__.py
-src/sim_bug_tools/simulators_old/base.py
-src/sim_bug_tools/simulators_old/sumo.py
 src/sim_bug_tools_gossq.egg-info/PKG-INFO
 src/sim_bug_tools_gossq.egg-info/SOURCES.txt
 src/sim_bug_tools_gossq.egg-info/dependency_links.txt
