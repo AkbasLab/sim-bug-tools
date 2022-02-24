@@ -1,0 +1,4 @@
+Warning: Teleporting vehicle 'veh_4'; collision with vehicle 'veh_0', lane='before_tl_1', gap=-4.45, time=41.00 stage=move.
+Warning: Vehicle 'veh_4' ends teleporting on edge 'after_tl', time=41.00.
+Warning: Teleporting vehicle 'veh_5'; collision with vehicle 'veh_0', lane='before_tl_1', gap=-3.34, time=42.00 stage=move.
+Warning: Vehicle 'veh_5' ends teleporting on edge 'after_tl', time=42.00.

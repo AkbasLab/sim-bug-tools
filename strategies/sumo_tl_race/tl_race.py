@@ -294,7 +294,17 @@ class TrafficLightRace(simulator.Simulator):
         # Combine into the concrete parameters
         concrete_params = np.concatenate([concrete_vehicle_params, concrete_tl_params])
 
-        # TODO: Remove later
-        self.client.run_to_end()
+        # TODO:
+        # Check if the concrete params are duplicate
+
+        # Run simulation and observe an emergency stop
+        collision_observed = False
+        while traci.simulation.getMinExpectedNumber() > 0:
+            if traci.simulation.getCollidingVehiclesNumber():
+                collision_observed = True
+                break
+            traci.simulationStep()
+
+        # Sim complete
         self.client.close()
-        return
+        return collision_observed
