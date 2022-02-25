@@ -4,6 +4,8 @@ import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.sumo import TraCIClient
 import sim_bug_tools.utils as utils
 import sim_bug_tools.structs as structs
+from sim_bug_tools.rng.rrt import RapidlyExploringRandomTree
+
 import numpy as np
 import json
 
@@ -471,9 +473,133 @@ class TrafficLightRace(simulator.Simulator):
         point = self.seq.get_points(1)[0]
         is_collision, params = self._run_sumo_scenario(point)
         
-        super().long_walk_on_update(
+        return super().long_walk_on_update(
             point_normal = point, 
             point_concrete = params, 
             is_bug = is_collision)
+
+
+
+
+class TrafficLightRaceRRT(TrafficLightRace):
+    """
+    A simple simulator with known bugs.
+    Samples from a normal domain.
+    RRT Version
+    """
+    def __init__(self, 
+        sequence_generator : sequences.Sequence,
+        rrt : RapidlyExploringRandomTree,
+        n_branches : int,
+        seed : int = 500,
+        **kwargs
+    ):
+        super().__init__(sequence_generator, seed, **kwargs)
+
+        self._rrt = rrt
+        self._n_branches = n_branches
+        self._n_branches_remaining = n_branches
         return
+
+    @property
+    def rrt(self) -> RapidlyExploringRandomTree:
+        """
+        A Rapidly Exploring Random Tree
+        """
+        return self._rrt
+
+    @property
+    def n_branches(self) -> int:
+        """
+        The number of branches the RRT will grow before resetting to 0 branches.
+        """
+        return self._n_branches
+
+    @property
+    def n_branches_remaining(self) -> int:
+        """
+        The number of branches left for the RRT to grow.
+        """
+        return self._n_branches_remaining
+
+    def as_dict(self) -> dict:
+        d = {
+            "rrt" : self.rrt.as_dict(),
+            "n_branches" : self.n_branches,
+            "n_branches_remaining" : self.n_branches_remaining
+        }
+        return utils.flatten_dicts([d, super().as_dict()])
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(d : dict, sim = None):
+        """
+        Create a simulator instance from a dictionary
+
+        -- Parameters --
+        d : dict
+            Instance properties
+        sim : Simulator (default = None)
+            simulator to inherit properties. Will construct a new instance
+            if None.
+        """
+        if sim is None:
+            sim = TrafficLightRaceRRT(
+                sequence_generator = sequences.RandomSequence,
+                rrt = RapidlyExploringRandomTree.from_dict(d["rrt"]),
+                n_branches = int(d["n_branches"])
+            )
+        sim._n_branches_remaining = int(d["n_branches_remaining"])
+        return TrafficLightRace.from_dict(d, sim)
+    
+
+    def long_walk_to_local_search_on_enter(self):
+        """
+        The RRT is reset and centered on the last observed point.
+        """
+        # Reset the RRT
+        self.rrt.reset(self.last_observed_point_normal)
+        self._n_branches_remaining = self.n_branches
+        return
+
+    def local_search_on_update(self):
+        """
+        Local Exploration using the RRT for point selection, until the
+        specified amount of branches are grown.
+        """
+        # Generate the next point
+        point = self.rrt.step()[2]
+
+        # Check if it's in the bug profile
+        is_collision, params = self._run_sumo_scenario(point)
+
+        # Reduce branches remaining.
+        self._n_branches_remaining -= 1
+
+        #  Call parent function
+        return super().local_search_on_update(
+            point_normal = point, 
+            point_concrete = params, 
+            is_bug = is_collision)
+        
+    
+    def local_search_to_long_walk_trigger(self) -> bool:
+        """
+        The local search ends when the RRT does not need to grow anymore
+        branches.
+        """
+        return self.n_branches_remaining <= 0
+
+    def local_search_to_paused_trigger(self) -> bool:
+        """
+        When the sim is complete (implied in base class), and there are no
+        branches remaining. Transition to Paused State.
+        """
+        return self.n_branches_remaining <= 0
+
+    def long_walk_to_local_search_trigger(self) -> bool:
+        """
+        Move to local search when a bug is observed
+        """
+        return self.last_observed_point_is_bug
     
