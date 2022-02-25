@@ -1,2 +1,0 @@
-Warning: Vehicle 'veh_0' performs emergency stop at the end of lane 'before_tl_0' because of a red traffic light (decel=-88.77, offset=56.60), time=19.00.
-Warning: Vehicle 'veh_7' performs emergency stop at the end of lane 'before_tl_0' because of a red traffic light (decel=-34.76, offset=9.62), time=70.00.

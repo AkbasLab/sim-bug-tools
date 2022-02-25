@@ -1,9 +1,11 @@
+from abc import abstractmethod
 import sim_bug_tools.simulator as simulator
 import sim_bug_tools.rng.lds.sequences as sequences
 from sim_bug_tools.sumo import TraCIClient
 import sim_bug_tools.utils as utils
 import sim_bug_tools.structs as structs
 import numpy as np
+import json
 
 import traci
 import os
@@ -34,6 +36,8 @@ class TrafficLightRace(simulator.Simulator):
         kwargs["domain"] = self.seq.domain
         super().__init__(**kwargs)
 
+
+
         # SUMO configuration
         map_dir = "%s" % FILE_DIR
         self._config = {
@@ -57,6 +61,13 @@ class TrafficLightRace(simulator.Simulator):
             # RNG
             "--seed" : 333
         }
+
+
+        # Parameter Data
+        self._parameter_names = []
+        self._parameter_uom = []
+        self._parameter_range = []
+        self._parameter_granularity = []
         return
 
     @property
@@ -156,6 +167,82 @@ class TrafficLightRace(simulator.Simulator):
         """
         return self._tls_attribute_indices
 
+    @property
+    def parameter_names(self) -> list[str]:
+        """
+        Names of each parameter.
+        """
+        return self._parameter_names    
+    
+    @property
+    def parameter_uom(self) -> list[str]:
+        """
+        Unit of measurement for each parameter.
+        """
+        return self._parameter_uom
+    
+    @property
+    def parameter_range(self) -> list[list[float,float]]:
+        """
+        Min, max of each parameter
+        """
+        return self._parameter_range
+
+    @property
+    def parameter_granularity(self) -> list[float]:
+        """
+        Granularity of each parameter
+        """
+        return self._parameter_granularity
+    
+
+    @abstractmethod
+    def as_dict(self):
+        d = {
+            "config" : json.dumps(self.config),
+            "n_vehicles" : self.n_vehicles,
+            "n_parameters" : self.n_parameters,
+            "n_dim" : self.n_dim,
+            "vehicle_id_prefix" : self.vehicle_id_prefix,
+            "route_id" : self.route_id,
+            "seq" : self.seq.as_dict(),
+            "n_vehicles_added" : self.n_vehicles_added,
+            "vehicles" : self.vehicles,
+            "tlsid" : self.tlsid,
+            "n_vehicle_params" : self.n_veh_params,
+            "vehicle_attribute_indices" : self.vehicle_attribute_indices,
+            "tls_attribute_indices" : self.tls_attribute_indices,
+            "parameter_names" : self.parameter_names,
+            "parameter_uom" : self.parameter_uom,
+            "parameter_range" : self.parameter_range,
+            "parameter_granularity" : self.parameter_granularity
+        }
+        return utils.flatten_dicts([d, super().as_dict()])
+
+    @staticmethod
+    @abstractmethod
+    def from_dict(d : dict, sim = None):
+        """
+        Create a simulator instance from a dictionary
+
+        -- Parameters --
+        d : dict
+            Instance properties
+        sim : Simulator (default = None)
+            simulator to inherit properties. Will construct a new instance
+            if None.
+        """
+        if sim is None:
+            sim = TrafficLightRace(
+                sequence_generator = sequences.RandomSequence,
+                file_name = d["file_name"]
+            )
+        sim._seq = sequences.from_dict(d["seq"])
+        
+
+        return simulator.Simulator.from_dict(d, sim)
+
+
 
     def _add_vehicles(self, point : structs.Point) -> np.ndarray:
         """
@@ -213,6 +300,25 @@ class TrafficLightRace(simulator.Simulator):
             [5.4, 200, 1/3.6]                   # Max Speed (m/s) by (1 kmh)
         ])
 
+        names_uom = [
+            ["length", "m"],
+            ["width", "m"],
+            ["min_gap", "m"],
+            ["accel", "m/s^2"],
+            ["decel", "m/s^2"],
+            ["max_speed", "m/s"]
+        ]
+
+        for i, attrib in enumerate(attributes):
+            a,b,g = attrib
+            name, uom = names_uom[i]
+            self._parameter_names.append("%s_%s" % (vid, name))
+            self._parameter_uom.append(uom)
+            self._parameter_range.append([a,b])
+            self._parameter_granularity.append(g)
+
+
+        #  Set concrete Values
         concrete_values = [utils.project(
                 attrib[0], attrib[1], point[i], by=attrib[2]) \
             for i, attrib in enumerate(attributes)]
@@ -221,14 +327,32 @@ class TrafficLightRace(simulator.Simulator):
 
         
         # Emergency decel must be greater than decel. 
-        emergency_decel = utils.project(concrete_values[-2], 10., point[6], by=.1)
+        a = concrete_values[-2]
+        b = 10.
+        g = 0.00007716049382716
+        emergency_decel = utils.project(a, b, point[6], by=g)
         traci.vehicle.setEmergencyDecel(vid, emergency_decel)
         concrete_values.append(emergency_decel)
+
+        self._parameter_names.append("%s_emergency_decel" % vid)
+        self._parameter_uom.append("m/s^2")
+        self._parameter_range.append(["%s_decel" % vid,b])
+        self._parameter_granularity.append(g)
+
         
         # Set initial speed between 0 and the max speed.
-        initial_speed = utils.project(concrete_values[-1], 200, point[7], 1/3.6)
+        a = 0 
+        b = concrete_values[-1]
+        g = 1/3.6
+        initial_speed = utils.project(a, b, point[7], by=g)
         traci.vehicle.setSpeed(vid, initial_speed)
         concrete_values.append(initial_speed)
+
+        self._parameter_names.append("%s_initial_speed" % vid)
+        self._parameter_uom.append("m/s")
+        self._parameter_range.append([a,"%s_max_speed" % vid])
+        self._parameter_granularity.append(g)
+
 
         return np.array(concrete_values)
 
@@ -251,6 +375,18 @@ class TrafficLightRace(simulator.Simulator):
             [1., 30.]  # Red to Gree (s)
         ]
         by = 1. #1 s
+        names = ["GY","YR","RG"]
+
+        for i, dur in enumerate(durations):
+            a,b = dur
+            g = by
+            name = "tls_%s" % (names[i])
+            uom = "s"
+            self._parameter_names.append(name)
+            self._parameter_uom.append(uom)
+            self._parameter_range.append([a,b])
+            self._parameter_granularity.append(g)
+            
 
         concrete_durations = [utils.project(*dur, point[i], by=by) \
             for i, dur in enumerate(durations)]
@@ -289,6 +425,11 @@ class TrafficLightRace(simulator.Simulator):
             pos 0 : if a collision was observed in the scene
             pos 1 : concrete parameters as a point
         """
+        # Clear parameter field
+        self._parameter_names = []
+        self._parameter_uom = []
+        self._parameter_range = [] 
+        self._parameter_granularity = []
 
         # Start the client
         self._client = TraCIClient(self.config)

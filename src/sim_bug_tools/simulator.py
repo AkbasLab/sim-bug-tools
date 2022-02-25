@@ -210,7 +210,8 @@ class Simulator():
             "n_local_searches" : self.n_local_searches,
             "n_bugs" : self.n_bugs,
             "id" : self.id,
-            "state" : self.state.value
+            "state" : self.state.value,
+            "file_name" : self.file_name
         }
 
     def as_json(self) -> str:
@@ -237,6 +238,7 @@ class Simulator():
         sim._n_bugs = int(d["n_bugs"])
         sim._id = str(d["id"])
         sim._state = State(str(d["state"]))
+        sim._file_name = d["file_name"]
         return sim
 
 
