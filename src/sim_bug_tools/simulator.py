@@ -63,10 +63,12 @@ class Simulator():
             "step" : [],
             "is_bug" : [],
             "state" : [],
-            "point" : [],
+            "point_normal" : [],
+            "point_concrete" : []
         })
         self._n_steps_to_run = 0
-        self._last_observed_point = None
+        self._last_observed_point_normal = None
+        self._last_observed_point_concrete = None
         self._last_observed_point_is_bug = False
         return
 
@@ -130,11 +132,18 @@ class Simulator():
         return self._n_steps_to_run
 
     @property
-    def last_observed_point(self) -> structs.Point:
+    def last_observed_point_normal(self) -> structs.Point:
         """
-        The last observed point from the previous step.
+        The last observed normal point from the previous step.
         """
-        return self._last_observed_point
+        return self._last_observed_point_normal
+
+    @property
+    def last_observed_point_concrete(self) -> structs.Point:
+        """
+        The last observed concrete point from the previous step.
+        """
+        return self._last_observed_point_concrete
 
     @property
     def last_observed_point_is_bug(self) -> bool:
@@ -243,10 +252,12 @@ class Simulator():
             "step" : [],
             "is_bug" : [],
             "state" : [],
-            "point" : [],
+            "point_normal" : [],
+            "point_concrete" : []
         })
         self._n_steps_to_run = 0
-        self._last_observed_point = None
+        self._last_observed_point_normal = None
+        self._last_observed_point_normal = None
         return
 
     def _write_to_file(self):
@@ -323,7 +334,10 @@ class Simulator():
 
 
 
-    def long_walk_on_update(self, point : structs.Point = None, is_bug : bool = None):
+    def long_walk_on_update(self, 
+            point_normal : structs.Point = None, 
+            point_concrete : structs.Point = None,
+            is_bug : bool = None):
         """
         Long Walk State. Called on update.
 
@@ -336,7 +350,7 @@ class Simulator():
         self._step += 1
         self._n_long_walks += 1
         self._n_steps_to_run -= 1
-        self.add_to_history(point, is_bug)
+        self.add_to_history(point_normal, point_concrete, is_bug)
         self.log("Long Walk")
         return
 
@@ -356,7 +370,10 @@ class Simulator():
 
 
 
-    def local_search_on_update(self, point : structs.Point = None, is_bug : bool = None):
+    def local_search_on_update(self, 
+            point_normal : structs.Point = None, 
+            point_concrete : structs.Point = None,
+            is_bug : bool = None):
         """
         Local Search State. Called on update.
 
@@ -369,7 +386,7 @@ class Simulator():
         self._step += 1
         self._n_local_searches += 1
         self._n_steps_to_run -= 1
-        self.add_to_history(point, is_bug)
+        self.add_to_history(point_normal, point_concrete, is_bug)
         self.log("Local Search")
         return
 
@@ -653,7 +670,10 @@ class Simulator():
             return True
         return False
 
-    def add_to_history(self, point : structs.Point, is_bug : bool):
+    def add_to_history(self, 
+            point_normal : structs.Point = None, 
+            point_concrete : structs.Point = None,
+            is_bug : bool = None):
         """
         Adds a new row to the history dataframe
 
@@ -663,15 +683,23 @@ class Simulator():
         is_bug : bool
             If a bug was observed at that point in space.
         """
-        if point is None:
-            return
+        point_normal_data = None
+        if not point_normal is None:
+            point_normal_data = point_normal.array.tolist()
+
+        point_concrete_data = None
+        if not point_concrete is None:
+            point_concrete_data = point_concrete.array.tolist()
+
         self._history = self._history.append({
             "step" : self.step,
             "is_bug" : is_bug,
             "state" : self.state.value,
-            "point" : point.array.tolist(),
+            "point_normal" : point_normal_data,
+            "point_concrete" : point_concrete_data,
         }, ignore_index = True)
-        self._last_observed_point = point
+        self._last_observed_point_normal = point_normal
+        self._last_observed_point_concrete = point_concrete
         self._last_observed_point_is_bug = is_bug
         return
 

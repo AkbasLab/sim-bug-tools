@@ -1,4 +1,2 @@
-Warning: Teleporting vehicle 'veh_4'; collision with vehicle 'veh_0', lane='before_tl_1', gap=-4.45, time=41.00 stage=move.
-Warning: Vehicle 'veh_4' ends teleporting on edge 'after_tl', time=41.00.
-Warning: Teleporting vehicle 'veh_5'; collision with vehicle 'veh_0', lane='before_tl_1', gap=-3.34, time=42.00 stage=move.
-Warning: Vehicle 'veh_5' ends teleporting on edge 'after_tl', time=42.00.
+Warning: Vehicle 'veh_6' performs emergency stop at the end of lane 'before_tl_1' because of a red traffic light (decel=-64.60, offset=61.17), time=36.00.
+Warning: Vehicle 'veh_2' performs emergency stop at the end of lane 'before_tl_0' because of a red traffic light (decel=-30.86, offset=2.17), time=36.00.

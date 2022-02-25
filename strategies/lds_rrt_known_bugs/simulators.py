@@ -82,7 +82,7 @@ class SimpleSimulatorKnownBugs(simulator.Simulator):
         is_bug = self.is_point_in_bug_profile(point)
 
         # Call the parent function
-        return super().long_walk_on_update(point, is_bug)         
+        return super().long_walk_on_update(point_normal = point, is_bug = is_bug)         
         
 
 
@@ -180,7 +180,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         The RRT is reset and centered on the last observed point.
         """
         # Reset the RRT
-        self.rrt.reset(self.last_observed_point)
+        self.rrt.reset(self.last_observed_point_normal)
         self._n_branches_remaining = self.n_branches
         return
 
@@ -199,7 +199,7 @@ class SimpleSimulatorKnownBugsRRT(SimpleSimulatorKnownBugs):
         self._n_branches_remaining -= 1
 
         #  Call parent function
-        return super().local_search_on_update(point, is_bug)
+        return super().local_search_on_update(point_normal = point, is_bug = is_bug)         
         
     
     def local_search_to_long_walk_trigger(self) -> bool:
