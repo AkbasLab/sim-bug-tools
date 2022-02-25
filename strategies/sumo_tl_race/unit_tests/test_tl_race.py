@@ -8,15 +8,18 @@ import sim_bug_tools.rng.lds.sequences as sequences
 
 class TestTrafficLightRace(unittest.TestCase):
     def test_tl_race(self):
-        print("\n\n")
+        # print("\n\n")
 
         sim = TrafficLightRace(
-            sequences.RandomSequence
+            sequences.RandomSequence,
+            file_name = "strategies/sumo_tl_race/unit_tests/out/tl-test.tsv"
         )
         
-        sim._run_sumo_scenario()
+        sim.run(10)
+        sim.resume()
+        sim.run(10)
 
-        print("\n\n")
+        # print("\n\n")
         return
 
 if __name__ == "__main__":

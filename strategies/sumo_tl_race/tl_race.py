@@ -13,19 +13,26 @@ FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class TrafficLightRace(simulator.Simulator):
 
-    def __init__(self, sequence_generator : sequences.Sequence, **kwargs):
-        super().__init__(**kwargs)
-
-
+    def __init__(self, 
+        sequence_generator : sequences.Sequence, 
+        seed : int = 500,
+        **kwargs):
+        
 
         # Setup sequence
         self._vehicle_attribute_indices = [1, self.n_vehicles * self.n_veh_params + 1]
         self._tls_attribute_indices = [self.vehicle_attribute_indices[1]+1, self.vehicle_attribute_indices[1]+4]
         self._n_parameters = self.tls_attribute_indices[1]
+
         self._seq = sequence_generator(
-            domain = [(0,1) for n in range(self.n_parameters)],
-            axes_names = ["dim%d" % n for n in range(self.n_parameters)]
+            domain = structs.Domain([(0,1) for n in range(self.n_parameters)]),
+            axes_names = ["dim%d" % n for n in range(self.n_parameters)],
+            seed = seed
         )
+        
+
+        kwargs["domain"] = self.seq.domain
+        super().__init__(**kwargs)
 
         # SUMO configuration
         map_dir = "%s" % FILE_DIR
@@ -186,8 +193,6 @@ class TrafficLightRace(simulator.Simulator):
         self._n_vehicles_added += 1
 
         traci.vehicle.add(vid, self.route_id)
-
-
         
         setters = [
             traci.vehicle.setLength,
@@ -270,7 +275,21 @@ class TrafficLightRace(simulator.Simulator):
     def _run_until_emergency_stop(self) -> bool:
         return 
 
-    def _run_sumo_scenario(self):
+    def _run_sumo_scenario(self, 
+            point : structs.Point) -> list[bool, structs.Point]:
+        """
+        Generate and run a single SUMO scenario
+
+        -- Parameter --
+        point : structs.Point
+            Normal point, which is used to select the concrete parameters
+        
+        -- Return --
+        list[bool, structs.Point]
+            pos 0 : if a collision was observed in the scene
+            pos 1 : concrete parameters as a point
+        """
+
         # Start the client
         self._client = TraCIClient(self.config)
         self._tlid = traci.trafficlight.getIDList()[0]
@@ -283,7 +302,6 @@ class TrafficLightRace(simulator.Simulator):
         self._n_vehicles_added = 0
 
         # Add Vehicles
-        point = self.seq.get_points(1)[0]
         concrete_vehicle_params = self._add_vehicles(
             point[self.vehicle_attribute_indices[0] : self.vehicle_attribute_indices[1]])
         
@@ -292,10 +310,9 @@ class TrafficLightRace(simulator.Simulator):
             point[self.tls_attribute_indices[0] : self.tls_attribute_indices[1]])
         
         # Combine into the concrete parameters
-        concrete_params = np.concatenate([concrete_vehicle_params, concrete_tl_params])
-
-        # TODO:
-        # Check if the concrete params are duplicate
+        concrete_params = structs.Point(
+            np.concatenate([concrete_vehicle_params, concrete_tl_params])
+        )
 
         # Run simulation and observe an emergency stop
         collision_observed = False
@@ -307,4 +324,15 @@ class TrafficLightRace(simulator.Simulator):
 
         # Sim complete
         self.client.close()
-        return collision_observed
+        return collision_observed, concrete_params
+
+    def long_walk_on_update(self):
+        point = self.seq.get_points(1)[0]
+        is_collision, params = self._run_sumo_scenario(point)
+        
+        super().long_walk_on_update(
+            point_normal = point, 
+            point_concrete = params, 
+            is_bug = is_collision)
+        return
+    
