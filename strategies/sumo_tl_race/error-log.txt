@@ -1,0 +1,20 @@
+Warning: Teleporting vehicle 'veh_1'; waited too long (jam), lane='before_tl_1', time=911.00.
+Warning: Vehicle 'veh_1' ends teleporting on edge 'after_tl', time=911.00.
+Warning: Teleporting vehicle 'veh_0'; waited too long (jam), lane='before_tl_0', time=1484.00.
+Warning: Vehicle 'veh_0' ends teleporting on edge 'after_tl', time=1484.00.
+Warning: Teleporting vehicle 'veh_2'; waited too long (jam), lane='before_tl_1', time=3893.00.
+Warning: Vehicle 'veh_2' ends teleporting on edge 'after_tl', time=3893.00.
+Warning: Teleporting vehicle 'veh_3'; waited too long (jam), lane='before_tl_0', time=3904.00.
+Warning: Vehicle 'veh_3' ends teleporting on edge 'after_tl', time=3904.00.
+Warning: Teleporting vehicle 'veh_4'; waited too long (jam), lane='before_tl_1', time=4197.00.
+Warning: Vehicle 'veh_4' ends teleporting on edge 'after_tl', time=4197.00.
+Warning: Teleporting vehicle 'veh_5'; waited too long (jam), lane='before_tl_0', time=4207.00.
+Warning: Vehicle 'veh_5' ends teleporting on edge 'after_tl', time=4207.00.
+Warning: Teleporting vehicle 'veh_6'; waited too long (jam), lane='before_tl_1', time=4501.00.
+Warning: Vehicle 'veh_6' ends teleporting on edge 'after_tl', time=4501.00.
+Warning: Teleporting vehicle 'veh_8'; waited too long (jam), lane='before_tl_0', time=4511.00.
+Warning: Vehicle 'veh_8' ends teleporting on edge 'after_tl', time=4511.00.
+Warning: Teleporting vehicle 'veh_7'; waited too long (jam), lane='before_tl_1', time=4803.00.
+Warning: Vehicle 'veh_7' ends teleporting on edge 'after_tl', time=4803.00.
+Warning: Teleporting vehicle 'veh_9'; waited too long (jam), lane='before_tl_0', time=4814.00.
+Warning: Vehicle 'veh_9' ends teleporting on edge 'after_tl', time=4814.00.

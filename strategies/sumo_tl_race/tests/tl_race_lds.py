@@ -15,19 +15,20 @@ def main():
     SEQUENCE_NAMES = ["random", "faure", "halton", "sobol"]
     seed = 500
     checkpoint = 100
-    tests_total = 5000
+    tests_total = 1000
     
 
     for i, seq_gen in enumerate(SEQUENCES_GENERATORS):
         print("\n\n### %s ###\n\n" % SEQUENCE_NAMES[i])
         sim = TrafficLightRace(
             sequence_generator = seq_gen,
-            file_name = "%s/out/%s.tsv" % (FILE_DIR, SEQUENCE_NAMES[i])
+            file_name = "tests/stats/data/%s.tsv" % (SEQUENCE_NAMES[i])
         )
         for n in range(checkpoint, tests_total, checkpoint):
             sim.resume()
             sim.run(n)
             continue
+        break
         continue
 
     return
