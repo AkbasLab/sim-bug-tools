@@ -303,3 +303,57 @@ def redudancy_table(
 
 
 
+class Signal:
+    def __init__(self, 
+        time : list[float], 
+        amplitude : list[float],
+        on_after : float = 0.5):
+        assert len(time) == len(amplitude)
+        self._time = time
+        self._amplitude = amplitude
+        self._on_after = self._on_after
+        self._is_on = [amp >= on_after for amp in amplitude]
+        return
+
+    @property
+    def time(self) -> list[float]:
+        return self._time
+
+    @property
+    def amplitude(self) -> list[float]:
+        return self._amplitude
+
+    @property
+    def on_after(self) -> float:
+        return self._on_after
+
+    @property
+    def is_on(self) -> list[bool]:
+        return self._is_on
+
+    
+
+# def plot 
+    
+    
+
+
+
+
+def new_signal_axes() -> matplotlib.axes.Axes:
+    """
+    Creates a new plot and axes
+
+    -- Return --
+    matplotlib.axes
+    """
+    plt.figure(figsize = (5,1))
+    return plt.axes()
+
+def plot_signal(time : list[float], is_bug : list[bool]) -> matplotlib.axes.Axes:
+    assert len(time) == len(is_bug)
+    ax = new_signal_axes()
+    time = np.array(time, dtype=int)
+    is_bug = np.array(is_bug, dtype=int)
+    ax.plot(time, is_bug, color="black")
+    return ax

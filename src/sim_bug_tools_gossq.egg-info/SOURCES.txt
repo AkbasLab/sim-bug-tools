@@ -7,7 +7,6 @@ src/sim_bug_tools/decorators.py
 src/sim_bug_tools/graphics.py
 src/sim_bug_tools/lshash.py
 src/sim_bug_tools/simulator.py
-src/sim_bug_tools/stats.py
 src/sim_bug_tools/structs.py
 src/sim_bug_tools/sumo.py
 src/sim_bug_tools/utils.py
