@@ -1,0 +1,74 @@
+{
+    "bug_profile": [
+        {
+            "lower_bounds": [
+                0.8538808845370037,
+                0.9744991342140426,
+                0.6689963873397823,
+                0.5347726508980852,
+                0.23792136008587916
+            ],
+            "upper_bounds": [
+                0.882928816392106,
+                1.0,
+                0.8069139860318154,
+                0.6256877553993979,
+                0.3856844814135503
+            ],
+            "granularity": 0.01
+        }
+    ],
+    "sequence": {
+        "class": "HaltonSequence",
+        "domain": {
+            "lower_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "upper_bounds": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "granularity": 0.01
+        },
+        "axes_names": [
+            "dim_0",
+            "dim_1",
+            "dim_2",
+            "dim_3",
+            "dim_4"
+        ],
+        "seed": 300,
+        "offset": 20
+    },
+    "class": "SimpleSimulatorKnownBugs",
+    "step": 20,
+    "domain": {
+        "lower_bounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "upper_bounds": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+        ],
+        "granularity": 0.01
+    },
+    "n_long_walks": 20,
+    "n_local_searches": 0,
+    "n_bugs": 0,
+    "id": "",
+    "state": "PAUSED"
+}

@@ -1,0 +1,74 @@
+{
+    "bug_profile": [
+        {
+            "lower_bounds": [
+                0.3877230407321455,
+                0.4158488327080384,
+                0.5567670908788449,
+                0.9970432646766259,
+                0.8417858109533799
+            ],
+            "upper_bounds": [
+                0.4046617118004552,
+                0.5178976255673329,
+                0.6783529248537051,
+                1.0,
+                0.9869473391138797
+            ],
+            "granularity": 0.01
+        }
+    ],
+    "sequence": {
+        "class": "SobolSequence",
+        "domain": {
+            "lower_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "upper_bounds": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "granularity": 0.01
+        },
+        "axes_names": [
+            "dim_0",
+            "dim_1",
+            "dim_2",
+            "dim_3",
+            "dim_4"
+        ],
+        "seed": 300,
+        "offset": 20
+    },
+    "class": "SimpleSimulatorKnownBugs",
+    "step": 20,
+    "domain": {
+        "lower_bounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "upper_bounds": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+        ],
+        "granularity": 0.01
+    },
+    "n_long_walks": 20,
+    "n_local_searches": 0,
+    "n_bugs": 0,
+    "id": "",
+    "state": "PAUSED"
+}

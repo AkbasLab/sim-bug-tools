@@ -1,0 +1,74 @@
+{
+    "bug_profile": [
+        {
+            "lower_bounds": [
+                0.9373739328167288,
+                0.7384650565705303,
+                0.14370918946092748,
+                0.4632993398113139,
+                0.8641452981333585
+            ],
+            "upper_bounds": [
+                0.9920326545387619,
+                0.8069939299834309,
+                0.27930066778177864,
+                0.5163319029568882,
+                0.9619072323596815
+            ],
+            "granularity": 0.01
+        }
+    ],
+    "sequence": {
+        "class": "FaureSequence",
+        "domain": {
+            "lower_bounds": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "upper_bounds": [
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "granularity": 0.01
+        },
+        "axes_names": [
+            "dim_0",
+            "dim_1",
+            "dim_2",
+            "dim_3",
+            "dim_4"
+        ],
+        "seed": 300,
+        "offset": 20
+    },
+    "class": "SimpleSimulatorKnownBugs",
+    "step": 20,
+    "domain": {
+        "lower_bounds": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "upper_bounds": [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+        ],
+        "granularity": 0.01
+    },
+    "n_long_walks": 20,
+    "n_local_searches": 0,
+    "n_bugs": 0,
+    "id": "",
+    "state": "PAUSED"
+}

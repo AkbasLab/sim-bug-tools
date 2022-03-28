@@ -1,0 +1,53 @@
+{
+    "bug_profile": [
+        {
+            "lower_bounds": [
+                0.29947554750221195,
+                0.3377905269031667
+            ],
+            "upper_bounds": [
+                0.3310614688889465,
+                0.45916668583882386
+            ],
+            "granularity": 0.01
+        }
+    ],
+    "sequence": {
+        "class": "RandomSequence",
+        "domain": {
+            "lower_bounds": [
+                0.0,
+                0.0
+            ],
+            "upper_bounds": [
+                1.0,
+                1.0
+            ],
+            "granularity": 0.01
+        },
+        "axes_names": [
+            "dim_0",
+            "dim_1"
+        ],
+        "seed": 300,
+        "offset": 20
+    },
+    "class": "SimpleSimulatorKnownBugs",
+    "step": 20,
+    "domain": {
+        "lower_bounds": [
+            0.0,
+            0.0
+        ],
+        "upper_bounds": [
+            1.0,
+            1.0
+        ],
+        "granularity": 0.01
+    },
+    "n_long_walks": 20,
+    "n_local_searches": 0,
+    "n_bugs": 0,
+    "id": "",
+    "state": "PAUSED"
+}

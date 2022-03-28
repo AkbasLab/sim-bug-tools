@@ -31,7 +31,7 @@ class TestSimulators(unittest.TestCase):
 
         sim = simulator.SimpleSimulatorKnownBugs(
             bug_profile, seq, 
-            file_name = "%s/out/sskb.tsv" % UNITTEST_DIR
+            file_name = "%s/out/sskbRandomSequence.tsv" % UNITTEST_DIR
         )
 
         if os.path.exists(sim.file_name):
@@ -46,6 +46,134 @@ class TestSimulators(unittest.TestCase):
         
         return
 
+    def test_simulator_known_bugs_faure_sequence(self):
+        with open("%s/test_bugs.json" % UNITTEST_DIR, "r") as f:
+            for line in f:
+                hhh = json.loads(line)
+                break
+        bug_profile = [structs.Domain.from_json(d) for d in hhh[0]]
+        
+        n_dim = len(bug_profile[0])
+        domain = structs.Domain([(0,1) for n in range(n_dim)])
+        seq = sequences.FaureSequence(
+            domain, 
+            ["dim_%d" % n for n in range(n_dim)],
+            seed = 300
+        )
+
+        sim = simulator.SimpleSimulatorKnownBugs(
+            bug_profile, seq, 
+            file_name = "%s/out/sskbFaureSequence.tsv" % UNITTEST_DIR
+        )
+
+        if os.path.exists(sim.file_name):
+            os.remove(sim.file_name)
+
+        sim.run(10)
+        sim.long_walk_on_enter()
+        sim.run(10)
+
+        self.assertEqual(utils.rawincount(sim.file_name), 21)
+
+        
+        return
+
+    def test_simulator_known_bugs_halton_sequence(self):
+        with open("%s/test_bugs.json" % UNITTEST_DIR, "r") as f:
+            for line in f:
+                hhh = json.loads(line)
+                break
+        bug_profile = [structs.Domain.from_json(d) for d in hhh[0]]
+        
+        n_dim = len(bug_profile[0])
+        domain = structs.Domain([(0,1) for n in range(n_dim)])
+        seq = sequences.HaltonSequence(
+            domain, 
+            ["dim_%d" % n for n in range(n_dim)],
+            seed = 300
+        )
+
+        sim = simulator.SimpleSimulatorKnownBugs(
+            bug_profile, seq, 
+            file_name = "%s/out/sskbHaltonSequence.tsv" % UNITTEST_DIR
+        )
+
+        if os.path.exists(sim.file_name):
+            os.remove(sim.file_name)
+
+        sim.run(10)
+        sim.long_walk_on_enter()
+        sim.run(10)
+
+        self.assertEqual(utils.rawincount(sim.file_name), 21)
+
+        
+        return
+
+    def test_simulator_known_bugs_sobol_sequence(self):
+        with open("%s/test_bugs.json" % UNITTEST_DIR, "r") as f:
+            for line in f:
+                hhh = json.loads(line)
+                break
+        bug_profile = [structs.Domain.from_json(d) for d in hhh[0]]
+        
+        n_dim = len(bug_profile[0])
+        domain = structs.Domain([(0,1) for n in range(n_dim)])
+        seq = sequences.SobolSequence(
+            domain, 
+            ["dim_%d" % n for n in range(n_dim)],
+            seed = 300
+        )
+
+        sim = simulator.SimpleSimulatorKnownBugs(
+            bug_profile, seq, 
+            file_name = "%s/out/sskbSobolSequence.tsv" % UNITTEST_DIR
+        )
+
+        if os.path.exists(sim.file_name):
+            os.remove(sim.file_name)
+
+        sim.run(10)
+        sim.long_walk_on_enter()
+        sim.run(10)
+
+        self.assertEqual(utils.rawincount(sim.file_name), 21)
+
+        
+        return
+
+
+    def test_simulator_known_bugs_lattice_sequence(self):
+        with open("%s/test_bugs.json" % UNITTEST_DIR, "r") as f:
+            for line in f:
+                hhh = json.loads(line)
+                break
+        bug_profile = [structs.Domain.from_json(d) for d in hhh[0]]
+        
+        n_dim = len(bug_profile[0])
+        domain = structs.Domain([(0,1) for n in range(n_dim)])
+        seq = sequences.LatticeSequence(
+            domain, 
+            ["dim_%d" % n for n in range(n_dim)],
+            seed = 300
+        )
+
+        sim = simulator.SimpleSimulatorKnownBugs(
+            bug_profile, seq, 
+            file_name = "%s/out/sskbLatticeSequence.tsv" % UNITTEST_DIR
+        )
+
+        if os.path.exists(sim.file_name):
+            os.remove(sim.file_name)
+
+        sim.run(10)
+        sim.long_walk_on_enter()
+        sim.run(10)
+
+        self.assertEqual(utils.rawincount(sim.file_name), 21)
+
+        
+        return
 
 
     def test_simulator_known_bugs_rrt(self):
