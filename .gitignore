@@ -1,3 +1,3 @@
-sim-bug-tools\strategies\lds_rrt_known_bugs\bugprofiles\out.data\*
+sim-bug-tools/strategies/lds_rrt_known_bugs/bugprofiles/out/*
 
-sim-bug-tools\strategies\lds_rrt_known_bugs\bugprofiles\test_bug_profiles\*
+sim-bug-tools/strategies/lds_rrt_known_bugs/bugprofiles/test_bug_profiles/*
