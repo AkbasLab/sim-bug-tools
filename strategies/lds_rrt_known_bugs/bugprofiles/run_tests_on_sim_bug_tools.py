@@ -282,7 +282,7 @@ class RunTestsOnSimulators(unittest.TestCase):
     def test_all_cluster_dimension_combiniation(self):
         i = 0
         dimension_range = [2,5,10,50]
-        cluster_range = range(11)
+        cluster_range = range(1,11)
 
         for dimension in dimension_range:
             for cluster in cluster_range:
