@@ -14,13 +14,16 @@ class TestTrafficLightRace(unittest.TestCase):
             sequences.RandomSequence,
             file_name = "%s/out/tl-test.tsv" % FILE_DIR
         )
-        
+        sim.run(100)
+        return
         sim.run(2)
         
         d = sim.as_dict()
         sim2 = TrafficLightRace.from_dict(d)
         sim2.resume()
         sim2.run(2)
+
+        
 
         print("\n\n")
         return

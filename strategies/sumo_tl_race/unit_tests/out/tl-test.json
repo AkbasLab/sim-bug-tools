@@ -272,7 +272,7 @@
             "dim84"
         ],
         "seed": 500,
-        "offset": 4
+        "offset": 100
     },
     "n_vehicles_added": 10,
     "vehicles": [
@@ -887,7 +887,7 @@
         1.0
     ],
     "class": "TrafficLightRace",
-    "step": 4,
+    "step": 100,
     "domain": {
         "lower_bounds": [
             0.0,
@@ -1065,7 +1065,7 @@
         ],
         "granularity": 0.01
     },
-    "n_long_walks": 4,
+    "n_long_walks": 100,
     "n_local_searches": 0,
     "n_bugs": 0,
     "id": "",

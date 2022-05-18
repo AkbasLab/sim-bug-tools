@@ -330,7 +330,7 @@ class Signal:
     @property
     def is_on(self) -> list[bool]:
         return self._is_on
-
+ 
     
 
 # def plot 
