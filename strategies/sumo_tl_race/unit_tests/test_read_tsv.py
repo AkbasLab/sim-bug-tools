@@ -29,6 +29,8 @@ class TestReadTSV(unittest.TestCase):
             len(point)
         )
 
+        print(metadata["parameter_names"])
+
         # TODO: Use this in catboost and then try SHAP
 
         return
