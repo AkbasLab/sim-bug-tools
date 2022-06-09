@@ -26,8 +26,7 @@ class TestSimple(unittest.TestCase):
                 is_comfortable.append(
                     sim._run_sumo_scenario(dfs, ss)
                 )
-                break
-            break
+                
 
         df = pd.DataFrame({
             "dist_from_stop" : dist_from_stop,
