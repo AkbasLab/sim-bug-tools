@@ -5,6 +5,8 @@ import sim_bug_tools.structs as structs
 
 import traci
 import os
+import re
+import numpy as np
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -15,6 +17,7 @@ class Simple(simulator.Simulator):
 
         # SUMO Configuration
         map_dir = "%s" % FILE_DIR
+        self._error_log_fn = "%s/error-log.txt" % map_dir
         self._config = {
             "gui" : False,
             # "gui" : True,
@@ -23,7 +26,7 @@ class Simple(simulator.Simulator):
             "--net-file" : "%s/3-way-1k.net.xml" % map_dir,
 
             # Logging
-            "--error-log" : "%s/error-log.txt" % map_dir,
+            "--error-log" : self._error_log_fn,
 
             # Traci Connection
             "--num-clients" : 1,
@@ -53,6 +56,7 @@ class Simple(simulator.Simulator):
         TraCI CLient
         """
         return self._client
+    
 
     def _run_sumo_scenario(self, 
         dist_from_stop : float, speed_start : float) -> bool:
@@ -92,7 +96,7 @@ class Simple(simulator.Simulator):
         
 
         # Simulation loop
-        is_comfortable = True
+        score = 1
         is_warmup = True
         while traci.simulation.getMinExpectedNumber() > 0:
             if is_warmup:
@@ -111,8 +115,7 @@ class Simple(simulator.Simulator):
             # Vehicle is up to speed
             e_stop = traci.simulation.getEmergencyStoppingVehiclesNumber()
             if e_stop:
-                is_comfortable = False
-                break
+                 break
             
             # AV stopped At traffic light
             speed = traci.vehicle.getSpeed(av_id)
@@ -122,9 +125,23 @@ class Simple(simulator.Simulator):
             traci.simulationStep()
             continue
 
-        
-
         # Sim complete
         self.client.close()
 
-        return is_comfortable
+
+        
+        if e_stop:
+            # Update the score
+            with open(self._error_log_fn, "r") as f:
+                log = "".join(f.read())
+            decel = -float(re.findall(r"decel=?-\d*\.\d*", log)[0] \
+                .strip("decel="))
+            
+            if decel <= 4.5:
+                score = 1
+            elif decel > 4.5 and decel <= 9.:
+                score = 1 - (9-decel)/4.5
+            else:
+                score = 0
+
+        return np.round(score, decimals=3)

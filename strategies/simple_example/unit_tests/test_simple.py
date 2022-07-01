@@ -13,7 +13,7 @@ class TestSimple(unittest.TestCase):
         
         dist_from_stop = []
         speed_start = []
-        is_comfortable = []
+        score = []
 
         
         i = 0; total = 100*51
@@ -23,15 +23,18 @@ class TestSimple(unittest.TestCase):
                 print("RUN %d of %d" % (i,total))
                 dist_from_stop.append(dfs)
                 speed_start.append(ss)
-                is_comfortable.append(
+                score.append(
                     sim._run_sumo_scenario(dfs, ss)
                 )
+                print("\nScore: %.2f\n" % score[-1])
+                
+
                 
 
         df = pd.DataFrame({
             "dist_from_stop" : dist_from_stop,
             "speed_start" : speed_start,
-            "is_comfortable" : is_comfortable
+            "score" : score
         })
         df.to_csv("%s/out/simple.csv" % FILE_DIR, index=False)
         print("\n\n")

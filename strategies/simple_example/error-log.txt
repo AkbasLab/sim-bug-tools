@@ -1,0 +1,1 @@
+Warning: Vehicle 'av' performs emergency stop at the end of lane 'E0_0' because of a red traffic light (decel=-8.33, offset=8.33), time=14.00.
