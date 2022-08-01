@@ -10,117 +10,138 @@ DATA_NORMAL = "normal"
 
 ANGLE_90 = np.pi / 2
 
+
 class BoundaryLostException(Exception):
     def __init__(self, msg="Failed to locate boundary!"):
         self.msg = msg
         super().__init__(msg)
 
     def __str__(self):
-        return (
-            f"<BoundaryLostException: Angle: {self.theta}, Jump Distance: {self.d}>"
-        )
+        return f"<BoundaryLostException: Angle: {self.theta}, Jump Distance: {self.d}>"
 
 
 class _AdhererIterator:
     def __init__(self, ba: "BoundaryAdherer"):
         self.ba = ba
-        
+
     def __next__(self):
         if self.ba.has_next:
-            return self.ba.sample_next()        
+            return self.ba.sample_next()
         else:
             raise StopIteration
 
+
 class BoundaryAdherer:
-    def __init__(self, classifier: Callable[[Point], bool], p: Point, n: ndarray, direction: ndarray, d: float, theta: float):
+    def __init__(
+        self,
+        classifier: Callable[[Point], bool],
+        p: Point,
+        n: ndarray,
+        direction: ndarray,
+        d: float,
+        theta: float,
+    ):
         self._classifier = classifier
         self._p = p
-        
+
         n = BoundaryAdherer.normalize(n)
-            
+
         self._rotater_function = self.generateRotationMatrix(n, direction)
-        
+
         self._s: ndarray = copy(n) * d
         self._s = np.dot(self._rotater_function(-ANGLE_90), self._s)
-                
+
         self._prev: Point = None
         self._prev_class = None
-        
+
         self._cur: Point = p + Point(self._s)
         self._cur_class = classifier(self._cur)
-        
+
         if self._cur_class:
             self._rotate = self._rotater_function(theta)
         else:
             self._rotate = self._rotater_function(-theta)
-            
+
         self._b = None
-        
+        self._n = None
+
         self._iteration = 0
-        self._max_iteration = (np.pi / 2) // theta
-    
+        self._max_iteration = (2 * np.pi) // theta
+
     @property
-    def b(self) -> Point | None:
+    def b(self) -> Point:
         return self._b
-    
+
+    @property
+    def n(self) -> Point:
+        return self._n
+
+    @property
+    def bn(self) -> tuple[Point, ndarray]:
+        return (self._b, self._n)
+
     def has_next(self) -> bool:
         """
         Returns:
             bool: True if the boundary has not been found and has remaining
                 samples.
         """
-        self.sample_next = lambda: None
         return self._b is None
-    
-    def sample_next(self) -> Point | None:
+
+    def sample_next(self) -> Point:
         """
         Takes the next sample to find the boundary. When the boundary is found,
         (property) b will be set to that point and sample_next will no longer
         return anything.
-        
+
         Raises:
-            BoundaryLostException: This exception is raised if the adherer 
+            BoundaryLostException: This exception is raised if the adherer
                 fails to acquire the boundary.
 
         Returns:
-            Point: The next sample 
+            Point: The next sample
             None: If the boundary was acquired or lost
         """
         self._prev = self._cur
-        self._s = np.dot(self._rotate, self._s)
+        sn = np.dot(self._rotate, self._s)
+        self._s = sn
         self._cur = self._p + Point(self._s)
-        
+
         self._prev_class = self._cur_class
         self._cur_class = self._classifier(self._cur)
-        
+
         if self._cur_class != self._prev_class:
             self._b = self._cur if self._cur_class else self._prev
+            self._n = BoundaryAdherer.normalize(
+                np.dot(self._rotater_function(ANGLE_90), self._s)
+            )
             self.sample_next = lambda: None
-            
+
         elif self._iteration > self._max_iteration:
             raise BoundaryLostException()
-            
+
+        self._iteration += 1
         return self._cur
-    
+
     def find_boundary(self) -> Point:
         """
         Samples until the boundary point is found.
-        
+
         Returns:
             Point: The estimated boundary point
         """
         while self.has_next():
             self.sample_next()
-        
+
         return self._b
-    
+
     def __iter__(self):
         return _AdhererIterator(self)
-    
+
     @staticmethod
     def normalize(u: ndarray):
         return u / np.linalg.norm(u)
-    
+
     @staticmethod
     def orthonormalize(u: ndarray, v: ndarray) -> tuple[ndarray, ndarray]:
         """
@@ -133,17 +154,25 @@ class BoundaryAdherer:
         (un, vn)
             Orthonormal vectors for the span defined by @u, @v
         """
+        u = u.squeeze()
+        v = v.squeeze()
+
         assert len(u) == len(v)
-        
-        un = BoundaryAdherer.normalize(u)        
+
+        u = u[np.newaxis]
+        v = v[np.newaxis]
+
+        un = BoundaryAdherer.normalize(u)
         vn = v - np.dot(un, v.T) * un
         vn = BoundaryAdherer.normalize(vn)
-        
+
         if not (np.dot(un, vn.T) < 1e-4):
             raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
-        
+
+        print("u v dot:", np.dot(un, vn.T))
+
         return un, vn
-    
+
     @staticmethod
     def generateRotationMatrix(u: ndarray, v: ndarray) -> Callable[[float], ndarray]:
         """
@@ -163,21 +192,48 @@ class BoundaryAdherer:
         """
         u = u.squeeze()
         v = v.squeeze()
-        
+
         if u.shape != v.shape:
             raise Exception("Dimension mismatch...")
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
-            
-        u = u[np.newaxis]
-        v = v[np.newaxis]
-        
+
         u, v = BoundaryAdherer.orthonormalize(u, v)
-        
-        I = np.identity(len(u))
-        
-        coef_a = v * u.T - u * v.T 
+
+        I = np.identity(len(u.T))
+
+        coef_a = v * u.T - u * v.T
         coef_b = u * u.T + v * v.T
-        
-        return lambda theta: I * np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
-        
+
+        return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    from matplotlib.axes import Axes
+
+    angle = 30 * np.pi / 180
+
+    fig = plt.figure()
+    ax: Axes = fig.add_subplot()
+    ax.set_xlim([0, 3])
+    ax.set_ylim([0, 3])
+
+    vec = np.array([0, 1])
+
+    u = np.array([0.5, 0.5])
+    v = np.array([0.1, 0.9])
+    # u, v = BoundaryAdherer.orthonormalize(u, v)
+
+    ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
+    plt.pause(0.05)
+
+    input("Waiting...")
+    rotate = BoundaryAdherer.generateRotationMatrix(u, v)(angle)
+
+    while True:
+        ar_vec.remove()
+        vec = np.dot(rotate, vec)
+        ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
+        plt.pause(0.05)
+        input("Waiting...")
