@@ -34,5 +34,6 @@ setuptools.setup(
         "traci >= 1.11",
         "PySimpleGUI >= 4.56.0",
         "treelib >= 1.6.1",
+        "Rtree >= 1.0.0"
     ],
 )
