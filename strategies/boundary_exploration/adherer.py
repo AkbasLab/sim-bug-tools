@@ -169,8 +169,6 @@ class BoundaryAdherer:
         if not (np.dot(un, vn.T) < 1e-4):
             raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
 
-        print("u v dot:", np.dot(un, vn.T))
-
         return un, vn
 
     @staticmethod

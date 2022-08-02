@@ -1,14 +1,15 @@
 from copy import copy
+from time import time
 from typing import Callable
 
 import numpy as np
 from numpy import ndarray
+from rtree import index
 from sim_bug_tools.rng.lds.sequences import RandomSequence, Sequence
 from sim_bug_tools.structs import Domain, Point
 from treelib import Node, Tree
 
 from adherer import BoundaryAdherer
-
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -24,8 +25,12 @@ class BoundaryRRT:
         self._ndims = len(t0)
 
         self._tree = Tree()
+        p = index.Property()
+        p.set_dimension(self._ndims)
+        self._index = index.Index(properties=p)
 
         p0, n0 = self._surface(t0)
+        self._index.insert(0, p0)
         self._root = Node(identifier=0, data=self._create_data(p0, n0))
         self._next_id = 1
 
@@ -63,24 +68,25 @@ class BoundaryRRT:
     def _add_node(self, p: Point, n: ndarray, parentID: int):
         node = Node(identifier=self._next_id, data=self._create_data(p, n))
         self._tree.add_node(node, parentID)
+        self._index.insert(self._next_id, p)
         self._next_id += 1
 
     def _random_point(self) -> Point:
         return Point(np.random.rand(self._ndims))
 
     def _find_nearest(self, p: Point) -> Node:
-        closest = {
-            "id": 0,
-            "distance": self._tree.nodes[0].data[DATA_LOCATION].distance_to(p),
-        }
+        # closest = {
+        #     "id": 0,
+        #     "distance": self._tree.nodes[0].data[DATA_LOCATION].distance_to(p),
+        # }
 
-        for id, node in self._tree.nodes.items():
-            dist = node.data[DATA_LOCATION].distance_to(p)
-            if dist < closest["distance"]:
-                closest["id"] = id
-                closest["distance"] = dist
-
-        node = self._tree.get_node(closest["id"])
+        # for id, node in self._tree.nodes.items():
+        #     dist = node.data[DATA_LOCATION].distance_to(p)
+        #     if dist < closest["distance"]:
+        #         closest["id"] = id
+        #         closest["distance"] = dist
+        
+        node = self._tree.get_node(next(self._index.nearest(p)))
 
         return node
 
@@ -113,16 +119,19 @@ class BoundaryRRT:
         return {DATA_LOCATION: location, DATA_NORMAL: normal}
 
 
+def measure_time(f: Callable, *args, **kwargs) -> float:
+    t0 = time()
+    r = f(*args, **kwargs)
+    t1 = time()
+    return r, t1 - t0
+    
+
 if __name__ == "__main__":
+    from sys import getsizeof
+
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
 
-    fig = plt.figure()
-    ax: Axes = fig.add_subplot(111, projection="3d")
-
-    ax.set_xlim([0, 1])
-    ax.set_ylim([0, 1])
-    ax.set_zlim([0, 1])
 
     ndims = 3
     num_iter = 10
@@ -144,12 +153,45 @@ if __name__ == "__main__":
     b = Point(path_points[-1])
     print(b, "e =", radius - b.distance_to(loc))
 
-    ax.scatter(*path_points.T)
+
+
+    fig3d = plt.figure()
+    fig_time = plt.figure()
+    
+    # 3D
+    ax3d: Axes = fig3d.add_subplot(111, projection="3d")
+    ax3d.set_xlim([0, 1])
+    ax3d.set_ylim([0, 1])
+    ax3d.set_zlim([0, 1])
+    ax3d.scatter(*path_points.T)
     plt.pause(0.01)
+
+    # 2D
+    ax_time: Axes = fig_time.add_subplot()
+        
+    target = 1000
+    batch = 10
+    num_points = 0
+    i = 0
+    times = []
+    points = []
+    
 
     print("Launching...")
     while True:
-        points = np.array([p for p, n in brrt.growBy(num_iter)])
-        ax.scatter(*points.T)
+        nodes, t = measure_time(brrt.growBy, batch)
+
+        points += [p for p, n in nodes]
+        times += [t]
+        
+        num_points += batch
+        ax3d.scatter(*np.array(points).squeeze().T, c="red")
+        ax_time.scatter(range(0, batch * (i + 1), batch), times, c="blue")
         plt.pause(0.01)
-        input("press enter")
+        input("Press Enter...")
+        i += 1
+        # points = np.array([p for p, n in brrt.growBy(num_iter)])
+    
+    plt.show()
+    
+    
