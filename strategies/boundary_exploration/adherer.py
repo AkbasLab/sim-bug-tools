@@ -32,6 +32,11 @@ class _AdhererIterator:
 
 
 class BoundaryAdherer:
+    """
+    The BoundaryAdherer provides the ability to identify a point that lies on the 
+    boundary of a N-D volume (target envelope). A "classifier" function describes whether or not
+    a sampled Point is within or outside of the target envelope.
+    """
     def __init__(
         self,
         classifier: Callable[[Point], bool],
@@ -41,6 +46,19 @@ class BoundaryAdherer:
         d: float,
         theta: float,
     ):
+        """
+        Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
+        
+        Args:
+            classifier (Callable[[Point], bool]): The function that returns true or false depending
+                on whether or not the provided Point lies within or outside of the target envelope.
+            p (Point): Parent boundary point - used as a starting point for finding the neighboring
+                boundary point.
+            n (ndarray): The parent boundary point's estimated orthogonal surface vector.
+            direction (ndarray): The general direction to travel in (MUST NOT BE PARALLEL WITH @n)
+            d (float): How far to travel from @p
+            theta (float): How far to rotate to find the boundary.
+        """
         self._classifier = classifier
         self._p = p
 
@@ -70,14 +88,17 @@ class BoundaryAdherer:
 
     @property
     def b(self) -> Point:
+        """The identified boundary point"""
         return self._b
 
     @property
     def n(self) -> Point:
+        """The identified boundary point's estimated orthogonal surface vector"""
         return self._n
 
     @property
     def bn(self) -> tuple[Point, ndarray]:
+        """Boundary point and its surface vector"""
         return (self._b, self._n)
 
     def has_next(self) -> bool:
@@ -181,7 +202,7 @@ class BoundaryAdherer:
                 The two vectors that represent the span to rotate across.
 
         Raises:
-            Exception: fails if u and v aren't vectors or if they have differing
+            Exception: fails if @u and @v aren't vectors or if they have differing
                 number of dimensions.
 
         Returns:

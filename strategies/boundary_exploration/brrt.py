@@ -16,27 +16,52 @@ DATA_NORMAL = "normal"
 
 
 class BoundaryRRT:
+    """
+    The Boundary RRT (BRRT) Strategy provides a means of finding a boundary and 
+    following that boundary for a given number of desired boundary samples. 
+    The time complexity of this strategy is $O(n)$ where $n$ is the number of 
+    desired estimated boundary points. 
+    """
     def __init__(
         self, classifier: Callable[[Point], bool], t0: Point, d: float, theta: float
     ):
+        """
+        Args:
+            classifier (Callable[[Point], bool]): The function that determines whether
+                or not a sampled point is a target value or not.
+            t0 (Point): An initial target value within the target envelop whose surface
+                is to be explored.
+            d (float): The jump distance between estimated boundary points.
+            theta (float): How much to rotate by for crossing the boundary.
+        """
         self._classifier = classifier
         self._d = d
         self._theta = theta
         self._ndims = len(t0)
 
-        self._tree = Tree()
-        p = index.Property()
-        p.set_dimension(self._ndims)
-        self._index = index.Index(properties=p)
-
         p0, n0 = self._surface(t0)
-        self._index.insert(0, p0)
+        
+        self._tree = Tree()
         self._root = Node(identifier=0, data=self._create_data(p0, n0))
         self._next_id = 1
 
+        p = index.Property()
+        p.set_dimension(self._ndims)
+        self._index = index.Index(properties=p)
+        
+        self._index.insert(0, p0)
         self._tree.add_node(self._root)
 
     def grow(self) -> tuple[Point, ndarray]:
+        """
+        Grows the RRT; i.e., Finds a new boundary point to add to the tree.
+        If the boundary is lost, it will attempt again infinitely many
+        times (Warning: not guaranteed to halt.)
+
+        Returns:
+            tuple[Point, ndarray]: The newly added point on the surface
+                and its estimated orthogonal surface vector
+        """
         failed = True
 
         while failed:
@@ -59,7 +84,18 @@ class BoundaryRRT:
 
         return pk, nk
 
-    def growBy(self, num: int = 1) -> list[tuple[Point, ndarray]]:
+    def growBy(self, num: int) -> list[tuple[Point, ndarray]]:
+        """
+        Grows the RRT by the provided number of samples.
+
+        Args:
+            num (int, optional): The number of boundary points to find and
+                expand the RRT by.
+
+        Returns:
+            list[tuple[Point, ndarray]]: A list of boundary points and their
+                estimated orthogonal surface vectors.
+        """
         data = []
         for i in range(num):
             data += [self.grow()]
@@ -74,18 +110,7 @@ class BoundaryRRT:
     def _random_point(self) -> Point:
         return Point(np.random.rand(self._ndims))
 
-    def _find_nearest(self, p: Point) -> Node:
-        # closest = {
-        #     "id": 0,
-        #     "distance": self._tree.nodes[0].data[DATA_LOCATION].distance_to(p),
-        # }
-
-        # for id, node in self._tree.nodes.items():
-        #     dist = node.data[DATA_LOCATION].distance_to(p)
-        #     if dist < closest["distance"]:
-        #         closest["id"] = id
-        #         closest["distance"] = dist
-        
+    def _find_nearest(self, p: Point) -> Node:        
         node = self._tree.get_node(next(self._index.nearest(p)))
 
         return node
@@ -127,53 +152,41 @@ def measure_time(f: Callable, *args, **kwargs) -> float:
     
 
 if __name__ == "__main__":
-    from sys import getsizeof
-
+    # A simple test for showing the strategy in action
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
 
-
     ndims = 3
-    num_iter = 10
 
+    # Jump Distance and Change in Angle
     d = 0.015
     theta = 5 * np.pi / 180
 
+    # The spherical target envelope
     loc = Point([0.5 for x in range(ndims)])
     radius = 0.25
-
-    n = np.array([0.5 for x in range(ndims - 1)] + [0.5 - radius])
-
     classifier = lambda p: p.distance_to(loc) <= radius
 
     print("Building brrt...")
     brrt = BoundaryRRT(classifier, loc, d, theta)
 
+    # The series of points that were sampled to reach the surface
     path_points = np.array(brrt._interm)
-    b = Point(path_points[-1])
-    print(b, "e =", radius - b.distance_to(loc))
-
-
 
     fig3d = plt.figure()
-    fig_time = plt.figure()
     
-    # 3D
+    # 3D View
     ax3d: Axes = fig3d.add_subplot(111, projection="3d")
     ax3d.set_xlim([0, 1])
     ax3d.set_ylim([0, 1])
     ax3d.set_zlim([0, 1])
     ax3d.scatter(*path_points.T)
     plt.pause(0.01)
-
-    # 2D
-    ax_time: Axes = fig_time.add_subplot()
-        
-    target = 1000
+    
+    # Setup
     batch = 10
     num_points = 0
     i = 0
-    times = []
     points = []
     
 
@@ -182,16 +195,14 @@ if __name__ == "__main__":
         nodes, t = measure_time(brrt.growBy, batch)
 
         points += [p for p, n in nodes]
-        times += [t]
         
         num_points += batch
         ax3d.scatter(*np.array(points).squeeze().T, c="red")
-        ax_time.scatter(range(0, batch * (i + 1), batch), times, c="blue")
         plt.pause(0.01)
+
         input("Press Enter...")
         i += 1
-        # points = np.array([p for p, n in brrt.growBy(num_iter)])
+
     
-    plt.show()
     
     
