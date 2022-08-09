@@ -10,7 +10,7 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
-from sim_bug_tools.structs import Point
+from sim_bug_tools.structs import Domain, Point
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -148,7 +148,7 @@ class BoundaryAdherer:
 
         if self._iteration > self._num and self._prev_b is not None:
             self._b = self._prev_b
-            self._n = BoundaryAdherer.normalize(
+            self._n = self.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._prev_s)
             )
             self.sample_next = lambda: None
@@ -159,23 +159,24 @@ class BoundaryAdherer:
         self._iteration += 1
         return self._cur
 
-    def find_boundary(self) -> Point:
+    def find_boundary(self, getAllPoints: bool = False) -> Point:
         """
         Samples until the boundary point is found.
 
         Returns:
             Point: The estimated boundary point
         """
+        all_points = []
         while self.has_next():
-            self.sample_next()
+            all_points.append(self.sample_next())
 
-        return self._b
+        return self._b if not getAllPoints else self._b, all_points
 
     def _next_angle(self, angle: float):
         return (
-            -angle / (self._r**self._iteration)
+            abs(angle / (self._r**self._iteration))
             if self._cur_class
-            else angle / (self._r**self._iteration)
+            else -abs(angle / (self._r**self._iteration))
         )
 
     def __iter__(self):
@@ -250,8 +251,12 @@ class BoundaryAdherer:
 
 
 if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
+    from tools.grapher import Grapher
 
     ndims = 3
 
@@ -265,30 +270,38 @@ if __name__ == "__main__":
     radius = 0.25
     classifier = lambda p: p.distance_to(loc) <= radius
 
-    p0 = Point([0.5 for x in range(ndims - 1)] + [0.5 - radius])
+    p0 = Point([0.5 for x in range(ndims - 1)] + [0.5 - radius + d/2])
     n0 = np.array([0 for x in range(ndims - 1)] + [-1])
 
     direction = np.array([1, 1, 0.2])
 
     adh = BoundaryAdherer(classifier, p0, n0, direction, d, theta, r, num)
 
-    fig3d = plt.figure()
+    # fig3d = plt.figure()
 
     # 3D View
-    ax3d: Axes = fig3d.add_subplot(111, projection="3d")
-    ax3d.set_xlim([0, 1])
-    ax3d.set_ylim([0, 1])
-    ax3d.set_zlim([0, 1])
+    g = Grapher(True, Domain.normalized(ndims))
+    g.plot_point(p0)
+    g.add_arrow(p0, n0)
+    g.create_sphere(loc, radius)
+    # ax3d: Axes = fig3d.add_subplot(111, projection="3d")
+    # ax3d.set_xlim([0, 1])
+    # ax3d.set_ylim([0, 1])
+    # ax3d.set_zlim([0, 1])
+
 
     print("Max error =", theta / r**num)
-
+    
     while adh.has_next():
         p = adh.sample_next()
-        ax3d.scatter(*p.array.T, color="b")
+        pk = g.plot_point(p)
+        s = g.add_arrow(p0, adh._s)
         # ar_vec = ax3d.quiver(1.5, 1.5, vec[0], vec[1])
         print(*p.array.T)
         plt.pause(0.05)
         input("Waiting...")
+        pk.remove()
+        s.remove()
         # ar_vec.remove()
 
     print("Error =", radius - adh._b.distance_to(loc))

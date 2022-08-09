@@ -1,3 +1,7 @@
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from copy import copy
 from time import time
 from typing import Callable
@@ -7,6 +11,7 @@ from numpy import ndarray
 from rtree import index
 from sim_bug_tools.rng.lds.sequences import RandomSequence, Sequence
 from sim_bug_tools.structs import Domain, Point
+from tools.grapher import Grapher
 from treelib import Node, Tree
 
 from adherer import BoundaryAdherer
@@ -51,42 +56,60 @@ class BoundaryRRT:
         
         self._index.insert(0, p0)
         self._tree.add_node(self._root)
+        
+        self._prev_dir: ndarray = None
+        
+    @property 
+    def previous_node(self) -> Node:
+        return self._tree.get_node(self._next_id-1)
+    
+    @property
+    def previous_direction(self) -> ndarray:
+        return self._prev_dir
 
-    def grow(self) -> tuple[Point, ndarray]:
+    def grow(self, getAllPoints: bool = False) -> tuple[Point, ndarray]:
         """
         Grows the RRT; i.e., Finds a new boundary point to add to the tree.
-        If the boundary is lost, it will attempt again infinitely many
-        times (Warning: not guaranteed to halt.)
 
         Returns:
             tuple[Point, ndarray]: The newly added point on the surface
                 and its estimated orthogonal surface vector
+                
+        Throws:
+            BoundaryLostException: Thrown if the boundary is lost
+                
         """
-        failed = True
+        
+        r = self._random_point()
+        parent = self._find_nearest(r)
 
-        while failed:
-            r = self._random_point()
-            parent = self._find_nearest(r)
-            p, n = parent.data[DATA_LOCATION], parent.data[DATA_NORMAL]
+        return self.growFrom(parent, r, getAllPoints)
+    
+    def growFrom(self, node: Node, r: Point, getAllPoints: bool = False):
+        p: Point = node.data[DATA_LOCATION]
+        n: ndarray = node.data[DATA_NORMAL]
+        direction = (r - p).array
+        self._prev_dir = direction
 
-            ba = BoundaryAdherer(
-                self._classifier, p, n, (r - p).array, self._d, self._theta
-            )
-            try:
-                ba.find_boundary()
-                failed = False
-            except:
-                print("lost boundary")
+        ba = BoundaryAdherer(
+            self._classifier, p, n, direction, self._d, self._theta
+        )
+        b, all_points = ba.find_boundary(True)
+            
+        bn = ba.bn
+        if getAllPoints:
+            results = bn[0], bn[1], all_points
+        else:
+            results = bn
 
-        pk, nk = ba.bn
-
-        self._add_node(pk, nk, parent.identifier)
-
-        return pk, nk
+        self._add_node(*bn, node.identifier)
+        
+        return results
 
     def growBy(self, num: int) -> list[tuple[Point, ndarray]]:
         """
-        Grows the RRT by the provided number of samples.
+        Grows the RRT by the provided number of samples. If the boundary is lost,
+        it will attempt again until it succeeds (WARNING: not guarnateed to halt.)
 
         Args:
             num (int, optional): The number of boundary points to find and
@@ -98,7 +121,14 @@ class BoundaryRRT:
         """
         data = []
         for i in range(num):
-            data += [self.grow()]
+            failed = True
+            while failed:
+                
+                try:
+                    data += [self.grow()]
+                    failed = False
+                except:
+                    pass
         return data
 
     def _add_node(self, p: Point, n: ndarray, parentID: int):
@@ -124,16 +154,24 @@ class BoundaryRRT:
 
         prev = None
         cur = t0
-
+        cur_class = None
+        
+        # First, reach within d distance from surface
         while self._classifier(cur):
             prev = cur
             self._interm += [prev]
             cur = prev + Point(s)
+        
+        s *= 0.5
+        ps = Point(s)
+        cur = prev + Point(s)      
+        
+        # Get closer until within d/2 distance from surface
+        while self._classifier(cur):
+            prev = cur
+            cur = prev + ps
 
-        while not self._classifier(cur):
-            print("Getting closer...")
-            s *= 0.5
-            cur = prev + Point(s)
+
 
         self._interm += [prev]
 
@@ -159,7 +197,7 @@ if __name__ == "__main__":
     ndims = 3
 
     # Jump Distance and Change in Angle
-    d = 0.015
+    d = 0.03
     theta = 5 * np.pi / 180
 
     # The spherical target envelope
@@ -173,35 +211,71 @@ if __name__ == "__main__":
     # The series of points that were sampled to reach the surface
     path_points = np.array(brrt._interm)
 
-    fig3d = plt.figure()
+    # fig3d = plt.figure()
     
     # 3D View
-    ax3d: Axes = fig3d.add_subplot(111, projection="3d")
-    ax3d.set_xlim([0, 1])
-    ax3d.set_ylim([0, 1])
-    ax3d.set_zlim([0, 1])
-    ax3d.scatter(*path_points.T)
+    # ax3d: Axes = fig3d.add_subplot(111, projection="3d")
+    # ax3d.set_xlim([0, 1])
+    # ax3d.set_ylim([0, 1])
+    # ax3d.set_zlim([0, 1])
+    # ax3d.scatter(*path_points.T)
+    # plt.pause(0.01)
+    g = Grapher(True)
+    g.ax.set_xlim([0, 1])
+    g.ax.set_ylim([0, 1])
+    g.ax.set_zlim([0, 1])
+    path_points = np.array(brrt._interm)
+    g.plot_all_points(path_points)
     plt.pause(0.01)
-    
     # Setup
-    batch = 10
+    num_iterations = 1000
+    batch = 100
     num_points = 0
     i = 0
     points = []
     
 
     print("Launching...")
-    while True:
-        nodes, t = measure_time(brrt.growBy, batch)
+    # while True:
+    #     nodes, t = measure_time(brrt.growBy, batch)
+    #     print(nodes[0])
 
-        points += [p for p, n in nodes]
+    #     points = [p for p, n in nodes]
+    #     normals = [n*0.1 for p, n in nodes]
         
-        num_points += batch
-        ax3d.scatter(*np.array(points).squeeze().T, c="red")
-        plt.pause(0.01)
+    #     num_points += batch
+    #     # ax3d.scatter(*np.array(points).squeeze().T, c="red")
+    #     g.plot_all_points(points)
+    #     g.add_all_arrows(points, normals)
+    #     plt.pause(0.01)
 
-        input("Press Enter...")
-        i += 1
+    #     input("Press Enter...")
+    #     i += 1
+    boundary_points = []
+    other_point_count = 0
+    osvas = []
+    errs = 0
+    
+    while i < num_iterations:
+        try:
+            pk, nk, points = brrt.grow(getAllPoints=True)
+            # if i % 50 == 0:
+            #     print(f"Iteration #{i} started...")
+            boundary_points.append(pk)
+            osvas.append(nk)
+            other_point_count += len(points)
+            i += 1
+        except:
+            errs += 1
+            
+    average_error = sum(map(lambda b: radius - loc.distance_to(b), boundary_points)) / len(boundary_points)
+    
+    print("Number of BLEs:", errs)
+    print("Average Boundary Error:", average_error)
+    print("Efficiency: ", len(boundary_points) / other_point_count * 100, "%", sep="")
+    
+    g.plot_all_points(boundary_points)
+    plt.show()
 
     
     

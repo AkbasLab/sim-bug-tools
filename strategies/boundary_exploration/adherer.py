@@ -63,11 +63,13 @@ class BoundaryAdherer:
         self._p = p
 
         n = BoundaryAdherer.normalize(n)
+        # print(f"n: {n}")
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
-
-        self._s: ndarray = copy(n) * d
-        self._s = np.dot(self._rotater_function(-ANGLE_90), self._s)
+        self._s: ndarray = (copy(n.squeeze()) * d).squeeze()
+        
+        A = self._rotater_function(-ANGLE_90)
+        self._s = np.dot(A, self._s)
 
         self._prev: Point = None
         self._prev_class = None
@@ -124,8 +126,7 @@ class BoundaryAdherer:
             None: If the boundary was acquired or lost
         """
         self._prev = self._cur
-        sn = np.dot(self._rotate, self._s)
-        self._s = sn
+        self._s = np.dot(self._rotate, self._s)
         self._cur = self._p + Point(self._s)
 
         self._prev_class = self._cur_class
@@ -144,17 +145,19 @@ class BoundaryAdherer:
         self._iteration += 1
         return self._cur
 
-    def find_boundary(self) -> Point:
+    def find_boundary(self, getAllPoints: bool = False) -> Point:
         """
         Samples until the boundary point is found.
 
         Returns:
             Point: The estimated boundary point
         """
+        all_points = []
         while self.has_next():
-            self.sample_next()
+            all_points.append(self.sample_next())
+                        
 
-        return self._b
+        return self._b, all_points
 
     def __iter__(self):
         return _AdhererIterator(self)
