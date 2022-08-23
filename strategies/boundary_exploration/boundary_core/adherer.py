@@ -7,6 +7,21 @@ import numpy as np
 from numpy import ndarray
 from sim_bug_tools.structs import Point
 
+"""
+Notes:
+
+We want the Explorer to be able to take in an object that represents the
+solution for finding the boundary. This way, we eliminate the need for the
+Explorer to mirror the parameters for that adherence solution while also
+allowing for any possible adherence solution to be applied.
+
+To do this, we want to decouple how we generate the path and final boundary 
+point from the process of sampling that path. This means an 
+adhf = AdherenceFactory(*args) object is provided to the Explorer, and this
+Explorer object only needs to execute adhf.adhereFrom(p, n, direction), 
+which will produce an Adherence object that can be iterated through.
+"""
+
 
 class BoundaryLostException(Exception):
     def __init__(self, msg="Failed to locate boundary!"):
@@ -22,7 +37,7 @@ class _AdhererIterator:
         self.ba = ba
 
     def __next__(self):
-        if self.ba.has_next:
+        if self.ba.has_next():
             return self.ba.sample_next()
         else:
             raise StopIteration
@@ -31,10 +46,18 @@ class _AdhererIterator:
 class Adherer(ABC):
     """
     An Adherer provides the ability to identify a point that lies on the
-    boundary of an N-D volume (target envelope). A "classifier" function
-    describes whether or not a sampled Point is within or outside of the
-    target envelope.
+    boundary of an N-D volume (target envelope). Furthermore, it allows
+    for the incremental stepping through the process and the collection
+    of intermediate samples. A "classifier" function describes whether
+    or not a sampled Point is within or outside of the target envelope.
     """
+
+    def __init__(self, classifier: Callable[[Point], bool]):
+        self._classifier = classifier
+
+    @property
+    def classifier(self):
+        return self._classifier
 
     @abstract
     def sample_next(self) -> tuple[Point, ndarray]:
@@ -72,7 +95,6 @@ class Adherer(ABC):
         """
         pass
 
-    @abstract
     @property
     def boundary(self) -> tuple[Point, ndarray]:
         """
@@ -81,10 +103,27 @@ class Adherer(ABC):
         """
         pass
 
-    @abstract
     @property
     def sub_samples(self):
         pass
 
     def __iter__(self):
         return _AdhererIterator(self)
+
+
+class AdherenceFactory(ABC):
+    """
+    Given adhf = AdherenceFactory(*params)
+    Produces adh = Adherer(p, n, direction, *params)
+    """
+
+    def __init__(self, classifier: Callable[[Point], bool]):
+        self._classifier = classifier
+
+    @property
+    def classifier(self):
+        return self._classifier
+
+    @abstract
+    def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
+        pass
