@@ -123,12 +123,12 @@ class BoundaryAdherer(Adherer):
         self._iteration += 1
         return self._cur
 
-    def find_boundary(self, getAllPoints: bool = False) -> Point:
+    def find_boundary(self, getAllPoints: bool = False) -> tuple[Point, ndarray]:
         all_points = []
         while self.has_next():
             all_points.append(self.sample_next())
 
-        return self._b, all_points
+        return self._b, self._n
 
     @staticmethod
     def normalize(u: ndarray):

@@ -57,6 +57,7 @@ class Explorer(ABC):
         direction = self._pick_direction()
         adherer = self._adhererF.adhere_from(b, n, direction)
         for b in adherer:
+            print(b)
             self._all_points.append(b)
 
         self._add_child(*adherer.boundary)

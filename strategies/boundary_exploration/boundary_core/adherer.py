@@ -60,7 +60,7 @@ class Adherer(ABC):
         return self._classifier
 
     @abstract
-    def sample_next(self) -> tuple[Point, ndarray]:
+    def sample_next(self) -> Point:
         """
         Takes the next sample to find the boundary. When the boundary is found,
         (property) b will be set to that point and sample_next will no longer
@@ -92,6 +92,7 @@ class Adherer(ABC):
 
         Returns:
             Point: The estimated boundary point
+            ndarray: The orthonormal surface vector
         """
         pass
 

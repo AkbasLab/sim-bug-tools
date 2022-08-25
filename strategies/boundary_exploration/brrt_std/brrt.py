@@ -62,7 +62,7 @@ class BoundaryRRT(Explorer):
         p.set_dimension(self._ndims)
         self._index = index.Index(properties=p)
 
-        self._index.insert(0, self.prev[0])
+        self._index.insert(0, b0)
         self._tree.add_node(self._root)
 
         self._prev_dir: ndarray = None

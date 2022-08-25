@@ -3,7 +3,21 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
-from sim_bug_tools.structs import Point
+from sim_bug_tools.structs import Domain, Point
+
+import sys, os
+
+sys.path.append(
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    )
+)
+from strategies.boundary_exploration.boundary_core.adherer import (
+    Adherer,
+    AdherenceFactory,
+    BoundaryLostException,
+)
+
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -11,32 +25,13 @@ DATA_NORMAL = "normal"
 ANGLE_90 = np.pi / 2
 
 
-class BoundaryLostException(Exception):
-    def __init__(self, msg="Failed to locate boundary!"):
-        self.msg = msg
-        super().__init__(msg)
-
-    def __str__(self):
-        return f"<BoundaryLostException: Angle: {self.theta}, Jump Distance: {self.d}>"
-
-
-class _AdhererIterator:
-    def __init__(self, ba: "BoundaryAdherer"):
-        self.ba = ba
-
-    def __next__(self):
-        if self.ba.has_next:
-            return self.ba.sample_next()
-        else:
-            raise StopIteration
-
-
-class BoundaryAdherer:
+class BoundaryAdherer(Adherer):
     """
-    The BoundaryAdherer provides the ability to identify a point that lies on the 
+    The BoundaryAdherer provides the ability to identify a point that lies on the
     boundary of a N-D volume (target envelope). A "classifier" function describes whether or not
     a sampled Point is within or outside of the target envelope.
     """
+
     def __init__(
         self,
         classifier: Callable[[Point], bool],
@@ -44,11 +39,13 @@ class BoundaryAdherer:
         n: ndarray,
         direction: ndarray,
         d: float,
-        theta: float,
+        delta_theta: float,
+        r: float,
+        num: int,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
-        
+
         Args:
             classifier (Callable[[Point], bool]): The function that returns true or false depending
                 on whether or not the provided Point lies within or outside of the target envelope.
@@ -57,19 +54,17 @@ class BoundaryAdherer:
             n (ndarray): The parent boundary point's estimated orthogonal surface vector.
             direction (ndarray): The general direction to travel in (MUST NOT BE PARALLEL WITH @n)
             d (float): How far to travel from @p
-            theta (float): How far to rotate to find the boundary.
+            delta_theta (float): The initial change in angle (90 degrees is a good start).
         """
-        self._classifier = classifier
+        super().__init__(classifier)
         self._p = p
 
         n = BoundaryAdherer.normalize(n)
-        # print(f"n: {n}")
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
-        self._s: ndarray = (copy(n.squeeze()) * d).squeeze()
-        
-        A = self._rotater_function(-ANGLE_90)
-        self._s = np.dot(A, self._s)
+
+        self._s: ndarray = copy(n) * d
+        self._s = np.dot(self._rotater_function(-ANGLE_90), self._s)
 
         self._prev: Point = None
         self._prev_class = None
@@ -77,16 +72,16 @@ class BoundaryAdherer:
         self._cur: Point = p + Point(self._s)
         self._cur_class = classifier(self._cur)
 
-        if self._cur_class:
-            self._rotate = self._rotater_function(theta)
-        else:
-            self._rotate = self._rotater_function(-theta)
+        self._r = r
+        self._num = num
 
         self._b = None
         self._n = None
+        self._prev_b = None
+        self._prev_s = None
 
         self._iteration = 0
-        self._max_iteration = (2 * np.pi) // theta
+        self._angle = self._next_angle(delta_theta)
 
     @property
     def b(self) -> Point:
@@ -99,7 +94,7 @@ class BoundaryAdherer:
         return self._n
 
     @property
-    def bn(self) -> tuple[Point, ndarray]:
+    def boundary(self) -> tuple[Point, ndarray]:
         """Boundary point and its surface vector"""
         return (self._b, self._n)
 
@@ -126,26 +121,32 @@ class BoundaryAdherer:
             None: If the boundary was acquired or lost
         """
         self._prev = self._cur
-        self._s = np.dot(self._rotate, self._s)
+
+        self._s = np.dot(self._rotater_function(self._angle), self._s)
         self._cur = self._p + Point(self._s)
 
         self._prev_class = self._cur_class
         self._cur_class = self._classifier(self._cur)
+        self._angle = self._next_angle(self._angle)
 
-        if self._cur_class != self._prev_class:
-            self._b = self._cur if self._cur_class else self._prev
-            self._n = BoundaryAdherer.normalize(
-                np.dot(self._rotater_function(ANGLE_90), self._s)
+        if self._cur_class:
+            self._prev_b = self._p + Point(self._s)
+            self._prev_s = copy(self._s)
+
+        if self._iteration > self._num and self._prev_b is not None:
+            self._b = self._prev_b
+            self._n = self.normalize(
+                np.dot(self._rotater_function(ANGLE_90), self._prev_s)
             )
             self.sample_next = lambda: None
 
-        elif self._iteration > self._max_iteration:
+        elif self._iteration > self._num and self._prev_b is None:
             raise BoundaryLostException()
 
         self._iteration += 1
         return self._cur
 
-    def find_boundary(self, getAllPoints: bool = False) -> Point:
+    def find_boundary(self) -> tuple[Point, ndarray]:
         """
         Samples until the boundary point is found.
 
@@ -155,12 +156,15 @@ class BoundaryAdherer:
         all_points = []
         while self.has_next():
             all_points.append(self.sample_next())
-                        
 
-        return self._b, all_points
+        return self._b, self._n
 
-    def __iter__(self):
-        return _AdhererIterator(self)
+    def _next_angle(self, angle: float):
+        return (
+            abs(angle / (self._r**self._iteration))
+            if self._cur_class
+            else -abs(angle / (self._r**self._iteration))
+        )
 
     @staticmethod
     def normalize(u: ndarray):
@@ -230,32 +234,58 @@ class BoundaryAdherer:
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
 
 
+class BoundaryAdherenceFactory(AdherenceFactory):
+    def __init__(
+        self,
+        classifier: Callable[[Point], bool],
+        d: float,
+        delta_theta: float,
+        r: float,
+        num: int,
+    ):
+        super().__init__(classifier)
+        self._d = d
+        self._delta_theta = delta_theta
+        self._r = r
+        self._num = num
+
+    def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
+        return BoundaryAdherer(
+            self.classifier,
+            p,
+            n,
+            direction,
+            self._d,
+            self._delta_theta,
+            self._r,
+            self._num,
+        )
+
+
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
+    from tools.grapher import Grapher
 
+    d = 0.005
+    r = 2
+    num = 4
     angle = 30 * np.pi / 180
 
-    fig = plt.figure()
-    ax: Axes = fig.add_subplot()
-    ax.set_xlim([0, 3])
-    ax.set_ylim([0, 3])
+    s_loc = Point(0.5, 0.5, 0.5)
+    s_rad = 0.25
 
-    vec = np.array([0, 1])
+    p = Point(0.5, 0.5, 0.25)
+    n = np.array([0, 0, -1])
+    direction = np.array([0, 1, 0])
 
-    u = np.array([0.5, 0.5])
-    v = np.array([0.1, 0.9])
-    # u, v = BoundaryAdherer.orthonormalize(u, v)
+    classifier = lambda p: s_loc.distance_to(p) < s_rad
 
-    ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
-    plt.pause(0.05)
-
-    input("Waiting...")
-    rotate = BoundaryAdherer.generateRotationMatrix(u, v)(angle)
-
-    while True:
-        ar_vec.remove()
-        vec = np.dot(rotate, vec)
-        ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
-        plt.pause(0.05)
+    g = Grapher(is3d=True, domain=Domain.normalized(3))
+    adh_f = BoundaryAdherenceFactory(classifier, d, angle, r, num)
+    adh = adh_f.adhere_from(p, n, direction)
+    while adh.has_next():
+        pk = adh.sample_next()
+        g.plot_point(pk)
+        plt.pause(0.01)
         input("Waiting...")
