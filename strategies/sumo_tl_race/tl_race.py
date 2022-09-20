@@ -43,8 +43,8 @@ class TrafficLightRace(simulator.Simulator):
         # SUMO configuration
         map_dir = "%s" % FILE_DIR
         self._config = {
-            "gui" : False,
-            # "gui" : True,
+            # "gui" : False,
+            "gui" : True,
 
             # Street network
             "--net-file" : "%s/tl-race.net.xml" % map_dir,
@@ -58,7 +58,7 @@ class TrafficLightRace(simulator.Simulator):
 
             # GUI Options
             "--delay" : 100,
-            "--start" : "--quit-on-end",
+            # "--start" : "--quit-on-end",
 
             # RNG
             "--seed" : 333
