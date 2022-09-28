@@ -160,6 +160,15 @@ class TrafficLightRaceParameterManager:
 
     
     def _map_vehicle_parameters(self, normal_values : dict) -> dict:
+        """
+        Maps @normal values to concrete values, as defined in the veh_params_df
+            length
+            width
+            min_gap
+            accel
+            decel
+            max_speed
+        """
         # There should be the same keys and values in norm_val as the vehicle
         # feature configuration file
         assert(len(normal_values) == len(self.veh_param_df.index))
@@ -187,6 +196,12 @@ class TrafficLightRaceParameterManager:
         return concrete_values
 
     def _map_tl_parameters(self, normal_values : dict) -> dict:
+        """
+        Maps @normal values to concrete values as deined in the tl_params_df
+            G
+            Y
+            R
+        """
         # There should be the same keys and values in norm_val as the vehicle
         # feature configuration file
         assert(len(normal_values) == len(self.tl_param_df.index))
@@ -224,7 +239,7 @@ class TrafficLightRaceParameterManager:
 
     
 class TrafficLightRaceTest:
-    def __init__(self):
+    def __init__(self, veh_params : pd.DataFrame):
         # SUMO configuration
         self._map_dir = "%s" % FILE_DIR
         self._config = {
@@ -255,6 +270,15 @@ class TrafficLightRaceTest:
 
         # Add the route
         traci.route.add(self.route_id, ["before_tl","after_tl"])
+
+        # Add vehicles to the route
+        self._veh_param_df = veh_params
+        self._add_all_veh()
+
+        # Run Simuations
+        while traci.simulation.getMinExpectedNumber() > 0:
+            traci.simulationStep()
+            continue
 
         self.client.close()
         # self._add_all_veh()
@@ -289,10 +313,6 @@ class TrafficLightRaceTest:
         return
 
 
-    @property
-    def concrete_values_df(self) -> pd.DataFrame:
-        return self._concrete_values_df
-
 
     @property
     def config(self) -> dict:
@@ -315,10 +335,6 @@ class TrafficLightRaceTest:
     @property
     def map_dir(self) -> str:
         return self._map_dir
-
-    @property
-    def n_vehicles_added(self) -> int:
-        return self._n_vehicles_added
 
     @property
     def route_id(self) -> str:
@@ -348,74 +364,22 @@ class TrafficLightRaceTest:
         return
     
     def _add_all_veh(self) :
-        # Lists to hold values
-        all_normal_values = []
-        all_concrete_values = []
+        # print()
+        # print(self.veh_param_df)
 
-        # Add 10 AVs
-        for i in range(10):
-
-            # Select normal values
-            normal_values = dict()
-            for feat in self.veh_param_df["feature"]:
-                normal_values[feat] = np.random.rand()
-
-            # Select Concrete values and add veh to sim.
-            concrete_values = self._add_veh(normal_values)
-
-            # Add the unique VID to the dictionary
-            vid = "%s%d" % (self.vehicle_id_prefix, i)
-            normal_values["veh_id"] = vid
-            concrete_values["veh_id"] = vid
-
-            # Add the value dictionaries to their list
-            all_normal_values.append(normal_values)
-            all_concrete_values.append(concrete_values)
-            continue
-
-        # Generate normal + concrete dataframes
-
-
+        for i in range(len(self.veh_param_df.index)):
+            self._add_veh(self.veh_param_df.iloc[i])
         return
 
 
-    def _add_veh(self, normal_values : dict) -> dict:
+    def _add_veh(self, veh_params : pd.Series) -> dict:
         """
-        Adds a vehicle to the client. 
-        @normal value is a hash-map of vehicle parameter-->normal value
+        Adds a vehicle to the client, then adjust the vehicle to specs in
+        @veh_params 
         """
-        # There should be the same keys and values in norm_val as the vehicle
-        # feature configuration file
-        assert(len(normal_values) == len(self.veh_param_df.index))
-
-        # The keys should match the values in the dataframe
-        for key in normal_values.keys():
-             assert any(self.veh_param_df["feature"].str.contains(key))
-
-        # The values should be between 0 and 1.
-        for val in normal_values.values():
-            assert val >= 0 and val <= 1
-
-        # SUMO Vehicle ID
-        vid = "%s%d" % (self.vehicle_id_prefix, self.n_vehicles_added)
-        self._n_vehicles_added += 1
-
-        # Add the vehicle to the sumo sim
+        # Add a vehicle to the sim
+        vid = str(int(veh_params["veh_id"]))
         traci.vehicle.add(vid, self.route_id)
-
-        # Select concrete values.
-        concrete_values = dict()
-        for i in range(len(self.veh_param_df.index)):
-            row = self.veh_param_df.iloc[i]    
-            val = utils.project(
-                a = row["min"],
-                b = row["max"],
-                n = normal_values[row["feature"]],
-                by = row["inc"]
-            )
-            # print("%8s: %6.2f %s" %  (row["feature"], val, row["uom"]))
-            concrete_values[row["feature"]] = val
-            continue
     
         # Set the values for the vehicle
         setters_map = {
@@ -426,9 +390,16 @@ class TrafficLightRaceTest:
             "decel" : traci.vehicle.setDecel,
             "max_speed" : traci.vehicle.setMaxSpeed
         }
-        [setters_map[key](vid, val) for key, val in concrete_values.items()]
 
-        return concrete_values
+        # Get feature name, minus veh_id
+        features = self.veh_param_df.columns.tolist()[:-1]
+
+        # Set vehicle attributes
+        [setters_map[feat](vid, veh_params[feat]) for feat in features]
+
+        # Set emergency decel to 2x decel
+        traci.vehicle.setEmergencyDecel(vid, 2 * veh_params["decel"])
+        return
 
 
     def _init_traffic_signal(self, normal_values : dict) -> dict:
@@ -495,7 +466,26 @@ class TrafficLightRaceTest:
         return
 
 
-    def _verify_concrete_values(self, concrete_values : pd.DataFrame):
-        veh_ids = ["%s%d" % (self.vehicle_id_prefix,i) for i in range(10)]
+    def _verify_veh_params(self, vid : str):
+        # Traci Getters
+        getters = {
+            "length" : traci.vehicle.getLength,
+            "width" : traci.vehicle.getWidth,
+            "min_gap" : traci.vehicle.getMinGap,
+            "accel" : traci.vehicle.getAccel,
+            "decel" : traci.vehicle.getDecel,
+            "max_speed" : traci.vehicle.getMaxSpeed
+        }
 
+        # Get the values from the concrete value dataframe
+        series = self.veh_param_df[
+            self.veh_param_df["veh_id"] == float(vid)
+        ].iloc[0]
+        
+        # Compare each value
+        print()
+        print("VEH", vid)
+        for key, val in getters.items():
+            print( "%8s %5.3f %5.3f" % (key, val(vid), series[key]))
+        print()
         return

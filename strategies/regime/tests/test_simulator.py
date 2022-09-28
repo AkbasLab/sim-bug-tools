@@ -29,6 +29,7 @@ class TestSimulator(unittest.TestCase):
         return
 
     def testTLRTest(self):
+        print("\n\n")
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 
@@ -43,8 +44,9 @@ class TestSimulator(unittest.TestCase):
         point = seq.get_points(1)[0]
 
         # Obtain dataframes of concrete parameters for vehicles and TL
-        manager.map_parameters(point)
+        params = manager.map_parameters(point)
 
         # Simulation Test
-        test = simulator.TrafficLightRaceTest()
+        test = simulator.TrafficLightRaceTest(params["veh"]["concrete"])
+        print("\n\n")
         return
