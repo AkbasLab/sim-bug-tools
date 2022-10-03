@@ -40,13 +40,17 @@ class TestSimulator(unittest.TestCase):
         )
         seq.seed = 222
 
-        # Get the first point in the sequence
-        point = seq.get_points(1)[0]
+        for i in range(100):
+            # Get the first point in the sequence
+            point = seq.get_points(1)[0]
 
-        # Obtain dataframes of concrete parameters for vehicles and TL
-        params = manager.map_parameters(point)
+            # Obtain dataframes of concrete parameters for vehicles and TL
+            params = manager.map_parameters(point)
 
-        # Simulation Test
-        test = simulator.TrafficLightRaceTest(params["veh"]["concrete"])
+            # Simulation Test
+            test = simulator.TrafficLightRaceTest(
+                veh_params = params["veh"]["concrete"],
+                tl_params = params["tl"]["concrete"]
+            )
         print("\n\n")
         return

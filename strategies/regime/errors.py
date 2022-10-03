@@ -47,6 +47,5 @@ def e_brake(err : str, emergency_decel : float) -> float:
     return 1 - (wished/decel)
 
 
-def veh_id(err : str) -> str:
-    return re.findall(r"'veh_\d'", err)[0].strip("'")
+
 

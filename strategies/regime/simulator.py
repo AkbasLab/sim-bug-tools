@@ -2,14 +2,15 @@ from sim_bug_tools.sumo import TraCIClient
 import sim_bug_tools.utils as utils
 import sim_bug_tools.structs as structs
 
-import errors
-import simulator
 
 import traci
 import os
+import re
 import pandas as pd
-import numpy as np
-import time
+pd.options.mode.chained_assignment = None
+
+
+
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -239,9 +240,10 @@ class TrafficLightRaceParameterManager:
 
     
 class TrafficLightRaceTest:
-    def __init__(self, veh_params : pd.DataFrame):
+    def __init__(self, veh_params : pd.DataFrame, tl_params : pd.DataFrame):
         # SUMO configuration
         self._map_dir = "%s" % FILE_DIR
+        self._error_log_fn = "%s/error-log.txt" % self.map_dir
         self._config = {
             "gui" : False,
             # "gui" : True,
@@ -250,7 +252,7 @@ class TrafficLightRaceTest:
             "--net-file" : "%s/tl-race.net.xml" % self.map_dir,
 
             # Logging
-            "--error-log" : "%s/error-log.txt" % self.map_dir,
+            "--error-log" : self.error_log_fn,
             # "--log" : "%s/log.txt" % map_dir,
 
             # Traci Connection
@@ -268,6 +270,10 @@ class TrafficLightRaceTest:
         # Start Client
         self._client = TraCIClient(self.config)
 
+        # Configure Traffic Light
+        self._tl_param_df = tl_params
+        self._init_traffic_light()
+
         # Add the route
         traci.route.add(self.route_id, ["before_tl","after_tl"])
 
@@ -280,33 +286,11 @@ class TrafficLightRaceTest:
             traci.simulationStep()
             continue
 
-        self.client.close()
-        # self._add_all_veh()
-        return
-
-        # Initialize the Traffic Signals
-        self._tl_param_df = pd.read_excel(
-            "%s/parameters.ods" % FILE_DIR,
-            engine = "odf",
-            sheet_name = "traffic signal"
-        )
-
-        normal_values = dict()
-        for feat in self.tl_param_df["feature"]:
-            normal_values[feat] = np.random.rand()
-        self._init_traffic_signal(normal_values)
-        
-        
-        # Run Simuations
-        while traci.simulation.getMinExpectedNumber() > 0:
-            traci.simulationStep()
-            continue
-
-        # Close client
+        # Close the Client
         self.client.close()
 
-        # Construct the error dataframe
-        self._categorize_errors()
+        # Score the performance of the test.
+        self._calc_scores()
         return
 
     def ___FEATURES___(self):
@@ -329,8 +313,8 @@ class TrafficLightRaceTest:
         return self._client
 
     @property
-    def errors(self) -> pd.DataFrame:
-        return self._errors
+    def error_log_fn(self) -> str:
+        return self._error_log_fn
 
     @property
     def map_dir(self) -> str:
@@ -348,11 +332,6 @@ class TrafficLightRaceTest:
         return self._tl_param_df
 
     @property
-    def vehicle_id_prefix(self) -> str:
-        """Vehicle prefix ID"""
-        return "veh_"
-
-    @property
     def veh_param_df(self) -> pd.DataFrame:
         return self._veh_param_df
 
@@ -364,15 +343,15 @@ class TrafficLightRaceTest:
         return
     
     def _add_all_veh(self) :
-        # print()
-        # print(self.veh_param_df)
-
+        """
+        Adds all vehicles to the simulation.
+        """
         for i in range(len(self.veh_param_df.index)):
             self._add_veh(self.veh_param_df.iloc[i])
         return
 
 
-    def _add_veh(self, veh_params : pd.Series) -> dict:
+    def _add_veh(self, veh_params : pd.Series):
         """
         Adds a vehicle to the client, then adjust the vehicle to specs in
         @veh_params 
@@ -402,44 +381,17 @@ class TrafficLightRaceTest:
         return
 
 
-    def _init_traffic_signal(self, normal_values : dict) -> dict:
+    def _init_traffic_light(self):
         """
-        Initializes the phase durations of the traffic signal. 
-        @normal value is a hash-map of traffic_signal parameter-->normal value
+        Initializes the phase durations of the traffic light. 
         """
-        # There should be the same keys and values in norm_val as the vehicle
-        # feature configuration file
-        assert(len(normal_values) == len(self.tl_param_df.index))
-
-        # The keys should match the values in the dataframe
-        for key in normal_values.keys():
-             assert any(self.tl_param_df["feature"].str.contains(key))
-
-        # The values should be between 0 and 1.
-        for val in normal_values.values():
-            assert val >= 0 and val <= 1
-
-        # Get concrete values
-        concrete_values = dict()
-        for i in range(len(self.tl_param_df.index)):
-            row = self.tl_param_df.iloc[i]
-            val = utils.project(
-                a = row["min"],
-                b = row["max"],
-                n = normal_values[row["feature"]],
-                by = row["inc"]
-            )
-            concrete_values[row["feature"]] = val
-            continue
-
         # Configure phases
-        states = self.tl_param_df["state"].tolist()
         phases = [ traci.trafficlight.Phase(
-            duration = dur,
-            state = states[i],
-            minDur = dur,
-            maxDur = dur 
-        ) for i, dur in enumerate(concrete_values.values())]
+            duration = self.tl_param_df["dur"].iloc[i],
+            state = self.tl_param_df["state"].iloc[i],
+            minDur = self.tl_param_df["dur"].iloc[i],
+            maxDur = self.tl_param_df["dur"].iloc[i] 
+        ) for i in range(len(self.tl_param_df.index))]
 
         # Set the program logic.
         tlsid = traci.trafficlight.getIDList()[0]
@@ -452,21 +404,13 @@ class TrafficLightRaceTest:
                 phases = phases
             )
         )
-
-        return concrete_values
-    
-
-    def _categorize_errors(self):
-        # Read from file
-        with open("%s/error-log.txt" % self.map_dir) as f:
-            errors = f.readlines() 
-        
-        for err in errors:
-            return
         return
 
-
     def _verify_veh_params(self, vid : str):
+        """
+        A helper method used to verify that the veh params are set correctly.
+        This method is not called during a simulation test
+        """
         # Traci Getters
         getters = {
             "length" : traci.vehicle.getLength,
@@ -487,5 +431,56 @@ class TrafficLightRaceTest:
         print("VEH", vid)
         for key, val in getters.items():
             print( "%8s %5.3f %5.3f" % (key, val(vid), series[key]))
+        print( "%8s %5.3f %5.3f" % ("E Decel", 
+            traci.vehicle.getEmergencyDecel(vid), 
+            series["decel"] * 2))
         print()
         return
+
+
+    def __parse_veh_id(self, err : str) -> str:
+        return re.findall(r"Vehicle '\d'", err)[0].strip("'").split("'")[-1]
+
+    def _calc_scores(self):
+        """
+        Calculate the test score of this scenario
+        """
+        # There are 3 performance metrics. 
+        # First, the default score is assigned to each vehicle.
+        df = pd.DataFrame({
+            "veh_id" : self.veh_param_df["veh_id"].astype(str),
+            "jam" : 0.,
+            "e_brake" : 0.,
+            "e_stop" : 0.
+        })
+
+        # Parse the error log to fill in the vehicle scores
+        errors = open(self.error_log_fn).readlines()
+        for err in errors:
+            # Parse the vehicle ID
+            vid = self.__parse_veh_id(err)
+            
+            # Get the index of the veh id in the score dataframe
+            i = df[df["veh_id"] == vid].index[0]
+
+            # Determine the error
+            if "(jam)" in err:
+                df["jam"].iloc[i] = 1.
+
+            elif "because of a red traffic light" in err:
+                df["e_stop"].iloc[i] = 1.
+
+            elif "performs emergency braking" in err:
+                print(err)
+                emergency_decel = 2 * self.veh_param_df["decel"].iloc[i]
+                print("emergency decel", emergency_decel)
+
+                # x = re.findall(r"decel=-*\d*\.*\d*", err)
+                # observed_decel = 
+                # df["e_brake"].iloc[i] = 1.
+            continue
+
+        # print(df)
+        return
+
+    
