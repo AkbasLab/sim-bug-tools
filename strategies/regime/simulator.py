@@ -290,7 +290,9 @@ class TrafficLightRaceTest:
         self.client.close()
 
         # Score the performance of the test.
-        self._calc_scores()
+        self._veh_score_df = self._calc_veh_scores()
+        self._scores = self.veh_score_df.apply(max) \
+            .drop("veh_id")
         return
 
     def ___FEATURES___(self):
@@ -328,12 +330,20 @@ class TrafficLightRaceTest:
         return "r0"
 
     @property
+    def scores(self) -> pd.Series:
+        return self._scores
+
+    @property
     def tl_param_df(self) -> pd.DataFrame:
         return self._tl_param_df
 
     @property
     def veh_param_df(self) -> pd.DataFrame:
         return self._veh_param_df
+
+    @property
+    def veh_score_df(self) -> pd.DataFrame:
+        return self._veh_score_df
 
     
 
@@ -439,11 +449,15 @@ class TrafficLightRaceTest:
 
 
     def __parse_veh_id(self, err : str) -> str:
-        return re.findall(r"Vehicle '\d'", err)[0].strip("'").split("'")[-1]
+        return re.findall(r"vehicle '\d'", err.lower())[0].strip("'").split("'")[-1]
 
-    def _calc_scores(self):
+
+    def _calc_veh_scores(self) -> pd.DataFrame:
         """
-        Calculate the test score of this scenario
+        Calculate the test score of this scenario for each vehicle by parsing
+        the error log.
+
+        Returns a pandas Dataframe of vehicle scores.
         """
         # There are 3 performance metrics. 
         # First, the default score is assigned to each vehicle.
@@ -451,7 +465,8 @@ class TrafficLightRaceTest:
             "veh_id" : self.veh_param_df["veh_id"].astype(str),
             "jam" : 0.,
             "e_brake" : 0.,
-            "e_stop" : 0.
+            "e_stop" : 0.,
+            "collision" : 0.
         })
 
         # Parse the error log to fill in the vehicle scores
@@ -471,16 +486,20 @@ class TrafficLightRaceTest:
                 df["e_stop"].iloc[i] = 1.
 
             elif "performs emergency braking" in err:
-                print(err)
-                emergency_decel = 2 * self.veh_param_df["decel"].iloc[i]
-                print("emergency decel", emergency_decel)
+                wished = float(re.findall(r"wished=-*\d*\.*\d*", err)[0]\
+                    .split("=")[-1])
+                observed = float(re.findall(r"decel=-*\d*\.*\d*", err)[0]\
+                    .split("=")[-1])
+                df["e_brake"].iloc[i] = abs(wished/observed)
 
-                # x = re.findall(r"decel=-*\d*\.*\d*", err)
-                # observed_decel = 
-                # df["e_brake"].iloc[i] = 1.
+            elif "collision with vehicle" in err:
+                observed = float(re.findall(r"gap=-*\d*\.*\d*", err)[0]\
+                    .split("=")[-1])
+                min_gap = self.veh_param_df["min_gap"].iloc[i]
+                df["collision"].iloc[i] = abs(observed/min_gap)
+                return
             continue
 
-        # print(df)
-        return
+        return df
 
     

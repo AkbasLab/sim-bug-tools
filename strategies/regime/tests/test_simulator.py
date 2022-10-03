@@ -7,6 +7,7 @@ import simulator
 
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
+import sim_bug_tools.utils as utils
 
 class TestSimulator(unittest.TestCase):
 
@@ -29,7 +30,6 @@ class TestSimulator(unittest.TestCase):
         return
 
     def testTLRTest(self):
-        print("\n\n")
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 
@@ -40,7 +40,7 @@ class TestSimulator(unittest.TestCase):
         )
         seq.seed = 222
 
-        for i in range(100):
+        for i in range(1):
             # Get the first point in the sequence
             point = seq.get_points(1)[0]
 
@@ -52,5 +52,64 @@ class TestSimulator(unittest.TestCase):
                 veh_params = params["veh"]["concrete"],
                 tl_params = params["tl"]["concrete"]
             )
-        print("\n\n")
+            break
+
+        return
+
+    def test_10k_random(self):
+        # Initialize the Parameter Manager
+        manager = simulator.TrafficLightRaceParameterManager()
+
+        # Choose a Random Sequence
+        seq = sequences.RandomSequence(
+            manager.domain,
+            manager.axes_names
+        )
+        seq.seed = 222
+
+        # Output dir
+        out_dir = "%s/temp" % FILE_DIR
+
+        # Test structure is:
+        #  test_id
+        #  | + params
+        #  | | + veh
+        #  | | | + concrete
+        #  | | | + normal
+        #  | | + tl
+        #  | |   + concrete
+        #  | |   + normal
+        #  | + scores
+        #  |   + veh
+        #  |   + scores
+
+        data = dict() 
+
+        n_tests = 10_000
+
+        for i in range(n_tests):
+            print("\n TEST %d of %d\n" % (i, n_tests - 1))
+            # Get the first point in the sequence
+            point = seq.get_points(1)[0]
+
+            # Obtain dataframes of concrete parameters for vehicles and TL
+            params = manager.map_parameters(point)
+
+            # Simulation Test
+            test = simulator.TrafficLightRaceTest(
+                veh_params = params["veh"]["concrete"],
+                tl_params = params["tl"]["concrete"]
+            )
+
+            data[i] = {
+                "params" : params,
+                "scores" : {
+                    "veh" : test.veh_score_df,
+                    "scores" : test.scores
+                }
+            }
+            continue
+        
+        fn = "%s/random_10k.pkl" % out_dir
+        utils.save(data, fn)
         return
