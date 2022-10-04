@@ -497,7 +497,6 @@ class TrafficLightRaceTest:
                     .split("=")[-1])
                 min_gap = self.veh_param_df["min_gap"].iloc[i]
                 df["collision"].iloc[i] = abs(observed/min_gap)
-                return
             continue
 
         return df
