@@ -40,7 +40,7 @@ class TestSimulator(unittest.TestCase):
         )
         seq.seed = 222
 
-        for i in range(1):
+        for i in range(100):
             # Get the first point in the sequence
             point = seq.get_points(1)[0]
 
@@ -52,11 +52,12 @@ class TestSimulator(unittest.TestCase):
                 veh_params = params["veh"]["concrete"],
                 tl_params = params["tl"]["concrete"]
             )
-            break
+            # break
 
         return
 
     def test_10k_random(self):
+        return
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 
