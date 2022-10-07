@@ -13,21 +13,12 @@ import pandas as pd
 
 class RegimeSUMO:
     def __init__(self):
+        # Hide warning for appending pd.Series
         warnings.simplefilter(action='ignore', category=FutureWarning)
 
         # Initialize the parameter manager
         self._parameter_manager = simulator.TrafficLightRaceParameterManager()
 
-
-        # Use random sequence as a placeholdr
-        seq = sequences.RandomSequence(
-            self.parameter_manager.domain,
-            self.parameter_manager.axes_names
-        )
-        seq.seed = 222
-        for i in range(10):
-            seq.get_points(1)
-        self.global_exploration(seq)
 
         return
 
@@ -117,3 +108,33 @@ class RegimeSUMO:
         return
 
 
+    def __BOUNDARY_DETECTION__(self):
+        return
+
+    def boundary_detection(self):
+        print("BOUNDARY DETECTION START.")
+
+        print("BOUNDARY DETECTION END.")
+        return 
+
+
+    def __LOCAL_SENSITIVITY_REDUCTION__(self):
+        return
+
+    def local_sensitivity_reduction(self):
+        print("LOCAL SENSITIVITY REDUCTION START.")
+
+        
+
+        print("LOCAL SENSITIVITY REDUCTION END.")
+        return
+
+
+    def __LOCAL_EXPLOITATION__(self):
+        return
+
+    def local_exploitation(self):
+        print("LOCAL EXPLOITATION START.")
+
+        print("LOCAL EXPLOITATION END.")
+        return
