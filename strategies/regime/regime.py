@@ -1,4 +1,5 @@
 import os
+from typing import Callable
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 import warnings
@@ -12,14 +13,15 @@ import pandas as pd
 
 
 class RegimeSUMO:
-    def __init__(self):
+    def __init__(self, target_score_classifier : Callable[[pd.Series], bool]):
         # Hide warning for appending pd.Series
         warnings.simplefilter(action='ignore', category=FutureWarning)
 
         # Initialize the parameter manager
         self._parameter_manager = simulator.TrafficLightRaceParameterManager()
 
-
+        # Is in target score classification method
+        self._target_score_classifier = target_score_classifier
         return
 
     def __PARAMETERS__(self):
@@ -28,6 +30,10 @@ class RegimeSUMO:
     @property
     def parameter_manager(self) -> simulator.TrafficLightRaceParameterManager:
         return self._parameter_manager
+
+    @property
+    def target_score_classifier(self) -> Callable[[pd.Series], bool]:
+        return self._target_score_classifier
 
 
     def __PRIVATE_METHODS__(self):
@@ -81,13 +87,6 @@ class RegimeSUMO:
     def __GLOBAL_EXPLORATION__(self):
         return
 
-    def is_in_target_score_specs(self, score : pd.Series):
-        """
-        Checks if a test score is in the Target Score Specs
-        TODO: make this function overloadable.
-        """
-        return score["e_brake"] > 0 and score["e_brake"] < .5
-
     def global_exploration(self, seq : sequences.Sequence):
         """
         Global Exploration module.
@@ -102,7 +101,7 @@ class RegimeSUMO:
             params, scores = self.run_test(params)
 
             # Exit Condition
-            if self.is_in_target_score_specs(scores):
+            if self.target_score_classifier(scores):
                 break
         print("GLOBAL EXPLORATION END.")
         return

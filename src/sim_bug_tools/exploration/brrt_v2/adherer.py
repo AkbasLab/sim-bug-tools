@@ -12,7 +12,7 @@ sys.path.append(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     )
 )
-from strategies.boundary_exploration.boundary_core.adherer import (
+from sim_bug_tools.exploration.boundary_core.adherer import (
     Adherer,
     AdherenceFactory,
     BoundaryLostException,

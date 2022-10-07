@@ -10,7 +10,7 @@ from numpy import int32, float64, ndarray
 import matplotlib.pyplot as plt
 import matplotlib.axes
 import json
-
+import pandas as pd
 
 
 class Point:
@@ -28,11 +28,15 @@ class Point:
         ITERABLE = (list, tuple, map, ndarray)
 
         self._vector: ndarray
-
+        self._index = None
+        
         if len(args) == 1 and isinstance(args[0], ITERABLE):
             self._vector = self._format_array(args[0])
         elif Point.is_point(args):
             self._vector = self._format_array(args)
+        elif isinstance(args[0], pd.Series):
+            self._vector = self._format_array(args[0].tolist())
+            self._index = args[0].index.tolist()
         else:
             raise ValueError(
                 f"{__class__.__name__}.__init__: Invalid arguments (args = {args})."
@@ -50,6 +54,10 @@ class Point:
     def size(self) -> np.int32:
         return np.int32(len(self._vector))
 
+    @property
+    def index(self) -> list[str]:
+        return self._index
+ 
     def __iter__(self):
         return self._vector.__iter__()
 
@@ -104,6 +112,9 @@ class Point:
 
     def as_json(self):
         return json.dumps(self.to_list())
+
+    def as_series(self) -> pd.Series:
+        return pd.Series(self._vector, index = self.index)
 
     @staticmethod
     def is_point(array: tuple) -> bool:

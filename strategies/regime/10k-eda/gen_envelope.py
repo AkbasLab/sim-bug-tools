@@ -2,6 +2,8 @@ import pandas as pd
 import sim_bug_tools.utils as utils
 import sim_bug_tools.structs as structs
 
+
+
 def main():
     params_df = pd.read_csv("data/param.csv")
     score_df = pd.read_csv("data/score.csv")

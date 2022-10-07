@@ -7,15 +7,22 @@ import sim_bug_tools.rng.lds.sequences as sequences
 # import sim_bug_tools.structs as structs
 # import sim_bug_tools.utils as utils
 
-# import simulator
+from sim_bug_tools.exploration.brrt_v2.adherer \
+    import BoundaryAdherer, BoundaryAdherenceFactory
+
 import regime
+import numpy as np
+import pandas as pd
 
 class TestRegime(unittest.TestCase):
 
     def test_global_exploration(self):
-        return
+        # Define the target score classifier
+        def target_score_classifier(point : structs.Point) -> bool:
+            return score["e_brake"] > 0 and score["e_brake"] < .5
+
         # Create the regime
-        r = regime.RegimeSUMO()
+        r = regime.RegimeSUMO(target_score_classifier)
         
         # Use random sequence as a placeholder
         seq = sequences.RandomSequence(
@@ -30,7 +37,19 @@ class TestRegime(unittest.TestCase):
         r.global_exploration(seq)
         return
 
-    def test_local_sensitivity_reduction(self):
+    def test_boundary_detection(self):
+        return
+        # Define the target score classifier
+        def target_score_classifier(score : pd.Series) -> bool:
+            return score["e_brake"] > 0 and score["e_brake"] < .5
+
         # Create the regime
-        r = regime.RegimeSUMO()
+        r = regime.RegimeSUMO(target_score_classifier)
+
+
+        d = 0.005
+        r = 2
+        angle = 30 * np.pi / 180
+        num = 4
+
         return
