@@ -7,6 +7,7 @@ import warnings
 
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
+import sim_bug_tools.exploration.brrt_v2.adherer as adherer
 import simulator
 
 import pandas as pd
@@ -22,6 +23,10 @@ class RegimeSUMO:
 
         # Is in target score classification method
         self._target_score_classifier = target_score_classifier
+        
+        # 
+        self._params_df = None
+        self._scores_df = None
         return
 
     def __PARAMETERS__(self):
@@ -34,6 +39,14 @@ class RegimeSUMO:
     @property
     def target_score_classifier(self) -> Callable[[pd.Series], bool]:
         return self._target_score_classifier
+
+    @property
+    def params_df(self) -> pd.DataFrame:
+        return self._params_df
+    
+    @property
+    def scores_df(self) -> pd.DataFrame:
+        return self._scores_df
 
 
     def __PRIVATE_METHODS__(self):
@@ -61,6 +74,10 @@ class RegimeSUMO:
             continue
         return pd.Series(data)
 
+    def _log_params_and_scores(self, params : pd.Series, scores : pd.Series):
+        
+        return
+
 
     def __PUBLIC_METHODS__(self):
         return
@@ -80,6 +97,18 @@ class RegimeSUMO:
         flat_veh_s = self._flatten_veh_params_df(veh_params_df)
         flat_tl_s = self._flatten_tl_params_df(tl_params_df)
         params_s = flat_veh_s.append(flat_tl_s)
+
+        # Log the score data
+        try:
+            self._params_df = self.params_df.append(
+                params_s, ignore_index = True)
+            self._scores_df = self.scores_df.append(
+                test.scores, ignore_index = True)
+        except AttributeError:
+            # Dataframes are None since no tests have been performed,
+            # They are initialized with this first test.
+            self._params_df = pd.DataFrame([params_s])
+            self._scores_df = pd.DataFrame([test.scores])
 
         return params_s, test.scores
 
@@ -112,7 +141,14 @@ class RegimeSUMO:
 
     def boundary_detection(self):
         print("BOUNDARY DETECTION START.")
+        d = 0.005
+        r = 2
+        angle = adherer.ANGLE_90
+        num = 4
 
+        adhf = adherer.BoundaryAdherenceFactory(
+            self.target_score_classifier, d, angle, r, num
+        )
         print("BOUNDARY DETECTION END.")
         return 
 
