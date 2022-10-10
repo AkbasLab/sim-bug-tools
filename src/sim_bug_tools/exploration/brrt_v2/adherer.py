@@ -42,6 +42,7 @@ class BoundaryAdherer(Adherer):
         delta_theta: float,
         r: float,
         num: int,
+        init_class : bool = None,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
@@ -55,6 +56,8 @@ class BoundaryAdherer(Adherer):
             direction (ndarray): The general direction to travel in (MUST NOT BE PARALLEL WITH @n)
             d (float): How far to travel from @p
             delta_theta (float): The initial change in angle (90 degrees is a good start).
+            init_class (bool): The initial classification of @p.
+                When None, initial state is determined by @classifier(@p)
         """
         super().__init__(classifier)
         self._p = p
@@ -70,7 +73,10 @@ class BoundaryAdherer(Adherer):
         self._prev_class = None
 
         self._cur: Point = p + Point(self._s)
-        self._cur_class = classifier(self._cur)
+        if init_class is None:
+            self._cur_class = classifier(self._cur)
+        else:
+            self._cur_class = init_class
 
         self._r = r
         self._num = num
@@ -242,12 +248,14 @@ class BoundaryAdherenceFactory(AdherenceFactory):
         delta_theta: float,
         r: float,
         num: int,
+        init_class : bool = None,
     ):
         super().__init__(classifier)
         self._d = d
         self._delta_theta = delta_theta
         self._r = r
         self._num = num
+        self._init_class = init_class
 
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
         return BoundaryAdherer(
@@ -259,6 +267,7 @@ class BoundaryAdherenceFactory(AdherenceFactory):
             self._delta_theta,
             self._r,
             self._num,
+            self._init_class
         )
 
 

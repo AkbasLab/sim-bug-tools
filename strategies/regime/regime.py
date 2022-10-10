@@ -11,7 +11,7 @@ import sim_bug_tools.exploration.brrt_v2.adherer as adherer
 import simulator
 
 import pandas as pd
-
+import numpy as np
 
 class RegimeSUMO:
     def __init__(self, target_score_classifier : Callable[[pd.Series], bool]):
@@ -43,6 +43,10 @@ class RegimeSUMO:
     @property
     def params_df(self) -> pd.DataFrame:
         return self._params_df
+
+    @property
+    def params_normal_df(self) -> pd.DataFrame:
+        return self._params_normal_df
     
     @property
     def scores_df(self) -> pd.DataFrame:
@@ -98,16 +102,28 @@ class RegimeSUMO:
         flat_tl_s = self._flatten_tl_params_df(tl_params_df)
         params_s = flat_veh_s.append(flat_tl_s)
 
+
+        # Also save the normal parameters
+        veh_params_normal_df = params["veh"]["normal"]
+        tl_params_normal_df = params["tl"]["normal"]
+        flat_veh_normal_s = self._flatten_veh_params_df(veh_params_normal_df)
+        flat_tl_normal_s = self._flatten_tl_params_df(tl_params_normal_df)
+        params_normal_s = flat_veh_normal_s.append(flat_tl_normal_s)
+
         # Log the score data
         try:
             self._params_df = self.params_df.append(
                 params_s, ignore_index = True)
+            self._params_normal_df = self.params_normal_df.append(
+                params_normal_s, ignore_index=True
+            )
             self._scores_df = self.scores_df.append(
                 test.scores, ignore_index = True)
         except AttributeError:
             # Dataframes are None since no tests have been performed,
             # They are initialized with this first test.
             self._params_df = pd.DataFrame([params_s])
+            self._params_normal_df = pd.DataFrame([params_normal_s])
             self._scores_df = pd.DataFrame([test.scores])
 
         return params_s, test.scores
@@ -139,16 +155,49 @@ class RegimeSUMO:
     def __BOUNDARY_DETECTION__(self):
         return
 
+    def _adh_classifier(self, point : structs.Point):
+        params = self.parameter_manager.map_parameters(point)
+        params, scores = self.run_test(params)
+        return self.target_score_classifier(scores)
+
     def boundary_detection(self):
         print("BOUNDARY DETECTION START.")
+
+        # Create the Adherence Factory
         d = 0.005
         r = 2
         angle = adherer.ANGLE_90
         num = 4
+        init_class = True # The root point inside of a target envelope.
 
         adhf = adherer.BoundaryAdherenceFactory(
-            self.target_score_classifier, d, angle, r, num
+            self._adh_classifier, d, angle, r, num, init_class
         )
+
+
+        # 
+        # Create the adherence object
+        # 
+        # print(self.params_df)
+        # print(self.params_normal_df)
+        # print(self.scores_df)
+
+        # the point is the parameters of te last test, which is within
+        # a target score envelope.
+        p = structs.Point(self.params_normal_df.iloc[-1])
+
+        # @n and @dir are reference planes for the boundary adherence object.
+        # As such they must be the same length as @p, and for simplicity the
+        # vectors are -1, 0, or 1.
+        n = np.zeros(len(p)); n[-1] = -1
+        dir = np.zeros(len(p)); dir[1] = 1
+
+        # self._adh_classifier(p)
+        adh = adhf.adhere_from(p, n, dir)
+
+        # print(p.index)
+        
+
         print("BOUNDARY DETECTION END.")
         return 
 

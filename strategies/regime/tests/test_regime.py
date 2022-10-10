@@ -59,7 +59,9 @@ class TestRegime(unittest.TestCase):
         # The exploration should end after 2 steps.
         r.global_exploration(seq)
         
-        print(r.params_df)
-        print(r.scores_df)
+
+        # Now do the boundary detection step
+        r.boundary_detection()
+
 
         return
