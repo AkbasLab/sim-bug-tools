@@ -168,19 +168,10 @@ class RegimeSUMO:
         r = 2
         angle = adherer.ANGLE_90
         num = 4
-        init_class = True # The root point inside of a target envelope.
-
         adhf = adherer.BoundaryAdherenceFactory(
-            self._adh_classifier, d, angle, r, num, init_class
+            self._adh_classifier, d, angle, r, num
         )
 
-
-        # 
-        # Create the adherence object
-        # 
-        # print(self.params_df)
-        # print(self.params_normal_df)
-        # print(self.scores_df)
 
         # the point is the parameters of te last test, which is within
         # a target score envelope.
@@ -192,11 +183,8 @@ class RegimeSUMO:
         n = np.zeros(len(p)); n[-1] = -1
         dir = np.zeros(len(p)); dir[1] = 1
 
-        # self._adh_classifier(p)
-        adh = adhf.adhere_from(p, n, dir)
-
-        # print(p.index)
-        
+        # Finally create the adherence object
+        adh = adhf.adhere_from(p, n, dir, init_class = True)
 
         print("BOUNDARY DETECTION END.")
         return 
