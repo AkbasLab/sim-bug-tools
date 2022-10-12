@@ -1,15 +1,5 @@
-<<<<<<< HEAD
-
-
-from sim_bug_tools.exploration.brrt_std.adherer import BoundaryAdherenceFactory
-from sim_bug_tools.exploration.boundary_core.surfacer import surface
-from sim_bug_tools.exploration.boundary_core.explorer import Explorer
-from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
-
-=======
 import os
 import sys
->>>>>>> main
 from copy import copy
 from time import time
 from typing import Callable
@@ -17,12 +7,6 @@ from typing import Callable
 import numpy as np
 from numpy import ndarray
 from rtree import index
-<<<<<<< HEAD
-from sim_bug_tools.structs import Point
-
-from treelib import Node, Tree
-
-=======
 from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
 from sim_bug_tools.exploration.boundary_core.explorer import Explorer
 from sim_bug_tools.structs import Point
@@ -30,7 +14,6 @@ from treelib import Node, Tree
 
 from .adherer import BoundaryAdherenceFactory
 
->>>>>>> main
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
 
@@ -48,17 +31,10 @@ class BoundaryRRT(Explorer):
         Args:
             classifier (Callable[[Point], bool]): The function that determines whether
                 or not a sampled point is a target value or not.
-<<<<<<< HEAD
-            t0 (Point): An initial target value within the target envelop whose surface
-                is to be explored.
-            d (float): The jump distance between estimated boundary points.
-            theta (float): How much to rotate by for crossing the boundary.
-=======
             b0 (Point): The root boundary point to begin exploration from.
             n0 (ndarray): The root boundary point's orthonormal surface vector.
             adhererF (AdherenceFactory): A factory for the desired adherence
                 strategy.
->>>>>>> main
         """
         super().__init__(b0, n0, adhererF)
 
@@ -125,10 +101,6 @@ def measure_time(f: Callable, *args, **kwargs) -> float:
 
 if __name__ == "__main__":
     # A simple test for showing the strategy in action
-<<<<<<< HEAD
-    import matplotlib.pyplot as plt
-    from matplotlib.axes import Axes
-=======
     # append ./../../.. (sim-bug-tools / root folder)
     sys.path.append(
         os.path.dirname(
@@ -140,7 +112,6 @@ if __name__ == "__main__":
     from sim_bug_tools.exploration.boundary_core.surfacer import find_surface
     from tools.grapher import Grapher
     
->>>>>>> main
 
     ndims = 3
 
@@ -154,11 +125,7 @@ if __name__ == "__main__":
     classifier = lambda p: p.distance_to(loc) <= radius
 
     print("Building brrt...")
-<<<<<<< HEAD
-    bpair, interm = surface(classifier, loc, d)
-=======
     bpair, interm = find_surface(classifier, loc, d)
->>>>>>> main
     adhF = BoundaryAdherenceFactory(classifier, d, theta)
     brrt = BoundaryRRT(*bpair, adhF)
 

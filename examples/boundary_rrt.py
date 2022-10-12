@@ -95,6 +95,7 @@ for i in range(nbatches):
     if (ndims == 3):
         grapher.plot_all_points(points)
         plt.pause(0.05)
+        # plt.pause(1)
     
     input("Press enter to continue...")
     

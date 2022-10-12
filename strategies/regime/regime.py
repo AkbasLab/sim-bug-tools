@@ -9,6 +9,7 @@ import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
 import sim_bug_tools.exploration.brrt_v2.adherer as adherer
 import simulator
+import brrt
 
 import pandas as pd
 import numpy as np
@@ -155,7 +156,7 @@ class RegimeSUMO:
     def __BOUNDARY_DETECTION__(self):
         return
 
-    def _adh_classifier(self, point : structs.Point):
+    def _adhf_classifier(self, point : structs.Point):
         params = self.parameter_manager.map_parameters(point)
         params, scores = self.run_test(params)
         return self.target_score_classifier(scores)
@@ -163,28 +164,23 @@ class RegimeSUMO:
     def boundary_detection(self):
         print("BOUNDARY DETECTION START.")
 
-        # Create the Adherence Factory
-        d = 0.005
-        r = 2
-        angle = adherer.ANGLE_90
-        num = 4
-        adhf = adherer.BoundaryAdherenceFactory(
-            self._adh_classifier, d, angle, r, num
+        # The target point is the last test, which is within a target
+        # performance envelope.
+        t0 = structs.Point(self.params_normal_df.iloc[-1])
+        
+
+        # Find the surface of the envelope.
+        node0, midpoints = brrt.find_surface(
+            self._adhf_classifier,
+            t0, 
+            d = 0.001
         )
+        
+        self.params_df.to_csv("hhh.csv")
+        
 
-
-        # the point is the parameters of te last test, which is within
-        # a target score envelope.
-        p = structs.Point(self.params_normal_df.iloc[-1])
-
-        # @n and @dir are reference planes for the boundary adherence object.
-        # As such they must be the same length as @p, and for simplicity the
-        # vectors are -1, 0, or 1.
-        n = np.zeros(len(p)); n[-1] = -1
-        dir = np.zeros(len(p)); dir[1] = 1
-
-        # Finally create the adherence object
-        adh = adhf.adhere_from(p, n, dir, init_class = True)
+        
+        
 
         print("BOUNDARY DETECTION END.")
         return 

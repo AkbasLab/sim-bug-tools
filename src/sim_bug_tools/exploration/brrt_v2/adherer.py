@@ -7,16 +7,6 @@ from sim_bug_tools.exploration.boundary_core.adherer import (
     AdherenceFactory, Adherer, BoundaryLostException)
 from sim_bug_tools.structs import Domain, Point
 
-<<<<<<< HEAD
-from sim_bug_tools.exploration.boundary_core.adherer import (
-    Adherer,
-    AdherenceFactory,
-    BoundaryLostException,
-)
-
-
-=======
->>>>>>> main
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
 
