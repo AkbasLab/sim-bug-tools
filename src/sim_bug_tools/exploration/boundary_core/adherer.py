@@ -7,23 +7,9 @@ import numpy as np
 from numpy import ndarray
 from sim_bug_tools.structs import Point
 
-"""
-Notes:
-
-We want the Explorer to be able to take in an object that represents the
-solution for finding the boundary. This way, we eliminate the need for the
-Explorer to mirror the parameters for that adherence solution while also
-allowing for any possible adherence solution to be applied.
-
-To do this, we want to decouple how we generate the path and final boundary 
-point from the process of sampling that path. This means an 
-adhf = AdherenceFactory(*args) object is provided to the Explorer, and this
-Explorer object only needs to execute adhf.adhereFrom(p, n, direction), 
-which will produce an Adherence object that can be iterated through.
-"""
-
 
 class BoundaryLostException(Exception):
+    "When a boundary Adherer fails to find the boundary, this exception is thrown"
     def __init__(self, msg="Failed to locate boundary!"):
         self.msg = msg
         super().__init__(msg)
@@ -46,7 +32,7 @@ class _AdhererIterator:
 class Adherer(ABC):
     """
     An Adherer provides the ability to identify a point that lies on the
-    boundary of an N-D volume (target envelope). Furthermore, it allows
+    boundary of an N-D volume (i.e. target envelope). Furthermore, it allows
     for the incremental stepping through the process and the collection
     of intermediate samples. A "classifier" function describes whether
     or not a sampled Point is within or outside of the target envelope.
@@ -114,8 +100,10 @@ class Adherer(ABC):
 
 class AdherenceFactory(ABC):
     """
-    Given adhf = AdherenceFactory(*params)
-    Produces adh = Adherer(p, n, direction, *params)
+    Different adherence strategies can require different initial parameters.
+    Since the Explorer does not know what these parameters are, we must decouple
+    the construction of the Adherer from the explorer, allowing for initial
+    parameters to be defined prior to the execution of the exploration alg.
     """
 
     def __init__(self, classifier: Callable[[Point], bool]):
@@ -127,4 +115,17 @@ class AdherenceFactory(ABC):
 
     @abstract
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
+        """
+        Find a boundary point that neighbors the given point, p, in the
+        provided direction, given the provided surface vector, n.
+
+        Args:
+            p (Point): A boundary point to use as a pivot point
+            n (ndarray): The orthonormal surface vector for boundary point p
+            direction (ndarray): The direction to sample towards
+
+        Returns:
+            Adherer: The adherer object that will find the boundary given the
+                above parameters.
+        """
         pass

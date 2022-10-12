@@ -3,8 +3,11 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
+from sim_bug_tools.exploration.boundary_core.adherer import (
+    AdherenceFactory, Adherer, BoundaryLostException)
 from sim_bug_tools.structs import Domain, Point
 
+<<<<<<< HEAD
 from sim_bug_tools.exploration.boundary_core.adherer import (
     Adherer,
     AdherenceFactory,
@@ -12,6 +15,8 @@ from sim_bug_tools.exploration.boundary_core.adherer import (
 )
 
 
+=======
+>>>>>>> main
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
 
@@ -264,9 +269,18 @@ class BoundaryAdherenceFactory(AdherenceFactory):
 
 
 if __name__ == "__main__":
+    import os
+    import sys
+
+    sys.path.append(
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        )
+    )
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
     from tools.grapher import Grapher
+    
 
     d = 0.005
     r = 2

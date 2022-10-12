@@ -1,14 +1,20 @@
-from abc import ABC, abstractmethod as abstract
+from abc import ABC
+from abc import abstractmethod as abstract
 from copy import copy
 from typing import Callable
 
 import numpy as np
 from numpy import ndarray
 from sim_bug_tools.structs import Point
-from adherer import AdherenceFactory
+
+from .adherer import AdherenceFactory
 
 
 class Explorer(ABC):
+    """
+    An abstract class that provides the skeleton for a Boundary Exploration 
+    strategy. 
+    """
     def __init__(self, b0: Point, n0: ndarray, adhererF: AdherenceFactory):
         self._adhererF = adhererF
         self._boundary = [b0]
@@ -31,14 +37,17 @@ class Explorer(ABC):
 
     @abstract
     def _select_parent(self) -> tuple[Point, ndarray]:
+        "Select which boundary point to explore from next."
         pass
 
     @abstract
     def _pick_direction(self) -> ndarray:
+        "Select a direction to explore towards."
         pass
 
     @abstract
     def _add_child(self, bk: Point, nk: ndarray):
+        "Add a newly found boundary point and its surface vector."
         pass
 
     def expand(self) -> tuple[Point, ndarray]:
@@ -57,7 +66,6 @@ class Explorer(ABC):
         direction = self._pick_direction()
         adherer = self._adhererF.adhere_from(b, n, direction)
         for b in adherer:
-            print(b)
             self._all_points.append(b)
 
         self._add_child(*adherer.boundary)

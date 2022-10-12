@@ -3,17 +3,9 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
+from sim_bug_tools.exploration.boundary_core.adherer import (
+    AdherenceFactory, Adherer, BoundaryLostException)
 from sim_bug_tools.structs import Point
-
-import sys, os
-
-
-from exploration.boundary_core.adherer import (
-    Adherer,
-    AdherenceFactory,
-    BoundaryLostException,
-)
-
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
