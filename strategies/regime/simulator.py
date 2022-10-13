@@ -53,15 +53,10 @@ class TrafficLightRaceParameterManager:
             self.axes_names.append("TL %s" % feat)
         
 
-        # Flat Parameters (Sequence) metadata
-        point = structs.Point(np.zeros(self.n_dim))
-        params = self.map_parameters(point)
-        flat_params = self.flatten_params_df(
-            params["veh"]["concrete"], params["tl"]["concrete"])
-        self._flat_params_index = flat_params.index
-
-        # self._flat_params_granularity
-
+        # Parameter Summary
+        self._param_summary = self._init_metadata()
+        
+        
     
         return
 
@@ -86,6 +81,10 @@ class TrafficLightRaceParameterManager:
         return self._n_dim
 
     @property
+    def param_summary(self) -> pd.DataFrame:
+        return self._param_summary
+
+    @property
     def tl_param_df(self) -> pd.DataFrame:
         return self._tl_param_df
 
@@ -98,6 +97,9 @@ class TrafficLightRaceParameterManager:
 
     def ___PUBLIC_METHODS___(self):
         return
+
+    def flatten(self, ls : list[list[any]]) -> list[any]:
+        return [item for sublist in ls for item in sublist]
 
     def map_parameters(self, point : structs.Point) -> dict:
         """
@@ -186,9 +188,6 @@ class TrafficLightRaceParameterManager:
     def ___PRIVATE_METHODS___(self):
         return
 
-    def _get_granularity(self, df : pd.DataFrame) -> list[float]:
-        return
-
     def _flatten_tl_params_df(self, df : pd.DataFrame) -> pd.Series:
         """
         Flattens a TL parameters @df into a series.
@@ -211,7 +210,37 @@ class TrafficLightRaceParameterManager:
             continue
         return pd.Series(data)
 
-    
+    def _init_metadata(self):
+        point = structs.Point(np.zeros(self.n_dim))
+        params = self.map_parameters(point)
+        flat_params = self.flatten_params_df(
+            params["veh"]["concrete"], params["tl"]["concrete"])
+        index = flat_params.index
+
+        # Granularity
+        inc = self.flatten([self.veh_param_df["inc"] \
+            for n in range(self.n_av)] + [self.tl_param_df["inc"]])
+
+        normalize = lambda df : list(df["inc"] / (df["max"] - df["min"]))
+        inc_norm = self.flatten([normalize(self.veh_param_df) \
+            for n in range(self.n_av)] + [normalize(self.tl_param_df)])
+
+        feat_min = self.flatten([self.veh_param_df["min"] \
+            for n in range(self.n_av)] + [self.tl_param_df["min"]])
+
+        feat_max = self.flatten([self.veh_param_df["max"] \
+            for n in range(self.n_av)] + [self.tl_param_df["max"]])
+
+        df = pd.DataFrame({
+            "feat" : index,
+            "min" : feat_min,
+            "max" : feat_max,
+            "inc" : inc,
+            "inc_norm" : inc_norm
+        })
+
+        return df
+
     def _map_vehicle_parameters(self, normal_values : dict) -> dict:
         """
         Maps @normal values to concrete values, as defined in the veh_params_df
