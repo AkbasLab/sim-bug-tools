@@ -11,7 +11,10 @@ import sim_bug_tools.utils as utils
 
 class TestSimulator(unittest.TestCase):
 
+    
+
     def testTLRPM(self):
+        # return
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 
@@ -26,10 +29,19 @@ class TestSimulator(unittest.TestCase):
         point = seq.get_points(1)[0]
 
         # Obtain dataframes of concrete parameters for vehicles and TL
-        manager.map_parameters(point)
+        params = manager.map_parameters(point)
+
+        # Flatten parameters
+        flat_params = manager.flatten_params_df(
+            params["veh"]["concrete"], params["tl"]["concrete"])
+            
+        # The flat sequence should be the same length as the number of 
+        # dimensions
+        self.assertEqual(len(flat_params.index), manager.n_dim)
         return
 
     def testTLRTest(self):
+        return
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 

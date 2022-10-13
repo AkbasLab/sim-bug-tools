@@ -54,34 +54,11 @@ class RegimeSUMO:
         return self._scores_df
 
 
+
+
     def __PRIVATE_METHODS__(self):
         return
 
-    def _flatten_tl_params_df(self, df : pd.DataFrame) -> pd.Series:
-        """
-        Flattens a TL parameters @df into a series.
-        """
-        data = {}
-        for i in range(len(df.index)):
-            data["TL_%s" % df["state"].iloc[i]] = df["dur"].iloc[i]
-        return pd.Series(data)
-
-    def _flatten_veh_params_df(self, df : pd.DataFrame) -> pd.Series:
-        """
-        Flattens a vehicle parameters @df into a series.
-        """
-        features = df.columns.to_list()[:-1]
-        data = {}
-        for i in range(len(df.index)):
-            vid = df["veh_id"].iloc[i]
-            for feat in features:
-                data["AV%s_%s" % (vid, feat)] = df[feat].iloc[i]
-            continue
-        return pd.Series(data)
-
-    def _log_params_and_scores(self, params : pd.Series, scores : pd.Series):
-        
-        return
 
 
     def __PUBLIC_METHODS__(self):
@@ -99,17 +76,12 @@ class RegimeSUMO:
         test = simulator.TrafficLightRaceTest(veh_params_df, tl_params_df)
 
         # Format the parameters dictionary into a pandas series
-        flat_veh_s = self._flatten_veh_params_df(veh_params_df)
-        flat_tl_s = self._flatten_tl_params_df(tl_params_df)
-        params_s = flat_veh_s.append(flat_tl_s)
-
+        params_s = self.parameter_manager.flatten_params_df(
+            veh_params_df, tl_params_df)
 
         # Also save the normal parameters
-        veh_params_normal_df = params["veh"]["normal"]
-        tl_params_normal_df = params["tl"]["normal"]
-        flat_veh_normal_s = self._flatten_veh_params_df(veh_params_normal_df)
-        flat_tl_normal_s = self._flatten_tl_params_df(tl_params_normal_df)
-        params_normal_s = flat_veh_normal_s.append(flat_tl_normal_s)
+        params_normal_s = self.parameter_manager.flatten_params_df(
+            params["veh"]["normal"], params["tl"]["normal"])
 
         # Log the score data
         try:
@@ -168,6 +140,8 @@ class RegimeSUMO:
         # performance envelope.
         t0 = structs.Point(self.params_normal_df.iloc[-1])
         
+        
+        return
 
         # Find the surface of the envelope.
         node0, midpoints = brrt.find_surface(
@@ -176,6 +150,7 @@ class RegimeSUMO:
             d = 0.001
         )
         
+
         self.params_df.to_csv("hhh.csv")
         
 

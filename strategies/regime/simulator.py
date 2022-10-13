@@ -6,8 +6,11 @@ import sim_bug_tools.structs as structs
 import traci
 import os
 import re
+import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None
+
+import warnings
 
 
 
@@ -48,8 +51,19 @@ class TrafficLightRaceParameterManager:
                 self.axes_names.append("AV%d %s" % (n, feat))
         for feat in self.tl_param_df["feature"]:
             self.axes_names.append("TL %s" % feat)
-        return
+        
 
+        # Flat Parameters (Sequence) metadata
+        point = structs.Point(np.zeros(self.n_dim))
+        params = self.map_parameters(point)
+        flat_params = self.flatten_params_df(
+            params["veh"]["concrete"], params["tl"]["concrete"])
+        self._flat_params_index = flat_params.index
+
+        # self._flat_params_granularity
+
+    
+        return
 
 
     def ___PARAMETERS___(self):
@@ -153,11 +167,49 @@ class TrafficLightRaceParameterManager:
             }
         }
 
+    def flatten_params_df(
+            self, 
+            veh_params_df : pd.DataFrame, 
+            tl_params_df : pd.DataFrame
+        ) -> pd.Series:
+        """
+        Flattens a @veh_params_df and @tl_params_df into a Series so that
+        they may be concatenated easily.
+        """
+        warnings.simplefilter(action='ignore', category=FutureWarning)
+        flat_veh_s = self._flatten_veh_params_df(veh_params_df)
+        flat_tl_s = self._flatten_tl_params_df(tl_params_df)
+        return flat_veh_s.append(flat_tl_s)
 
 
 
     def ___PRIVATE_METHODS___(self):
         return
+
+    def _get_granularity(self, df : pd.DataFrame) -> list[float]:
+        return
+
+    def _flatten_tl_params_df(self, df : pd.DataFrame) -> pd.Series:
+        """
+        Flattens a TL parameters @df into a series.
+        """
+        data = {}
+        for i in range(len(df.index)):
+            data["TL_%s" % df["state"].iloc[i]] = df["dur"].iloc[i]
+        return pd.Series(data)
+
+    def _flatten_veh_params_df(self, df : pd.DataFrame) -> pd.Series:
+        """
+        Flattens a vehicle parameters @df into a series.
+        """
+        features = df.columns.to_list()[:-1]
+        data = {}
+        for i in range(len(df.index)):
+            vid = df["veh_id"].iloc[i]
+            for feat in features:
+                data["AV%s_%s" % (vid, feat)] = df[feat].iloc[i]
+            continue
+        return pd.Series(data)
 
     
     def _map_vehicle_parameters(self, normal_values : dict) -> dict:
