@@ -10,8 +10,11 @@ import sim_bug_tools.structs as structs
 import sim_bug_tools.exploration.brrt_v2.adherer as adherer
 
 import regime
+import brrt
+
 import numpy as np
 import pandas as pd
+
 
 
 def target_score_classifier(score) -> bool:
@@ -22,6 +25,14 @@ def target_score_classifier(score) -> bool:
     return score["e_brake"] > 0 and score["e_brake"] < .5
 
 class TestRegime(unittest.TestCase):
+
+    def test_round_to_limits(self):
+        p0 = np.array([-1,2,4])
+        _min = np.array([0,0,0])
+        _max = np.array([3,3,3])
+        x = brrt.round_to_limits(p0, _min, _max)
+        self.assertTrue(all(x == np.array([0,2,3])))
+        return
 
     def test_global_exploration(self):
         return
@@ -43,7 +54,8 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_boundary_detection(self):
-        
+        print("\n\n")
+        # return
         # Create the regime
         r = regime.RegimeSUMO(target_score_classifier)
 
@@ -63,5 +75,5 @@ class TestRegime(unittest.TestCase):
         # Now do the boundary detection step
         r.boundary_detection()
 
-
+        print("\n\n")
         return

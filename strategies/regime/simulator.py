@@ -55,9 +55,6 @@ class TrafficLightRaceParameterManager:
 
         # Parameter Summary
         self._param_summary = self._init_metadata()
-        
-        
-    
         return
 
 

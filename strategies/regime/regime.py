@@ -141,22 +141,17 @@ class RegimeSUMO:
         t0 = structs.Point(self.params_normal_df.iloc[-1])
         
         
-        return
-
         # Find the surface of the envelope.
         node0, midpoints = brrt.find_surface(
             self._adhf_classifier,
             t0, 
-            d = 0.001
+            d = structs.Point(self.parameter_manager.param_summary["inc_norm"]),
+            lim_min = structs.Point(np.zeros(len(t0))),
+            lim_max = structs.Point(np.ones(len(t0)))
         )
         
-
         self.params_df.to_csv("hhh.csv")
         
-
-        
-        
-
         print("BOUNDARY DETECTION END.")
         return 
 
