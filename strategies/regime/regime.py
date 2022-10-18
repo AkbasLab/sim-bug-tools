@@ -1,3 +1,4 @@
+
 import os
 from typing import Callable
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -7,7 +8,8 @@ import warnings
 
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
-import sim_bug_tools.exploration.brrt_v2.adherer as adherer
+import sim_bug_tools.exploration.brrt_std.adherer as adherer
+# from sim_bug_tools.exploration.brrt_std.brrt import BoundaryRRT
 import simulator
 import brrt
 
@@ -73,7 +75,7 @@ class RegimeSUMO:
         # Simulation Test
         veh_params_df = params["veh"]["concrete"]
         tl_params_df = params["tl"]["concrete"]
-        test = simulator.TrafficLightRaceTest(veh_params_df, tl_params_df)
+
 
         # Format the parameters dictionary into a pandas series
         params_s = self.parameter_manager.flatten_params_df(
@@ -82,6 +84,25 @@ class RegimeSUMO:
         # Also save the normal parameters
         params_normal_s = self.parameter_manager.flatten_params_df(
             params["veh"]["normal"], params["tl"]["normal"])
+
+        # Is this a duplicate test?
+        if not self.params_df is None:
+            duplicate_df =  self.params_df[self.params_df.apply(
+                lambda s: s.equals(params_s), axis=1)]
+
+            # Yes. Do not run the test.
+            if len(duplicate_df.index) > 0:
+                i = duplicate_df.index[0]
+                print("Duplicate of test %d, skipping..." % i)
+                scores = self.scores_df.iloc[i]
+                return params_s, scores
+                
+            
+
+        # Run the test
+        test = simulator.TrafficLightRaceTest(veh_params_df, tl_params_df)
+
+        
 
         # Log the score data
         try:
@@ -140,17 +161,46 @@ class RegimeSUMO:
         # performance envelope.
         t0 = structs.Point(self.params_normal_df.iloc[-1])
         
+        # Jump distance
+        d = structs.Point(self.parameter_manager.param_summary["inc_norm"])
+
+        # Limits
+        lim_min = structs.Point(np.zeros(len(t0)))
+        lim_max = structs.Point(np.ones(len(t0)))
         
         # Find the surface of the envelope.
         node0, midpoints = brrt.find_surface(
             self._adhf_classifier,
             t0, 
-            d = structs.Point(self.parameter_manager.param_summary["inc_norm"]),
-            lim_min = structs.Point(np.zeros(len(t0))),
-            lim_max = structs.Point(np.ones(len(t0)))
+            d,
+            lim_min,
+            lim_max
         )
         
+
+        # Make the adherence factory
+        adhf = brrt.BoundaryAdherenceFactory(
+            self._adhf_classifier,
+            d,
+            np.pi / 180 * 5,
+            lim_min,
+            lim_max
+        )
+
+
+        # adh = adhf.adhere_from(*node0, d.array)
+        
+        # Explore the boundary
+        rrt = brrt.BoundaryRRT(*node0, adhf)
+
+        rrt.expand()
+
+        
+        
+
         self.params_df.to_csv("hhh.csv")
+
+        self.params_df.drop_duplicates().to_csv("hhh2.csv")
         
         print("BOUNDARY DETECTION END.")
         return 

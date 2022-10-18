@@ -14,7 +14,6 @@ class TestSimulator(unittest.TestCase):
     
 
     def testTLRPM(self):
-        # return
         # Initialize the Parameter Manager
         manager = simulator.TrafficLightRaceParameterManager()
 
@@ -34,7 +33,7 @@ class TestSimulator(unittest.TestCase):
         # Flatten parameters
         flat_params = manager.flatten_params_df(
             params["veh"]["concrete"], params["tl"]["concrete"])
-            
+
         # The flat sequence should be the same length as the number of 
         # dimensions
         self.assertEqual(len(flat_params.index), manager.n_dim)
