@@ -8,7 +8,9 @@ import warnings
 
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
+import sim_bug_tools.utils as utils
 import sim_bug_tools.exploration.brrt_std.adherer as adherer
+import sim_bug_tools.exploration.boundary_core.adherer as adherer_core
 # from sim_bug_tools.exploration.brrt_std.brrt import BoundaryRRT
 import simulator
 import brrt
@@ -97,8 +99,7 @@ class RegimeSUMO:
                 scores = self.scores_df.iloc[i]
                 return params_s, scores
                 
-            
-
+        
         # Run the test
         test = simulator.TrafficLightRaceTest(veh_params_df, tl_params_df)
 
@@ -156,6 +157,8 @@ class RegimeSUMO:
 
     def boundary_detection(self):
         print("BOUNDARY DETECTION START.")
+        # First test id
+        test_id_start = self.params_normal_df.index[-1]
 
         # The target point is the last test, which is within a target
         # performance envelope.
@@ -176,7 +179,6 @@ class RegimeSUMO:
             lim_min,
             lim_max
         )
-        
 
         # Make the adherence factory
         adhf = brrt.BoundaryAdherenceFactory(
@@ -187,20 +189,31 @@ class RegimeSUMO:
             lim_max
         )
 
-
-        # adh = adhf.adhere_from(*node0, d.array)
-        
         # Explore the boundary
         rrt = brrt.BoundaryRRT(*node0, adhf)
 
-        rrt.expand()
+        # Find a single bounday point.
+        for i in range(30):
+            print("\nEXPANSION %d\n" % i)
+            try:
+                rrt.expand()
+            except adherer_core.BoundaryLostException:
+                print("BOUNDARY LOST")
+            
+
+        utils.save(rrt, "tests/data/brrt.pkl")
 
         
-        
 
-        self.params_df.to_csv("hhh.csv")
+        # Get Performance Boundary Test Dataframes
+        # b_params_df = self.params_df[self.params_df.index >= test_id_start]
+        # b_scores_df = self.scores_df[self.scores_df.index >= test_id_start]
 
-        self.params_df.drop_duplicates().to_csv("hhh2.csv")
+        # b_params_df.to_csv("p0_params.csv")
+        # b_scores_df.to_csv("p0_scores.csv")
+
+
+        # Measure distance between Params
         
         print("BOUNDARY DETECTION END.")
         return 

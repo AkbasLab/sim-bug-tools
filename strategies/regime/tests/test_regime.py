@@ -54,6 +54,7 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_boundary_detection(self):
+        return
         print("\n\n")
         # return
         # Create the regime
@@ -71,7 +72,6 @@ class TestRegime(unittest.TestCase):
         # The exploration should end after 2 steps.
         r.global_exploration(seq)
         
-
         # Now do the boundary detection step
         r.boundary_detection()
 

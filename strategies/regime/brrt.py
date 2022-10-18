@@ -1,8 +1,10 @@
 from typing import Callable
 from copy import copy
-import sim_bug_tools.structs as structs
 import numpy as np
+import rtree
+import treelib
 
+import sim_bug_tools.structs as structs
 import sim_bug_tools.exploration.brrt_std.brrt as brrt_std
 import sim_bug_tools.exploration.brrt_std.adherer as adherer_std
 import sim_bug_tools.exploration.boundary_core.adherer as adherer_core
@@ -160,6 +162,14 @@ class BoundaryRRT(brrt_std.BoundaryRRT):
         """
         super().__init__(b0, n0, adhererF)
         return
+
+    @property
+    def tree(self) -> treelib.Tree:
+        return self._tree
+
+    @property
+    def index(self) -> rtree.index.Index:
+        return self._index
 
     def expand(self) -> tuple[structs.Point, np.ndarray]:
         """

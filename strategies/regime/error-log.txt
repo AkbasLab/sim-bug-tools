@@ -1,2 +1,2 @@
-Warning: Vehicle '1' performs emergency braking on lane 'before_tl_1' with decel=5.39, wished=2.69, severity=1.00, time=27.00.
-Warning: Vehicle '1' performs emergency stop at the end of lane 'before_tl_1' because of a red traffic light (decel=-49.62, offset=29.40), time=28.00.
+Warning: Vehicle '1' performs emergency braking on lane 'before_tl_1' with decel=5.39, wished=2.69, severity=1.00, time=28.00.
+Warning: Vehicle '1' performs emergency stop at the end of lane 'before_tl_1' because of a red traffic light (decel=-56.64, offset=30.25), time=28.00.
