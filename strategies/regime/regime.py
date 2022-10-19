@@ -192,22 +192,33 @@ class RegimeSUMO:
         # Explore the boundary
         rrt = brrt.BoundaryRRT(*node0, adhf)
 
+        # rrt.expand()
+
         # Find a single bounday point.
-        for i in range(30):
-            print("\nEXPANSION %d\n" % i)
+        # for i in range(5):
+        while True:
+            # print("\nEXPANSION %d\n" % i)
+            if len(self.params_df.index) > (1000+test_id_start):
+                break
             try:
                 rrt.expand()
             except adherer_core.BoundaryLostException:
                 print("BOUNDARY LOST")
             
+        print(len(rrt.index))
 
-        utils.save(rrt, "tests/data/brrt.pkl")
+        # utils.save(rrt, "tests/data/brrt.pkl")
 
         
 
         # Get Performance Boundary Test Dataframes
-        # b_params_df = self.params_df[self.params_df.index >= test_id_start]
-        # b_scores_df = self.scores_df[self.scores_df.index >= test_id_start]
+        b_params_df = self.params_df[self.params_df.index >= test_id_start]
+        b_scores_df = self.scores_df[self.scores_df.index >= test_id_start]
+
+        b_params_df.to_csv("metric1.csv",index=False)
+
+        # self.metric_1(b_params_df)
+
 
         # b_params_df.to_csv("p0_params.csv")
         # b_scores_df.to_csv("p0_scores.csv")
@@ -218,6 +229,20 @@ class RegimeSUMO:
         print("BOUNDARY DETECTION END.")
         return 
 
+    def metric_1(self, df : pd.DataFrame):
+        # generate points for each record
+        # points = [structs.Point(df)]
+        points = np.array([structs.Point(df.iloc[i]).array \
+            for i in range(len(df.index))])
+        
+        # Get distance between all points
+        dist = np.linalg.norm( points - points[:,None], axis=-1)
+        
+        # Get iterative metrics.
+        n_dim = dist.shape[0]
+        
+        return np.array([dist[:,:i].mean() for i in range(1,n_dim)])
+        
 
     def __LOCAL_SENSITIVITY_REDUCTION__(self):
         return

@@ -24,13 +24,19 @@ class TestRegime(unittest.TestCase):
         [rrt.index.insert(node.identifier, node.data["location"]) \
             for node in rrt.tree.all_nodes()]
         print(len(rrt.index))
-        
 
+        # Average distance between nodes in the tree        
+        
+        # # Find the distance to the nearest node in the tree
         # for node in rrt.tree.all_nodes():
         #     p : structs.Point = node.data["location"]
-        #     x = next(rrt.index.nearest(p.array, 2))
-            
-        #     break
+        #     list(rrt.index.nearest(p.array, 2))
+        #     print(x.data["location"] == p)
+        #     return
+        #     # x = list(rrt.index.nearest(p.array, 2))
+        # #     nearest = rrt.tree.get_node(x[0])
+        # #     print(nearest)
+        # #     break
         
 
         print("\n\n")

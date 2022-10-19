@@ -1,11 +1,14 @@
 import unittest
 import os, sys
+
+from sklearn.metrics import mean_absolute_error
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(FILE_DIR))
 
 import sim_bug_tools.rng.lds.sequences as sequences
 import sim_bug_tools.structs as structs
-# import sim_bug_tools.utils as utils
+import sim_bug_tools.utils as utils
+import sim_bug_tools.graphics as graphics
 
 import sim_bug_tools.exploration.brrt_v2.adherer as adherer
 
@@ -14,6 +17,10 @@ import brrt
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+# import seaborn as sns
+# import fitter
+
 
 
 
@@ -32,6 +39,35 @@ class TestRegime(unittest.TestCase):
         _max = np.array([3,3,3])
         x = brrt.round_to_limits(p0, _min, _max)
         self.assertTrue(all(x == np.array([0,2,3])))
+        return
+
+    def test_metric_1(self):
+        # return
+        print("\n\n")
+        
+        # Create the regime
+        r = regime.RegimeSUMO(target_score_classifier)
+
+        # Load a dataframe
+        df = pd.read_csv("%s/data/metric1.csv" % FILE_DIR)
+        # df.describe().to_csv("hhh.csv")
+        # return 
+
+        mean_dist = r.metric_1(df)
+
+        ax = graphics.new_axes()
+        ax.plot(
+            [i for i in range(len(mean_dist))],
+            mean_dist
+        )
+
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Mean distance between X")
+        ax.set_title("Metric 1 (63 normal dimensions)")
+
+        plt.savefig("%s/figures/metric_1.png" % FILE_DIR)
+
+        print("\n\n")
         return
 
     def test_global_exploration(self):
@@ -56,7 +92,6 @@ class TestRegime(unittest.TestCase):
     def test_boundary_detection(self):
         return
         print("\n\n")
-        # return
         # Create the regime
         r = regime.RegimeSUMO(target_score_classifier)
 
