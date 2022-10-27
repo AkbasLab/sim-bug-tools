@@ -17,6 +17,8 @@ import brrt
 
 import pandas as pd
 import numpy as np
+import sys
+import rtree
 
 class RegimeSUMO:
     def __init__(self, target_score_classifier : Callable[[pd.Series], bool]):
@@ -62,7 +64,11 @@ class RegimeSUMO:
 
     def __PRIVATE_METHODS__(self):
         return
-
+    
+    @staticmethod
+    def window_rmsd(window : np.ndarray, avg : float) -> float:
+        window = np.array(window)
+        return np.sqrt(((window - avg)**2).sum() / (window.shape[0] - 1))
 
 
     def __PUBLIC_METHODS__(self):
@@ -155,7 +161,7 @@ class RegimeSUMO:
         params, scores = self.run_test(params)
         return self.target_score_classifier(scores)
 
-    def boundary_detection(self):
+    def boundary_detection(self, convergence_threshold : float = 0.01):
         print("BOUNDARY DETECTION START.")
         # First test id
         test_id_start = self.params_normal_df.index[-1]
@@ -192,46 +198,39 @@ class RegimeSUMO:
         # Explore the boundary
         rrt = brrt.BoundaryRRT(*node0, adhf)
 
-        # rrt.expand()
-
-        # Find a single bounday point.
-        # for i in range(5):
+        # Loop until adherence
+        convergence_scores = []
+        n_tests = []
         while True:
-            # print("\nEXPANSION %d\n" % i)
-            if len(self.params_df.index) > (1000+test_id_start):
-                break
             try:
                 rrt.expand()
             except adherer_core.BoundaryLostException:
                 print("BOUNDARY LOST")
-            
-        print(len(rrt.index))
 
-        # utils.save(rrt, "tests/data/brrt.pkl")
+            # Check for exit condition
+            b_params_df = self.params_df[self.params_df.index >= test_id_start]
+            convergence_score = self._adherence_convergence(b_params_df)
+            convergence_scores.append(convergence_score)
+            n_tests.append(len(b_params_df.index))
 
-        
+            if convergence_score < convergence_threshold:
+                break
+            continue
 
         # Get Performance Boundary Test Dataframes
         b_params_df = self.params_df[self.params_df.index >= test_id_start]
         b_scores_df = self.scores_df[self.scores_df.index >= test_id_start]
 
-        b_params_df.to_csv("metric1.csv",index=False)
+        b_params_df.to_csv("b_params.csv",index=False)
+        b_scores_df.to_csv("b_scores.csv",index=False)
 
-        # self.metric_1(b_params_df)
-
-
-        # b_params_df.to_csv("p0_params.csv")
-        # b_scores_df.to_csv("p0_scores.csv")
-
-
-        # Measure distance between Params
         
-        print("BOUNDARY DETECTION END.")
+        print("BOUNDARY DETECTION END AFTER %d TESTS." % n_tests[-1])
         return 
 
-    def metric_1(self, df : pd.DataFrame):
+    def _adherence_convergence(self, df : pd.DataFrame):
+
         # generate points for each record
-        # points = [structs.Point(df)]
         points = np.array([structs.Point(df.iloc[i]).array \
             for i in range(len(df.index))])
         
@@ -241,7 +240,14 @@ class RegimeSUMO:
         # Get iterative metrics.
         n_dim = dist.shape[0]
         
-        return np.array([dist[:,:i].mean() for i in range(1,n_dim)])
+        # Mean distance between all points
+        adbp = np.array([dist[:,:i].mean() for i in range(1,n_dim)])
+
+        # Normalize
+        adbp = adbp / np.linalg.norm(adbp)
+
+        # Window root mean square divergence
+        return self.window_rmsd(adbp, adbp.mean())
         
 
     def __LOCAL_SENSITIVITY_REDUCTION__(self):

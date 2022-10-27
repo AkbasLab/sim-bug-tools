@@ -42,7 +42,7 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_metric_1(self):
-        # return
+        return
         print("\n\n")
         
         # Create the regime
@@ -52,6 +52,7 @@ class TestRegime(unittest.TestCase):
         df = pd.read_csv("%s/data/metric1.csv" % FILE_DIR)
         # df.describe().to_csv("hhh.csv")
         # return 
+        df = df.iloc[:4000]
 
         mean_dist = r.metric_1(df)
 
@@ -90,7 +91,7 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_boundary_detection(self):
-        return
+        # return
         print("\n\n")
         # Create the regime
         r = regime.RegimeSUMO(target_score_classifier)
