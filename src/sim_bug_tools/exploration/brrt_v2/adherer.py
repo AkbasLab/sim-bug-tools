@@ -23,6 +23,7 @@ class BoundaryAdherer(Adherer):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
+        domain: Domain,
         p: Point,
         n: ndarray,
         direction: ndarray,
@@ -44,7 +45,7 @@ class BoundaryAdherer(Adherer):
             d (float): How far to travel from @p
             delta_theta (float): The initial change in angle (90 degrees is a good start).
         """
-        super().__init__(classifier)
+        super().__init__(classifier, domain)
         self._p = p
 
         n = BoundaryAdherer.normalize(n)
@@ -93,6 +94,9 @@ class BoundaryAdherer(Adherer):
                 samples.
         """
         return self._b is None
+    
+    def _classify_sample(self):
+        self._cur_class = self._cur in self._domain and self._classifier(self._cur)
 
     def sample_next(self) -> Point:
         """
@@ -114,7 +118,8 @@ class BoundaryAdherer(Adherer):
         self._cur = self._p + Point(self._s)
 
         self._prev_class = self._cur_class
-        self._cur_class = self._classifier(self._cur)
+        # self._cur_class = self._classifier(self._cur)
+        self._classify_sample()
         self._angle = self._next_angle(self._angle)
 
         if self._cur_class:
