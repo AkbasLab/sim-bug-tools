@@ -1,6 +1,9 @@
 
 import os
+from this import d
 from typing import Callable
+
+from torch import dsmm
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 import warnings
@@ -65,10 +68,7 @@ class RegimeSUMO:
     def __PRIVATE_METHODS__(self):
         return
     
-    @staticmethod
-    def window_rmsd(window : np.ndarray, avg : float) -> float:
-        window = np.array(window)
-        return np.sqrt(((window - avg)**2).sum() / (window.shape[0] - 1))
+    
 
 
     def __PUBLIC_METHODS__(self):
@@ -128,6 +128,12 @@ class RegimeSUMO:
             self._scores_df = pd.DataFrame([test.scores])
 
         return params_s, test.scores
+
+
+    @staticmethod
+    def window_rmsd(window : np.ndarray, avg : float) -> float:
+        window = np.array(window)
+        return np.sqrt(((window - avg)**2).sum() / (window.shape[0] - 1))
 
 
     def __GLOBAL_EXPLORATION__(self):
@@ -256,7 +262,11 @@ class RegimeSUMO:
     def local_sensitivity_reduction(self):
         print("LOCAL SENSITIVITY REDUCTION START.")
 
-        
+        import random
+        point = structs.Point([random.random() \
+            for _ in range(self.parameter_manager.n_dim)])
+        params = self.parameter_manager.map_parameters(point)
+        params, scores = self.run_test(params)
 
         print("LOCAL SENSITIVITY REDUCTION END.")
         return
@@ -268,5 +278,7 @@ class RegimeSUMO:
     def local_exploitation(self):
         print("LOCAL EXPLOITATION START.")
 
+        # Define the ranges of the envelope
+        
         print("LOCAL EXPLOITATION END.")
         return

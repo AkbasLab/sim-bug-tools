@@ -49,24 +49,33 @@ class TestRegime(unittest.TestCase):
         r = regime.RegimeSUMO(target_score_classifier)
 
         # Load a dataframe
-        df = pd.read_csv("%s/data/metric1.csv" % FILE_DIR)
-        # df.describe().to_csv("hhh.csv")
-        # return 
-        df = df.iloc[:4000]
+        df = pd.read_csv("%s/data/b_params.csv" % FILE_DIR)
+        
 
-        mean_dist = r.metric_1(df)
+        score = np.array([r._adherence_convergence(df[:i]) \
+            for i in range(3, len(df.index))])
+        
+        
+
+        # mean_dist = r._adherence_convergence(df)
 
         ax = graphics.new_axes()
+
+        ax.axhline(y=0.01, color='r', linestyle='-')
         ax.plot(
-            [i for i in range(len(mean_dist))],
-            mean_dist
+            [i + 2 for i in range(len(score))],
+            score,
+            color = "black"
         )
 
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel("Mean distance between X")
-        ax.set_title("Metric 1 (63 normal dimensions)")
 
-        plt.savefig("%s/figures/metric_1.png" % FILE_DIR)
+
+        ax.set_xlabel("# Tests")
+        ax.set_ylabel("Root Mean Square Deviation")
+        ax.set_title("Boundary Exploration")
+        
+        plt.tight_layout()
+        plt.savefig("%s/figures/rmsd.png" % FILE_DIR)
 
         print("\n\n")
         return
@@ -91,7 +100,7 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_boundary_detection(self):
-        # return
+        return
         print("\n\n")
         # Create the regime
         r = regime.RegimeSUMO(target_score_classifier)
@@ -110,6 +119,24 @@ class TestRegime(unittest.TestCase):
         
         # Now do the boundary detection step
         r.boundary_detection()
+
+        print("\n\n")
+        return
+
+    def test_local_sensitivity_reduction(self):
+        print("\n\n")
+
+        
+
+        # Create the regime
+        r = regime.RegimeSUMO(target_score_classifier)
+
+        # Get scenario to the correct state
+        r._params_df = pd.read_csv("%s/data/b_params.csv" % FILE_DIR)
+        r._scores_df = pd.read_csv("%s/data/b_scores.csv" % FILE_DIR)
+
+        # The.
+        r.local_sensitivity_reduction()
 
         print("\n\n")
         return
