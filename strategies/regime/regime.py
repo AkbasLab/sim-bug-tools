@@ -178,30 +178,63 @@ class RegimeSUMO:
         # Jump distance
         d = structs.Point(self.parameter_manager.param_summary["inc_norm"])
 
-        # Limits
-        lim_min = structs.Point(np.zeros(len(t0)))
-        lim_max = structs.Point(np.ones(len(t0)))
         
         # Find the surface of the envelope.
         node0, midpoints = brrt.find_surface(
             self._adhf_classifier,
             t0, 
             d,
-            lim_min,
-            lim_max
+            lim_min = structs.Point(np.zeros(len(t0))),
+            lim_max = structs.Point(np.ones(len(t0)))
         )
 
+        test_id_surface_found = self.params_normal_df.index[-1]
+        print("\n<!> Surface located after %d tests." \
+            % (test_id_surface_found-test_id_start))
+        
+        
+
+        
         # Make the adherence factory
         adhf = brrt.BoundaryAdherenceFactory(
             self._adhf_classifier,
             d,
-            np.pi / 180 * 5,
-            lim_min,
-            lim_max
+            np.pi / 180 * 10,
+            domain = structs.Domain.normalized(num_dimensions=len(t0))
         )
 
         # Explore the boundary
         rrt = brrt.BoundaryRRT(*node0, adhf)
+
+        # --------
+        n_boundary_points = 0
+        n_tests_between_boundary_points = []
+        ratios = []
+        i = 0
+        n_exceptions = 0
+        while True:
+            try:
+                rrt.expand()
+                n_boundary_points += 1
+                n_tests = self.params_normal_df.index[-1] \
+                    - test_id_surface_found
+                n_tests_between_boundary_points.append(n_tests)
+                ratio = n_boundary_points/n_tests
+                ratios.append(ratio)
+                print("\nRATIO %d:%d %.3f\n" % (n_boundary_points, n_tests, ratio))
+                i += 1
+            except adherer_core.BoundaryLostException:
+                print("BOUNDARY LOST")
+                n_exceptions += 1
+            if i >= 10:
+                break
+            
+        print("RATIOS")
+        print("n_exceptions:", n_exceptions)
+        for i, r in enumerate(ratios):
+            print("%d:%.3f" % (n_tests_between_boundary_points[i], r))
+
+        return
 
         # Loop until adherence
         convergence_scores = []
@@ -269,7 +302,7 @@ class RegimeSUMO:
         #     for _ in range(self.parameter_manager.n_dim)])
         # params = self.parameter_manager.map_parameters(point)
         # params, scores = self.run_test(params)
-        
+
 
         print("LOCAL SENSITIVITY REDUCTION END.")
         return
@@ -285,3 +318,4 @@ class RegimeSUMO:
         
         print("LOCAL EXPLOITATION END.")
         return
+# %%
