@@ -1,4 +1,3 @@
-
 import numpy as np
 
 """
@@ -26,45 +25,51 @@ from sim_bug_tools.structs import Domain, Point
 ndims = 3
 
 # We need to define some basic parameters for later:
-d = 0.05 # the distance we jump with each sample
-theta = np.pi / 180 * 5 # 5 degree rotations for finding the boundary
+d = 0.05  # the distance we jump with each sample
+theta = np.pi / 180 * 5  # 5 degree rotations for finding the boundary
 
 # We will be using a simple sphere as our envelope, for simplicity's sake.
 class Sphere:
     def __init__(self, loc: Point, radius: float):
         self.loc = loc
-        self.radius = radius 
-        
+        self.radius = radius
+
     def __contains__(self, p: Point):
         return self.loc.distance_to(p) <= self.radius
-    
-envelope = Sphere(Point([0.5 for x in range(ndims)]), 0.25)
+
+
+envelope = Sphere(Point([0.5 for x in range(ndims-1)] + [0]), 0.25)
 
 # If the point lies WITHIN the envelope, it is classified as a target sample
 classifier = lambda p: p in envelope
+domain = Domain.normalized(ndims)
 
 # We are using the point below as our initial sample...
 # Generate an initial target sample:
-v = np.random.randn(ndims) 
-v = v / np.linalg.norm(v)
-t0 = Point(np.array(envelope.loc) + v * (envelope.radius * 0.90))
-
+is_target = False 
+while not is_target:
+    v = np.random.randn(ndims)
+    v = v / np.linalg.norm(v)
+    t0 = Point(np.array(envelope.loc) + v * (envelope.radius * 0.90))
+    is_target = t0 in domain 
+    if not is_target:
+        print("Retrying...")
 
 
 # Since we don't know if the target sample is on the boundary, we must surface:
 from sim_bug_tools.exploration.boundary_core.surfacer import find_surface
 
 node0, _ = find_surface(classifier, t0, d)
-b0, n0 = node0 # initial boundary point and surface vector
+b0, n0 = node0  # initial boundary point and surface vector
 
 # Now that we have our inital boundary point and its orthonormal surface vector,
 # we now construct our surface explorer...
 
-# First, we must select and build our adherence strategy's factory, we will use 
+# First, we must select and build our adherence strategy's factory, we will use
 # the predefined solution:
 from sim_bug_tools.exploration.brrt_std.adherer import BoundaryAdherenceFactory
 
-adhFactory = BoundaryAdherenceFactory(classifier, d, theta)
+adhFactory = BoundaryAdherenceFactory(classifier, domain, d, theta)
 
 # Now, we can create our explorer:
 from sim_bug_tools.exploration.brrt_std.brrt import BoundaryRRT
@@ -72,31 +77,26 @@ from sim_bug_tools.exploration.brrt_std.brrt import BoundaryRRT
 brrt = BoundaryRRT(b0, n0, adhFactory)
 
 # Finally, we can start using this explorer to sample from the boundary:
-nsamples = 10
+nsamples = 100
 nbatches = 20
 
-if (ndims == 3):
+if ndims == 3:
     import os
     import sys
-    sys.path.append(
-        os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        )
-    )
+
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import matplotlib.pyplot as plt
     from tools.grapher import Grapher  # (used for plotting)
+
     grapher = Grapher(is3d=True, domain=Domain.normalized(ndims))
-    
+
 
 for i in range(nbatches):
     nodes = brrt.expand_by(nsamples)
-    points = list(map(lambda s: s[0], nodes)) 
-                                              
-    if (ndims == 3):
+    points = list(map(lambda s: s[0], nodes))
+
+    if ndims == 3:
         grapher.plot_all_points(points)
         plt.pause(0.05)
-        # plt.pause(1)
     
     input("Press enter to continue...")
-    
-    

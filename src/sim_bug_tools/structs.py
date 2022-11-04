@@ -2,16 +2,14 @@
 Contains a general collection of classes to provide necessary data structures.
 """
 
-from sim_bug_tools.decorators import typecheck
 from functools import reduce
 import logging
 import numpy as np
-from numpy import int32, float64, ndarray
+from numpy import int32, float64, ndarray, sqrt
 import matplotlib.pyplot as plt
 import matplotlib.axes
 import json
 import pandas as pd
-
 
 class Point:
     """
@@ -185,6 +183,7 @@ class Point:
 
         return Point(p0 + p * (p1 - p0))
 
+
 class Domain:
     """
     A domain defines an n-dimensional volume. It is an immutable
@@ -226,18 +225,20 @@ class Domain:
     def as_dict(self) -> dict[str, Point]:
         arr = self.bounding_points
         return {
-            "lower_bounds": arr[0].array.tolist(), 
+            "lower_bounds": arr[0].array.tolist(),
             "upper_bounds": arr[1].array.tolist(),
-            "granularity": self.granularity
+            "granularity": self.granularity,
         }
 
     def as_json(self) -> str:
         arr = self.bounding_points
-        return json.dumps({
-            "lower_bounds": arr[0].array.tolist(), 
-            "upper_bounds": arr[1].array.tolist(),
-            "granularity": self.granularity
-        })
+        return json.dumps(
+            {
+                "lower_bounds": arr[0].array.tolist(),
+                "upper_bounds": arr[1].array.tolist(),
+                "granularity": self.granularity,
+            }
+        )
 
     @property
     def bounding_points(self) -> tuple[Point]:
@@ -439,11 +440,10 @@ class Domain:
         return Domain.from_dict(d)
 
     @staticmethod
-    def from_dict(d : dict):
+    def from_dict(d: dict):
         a = d["lower_bounds"]
         b = d["upper_bounds"]
         return Domain.from_bounding_points(a, b)
-    
 
     @staticmethod
     def is_domain(array):
@@ -667,16 +667,52 @@ class PolyLine:
         return
 
 
+class Ellipsoid:
+    def __init__(self, loc: Point, axes: tuple[float64]):
+        if len(loc) != len(axes):
+            raise Exception("Dimension mismatch!")
 
-    
+        self._loc = loc
+        self._axes = np.array(axes)
 
+    def radial_vector_towards(self, p: Point) -> ndarray:
+        t1, t2 = self._find_t(p)
+
+        s = (p - self._loc).array
+        s = s * t1 / np.linalg.norm(s)
+
+        return s
+
+    def _find_t(self, p: Point) -> tuple[float, float]:
+        s = (p - self._loc).array
+        axes = self._axes**2
+
+        ai = s**2 / axes
+        bi = 2 * self._loc.array * s / axes
+        ci = self._loc.array**2 / axes
+
+        a = sum(ai)
+        b = sum(bi)
+        c = sum(ci) - 1
+
+        t1 = (-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
+        t2 = (-b - sqrt(b**2 - 4 * a * c)) / (2 * a)
+
+        return t1, t2
 
 
 def main():
-    point = Point([0, 0.5, 1])
-    domain = Domain.normalized(3)
+    # point = Point([0, 0.5, 1])
+    # domain = Domain.normalized(3)
 
-    print(point in domain)
+    # print(point in domain)
+    loc = Point(0, 0)
+    axes = [2, 3]
+
+    p = Point(3, 4)
+
+    e = Ellipsoid(loc, axes)
+    v = e.radial_vector_towards(p)
 
 
 if __name__ == "__main__":

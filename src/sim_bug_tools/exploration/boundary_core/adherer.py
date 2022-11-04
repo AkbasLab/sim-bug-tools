@@ -5,11 +5,12 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
-from sim_bug_tools.structs import Point
+from sim_bug_tools.structs import Point, Domain
 
 
 class BoundaryLostException(Exception):
     "When a boundary Adherer fails to find the boundary, this exception is thrown"
+
     def __init__(self, msg="Failed to locate boundary!"):
         self.msg = msg
         super().__init__(msg)
@@ -38,7 +39,7 @@ class Adherer(ABC):
     or not a sampled Point is within or outside of the target envelope.
     """
 
-    def __init__(self, classifier: Callable[[Point], bool]):
+    def __init__(self, classifier: Callable[[Point], bool], domain: Domain):
         self._classifier = classifier
 
     @property
@@ -106,12 +107,17 @@ class AdherenceFactory(ABC):
     parameters to be defined prior to the execution of the exploration alg.
     """
 
-    def __init__(self, classifier: Callable[[Point], bool]):
+    def __init__(self, classifier: Callable[[Point], bool], domain: Domain):
         self._classifier = classifier
+        self._domain = domain
 
     @property
     def classifier(self):
         return self._classifier
+
+    @property
+    def domain(self):
+        return self._domain
 
     @abstract
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:

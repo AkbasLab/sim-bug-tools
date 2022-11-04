@@ -80,7 +80,7 @@ class BoundaryRRT(Explorer):
         self._next_id += 1
 
     def _random_point(self) -> Point:
-        return Point(np.random.rand(self._ndims))
+        return Point(np.random.rand(self._ndims) * 2)
 
     def _find_nearest(self, p: Point) -> Node:
         node = self._tree.get_node(next(self._index.nearest(p)))

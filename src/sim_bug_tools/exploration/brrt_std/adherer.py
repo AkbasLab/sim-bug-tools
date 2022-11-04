@@ -4,8 +4,11 @@ from typing import Callable
 import numpy as np
 from numpy import ndarray
 from sim_bug_tools.exploration.boundary_core.adherer import (
-    AdherenceFactory, Adherer, BoundaryLostException)
-from sim_bug_tools.structs import Point
+    AdherenceFactory,
+    Adherer,
+    BoundaryLostException,
+)
+from sim_bug_tools.structs import Point, Domain
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -17,6 +20,7 @@ class BoundaryAdherer(Adherer):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
+        domain: Domain,
         p: Point,
         n: ndarray,
         direction: ndarray,
@@ -37,6 +41,7 @@ class BoundaryAdherer(Adherer):
             theta (float): How far to rotate to find the boundary.
         """
         self._classifier = classifier
+        self._domain = domain
         self._p = p
 
         n = BoundaryAdherer.normalize(n)
@@ -52,7 +57,8 @@ class BoundaryAdherer(Adherer):
         self._prev_class = None
 
         self._cur: Point = p + Point(self._s)
-        self._cur_class = classifier(self._cur)
+        # self._cur_class = classifier(self._cur)
+        self._classify_sample()
 
         if self._cur_class:
             self._rotate = self._rotater_function(theta)
@@ -88,13 +94,18 @@ class BoundaryAdherer(Adherer):
     def has_next(self) -> bool:
         return self._b is None
 
+    def _classify_sample(self):
+        "Will only run the classifier IFF the sample is in domain"
+        self._cur_class = self._cur in self._domain and self._classifier(self._cur)
+
     def sample_next(self) -> Point:
         self._prev = self._cur
         self._s = np.dot(self._rotate, self._s)
         self._cur = self._p + Point(self._s)
 
         self._prev_class = self._cur_class
-        self._cur_class = self._classifier(self._cur)
+        # self._cur_class = self._classifier(self._cur)
+        self._classify_sample()
 
         if self._cur_class != self._prev_class:
             self._b = self._cur if self._cur_class else self._prev
@@ -111,7 +122,7 @@ class BoundaryAdherer(Adherer):
         self._iteration += 1
         return self._cur
 
-    def find_boundary(self, getAllPoints: bool = False) -> tuple[Point, ndarray]:
+    def find_boundary(self) -> tuple[Point, ndarray]:
         all_points = []
         while self.has_next():
             all_points.append(self.sample_next())
@@ -190,15 +201,18 @@ class BoundaryAdherenceFactory(AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
+        domain: Domain,
         d: float,
         theta: float,
     ):
-        super().__init__(classifier)
+        super().__init__(classifier, domain)
         self._d = d
         self._theta = theta
 
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
-        return BoundaryAdherer(self.classifier, p, n, direction, self._d, self._theta)
+        return BoundaryAdherer(
+            self.classifier, self.domain, p, n, direction, self._d, self._theta
+        )
 
 
 if __name__ == "__main__":
