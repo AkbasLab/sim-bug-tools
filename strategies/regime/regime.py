@@ -1,9 +1,8 @@
 
 import os
-from this import d
 from typing import Callable
 
-from torch import dsmm
+
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 import warnings
@@ -219,6 +218,8 @@ class RegimeSUMO:
             convergence_scores.append(convergence_score)
             n_tests.append(len(b_params_df.index))
 
+            print("\n\nTest Set %d --> %.5f\n\n" % (len(n_tests), convergence_score))
+
             if convergence_score < convergence_threshold:
                 break
             continue
@@ -262,11 +263,13 @@ class RegimeSUMO:
     def local_sensitivity_reduction(self):
         print("LOCAL SENSITIVITY REDUCTION START.")
 
-        import random
-        point = structs.Point([random.random() \
-            for _ in range(self.parameter_manager.n_dim)])
-        params = self.parameter_manager.map_parameters(point)
-        params, scores = self.run_test(params)
+
+        # import random
+        # point = structs.Point([random.random() \
+        #     for _ in range(self.parameter_manager.n_dim)])
+        # params = self.parameter_manager.map_parameters(point)
+        # params, scores = self.run_test(params)
+        
 
         print("LOCAL SENSITIVITY REDUCTION END.")
         return

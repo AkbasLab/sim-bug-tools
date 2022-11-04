@@ -1,7 +1,7 @@
 import unittest
 import os, sys
 
-from sklearn.metrics import mean_absolute_error
+
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(FILE_DIR))
 
@@ -118,12 +118,13 @@ class TestRegime(unittest.TestCase):
         r.global_exploration(seq)
         
         # Now do the boundary detection step
-        r.boundary_detection()
+        r.boundary_detection(convergence_threshold=0.0025)
 
         print("\n\n")
         return
 
     def test_local_sensitivity_reduction(self):
+        # return
         print("\n\n")
 
         
