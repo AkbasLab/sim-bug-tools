@@ -1,0 +1,4 @@
+feature,min,max,inc,uom,note
+init_disp,5,500,1,m,Initial displacement between DUT and NPC
+rel_vel,1,100,1,kph,Relative velocity of the DUT to the NPC
+e_decel,1,50,1,kphps,Maximum breaking force of the DUT
