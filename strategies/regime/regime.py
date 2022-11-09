@@ -166,7 +166,7 @@ class RegimeSUMO:
         params, scores = self.run_test(params)
         return self.target_score_classifier(scores)
 
-    def boundary_detection(self, convergence_threshold : float = 0.01):
+    def boundary_detection(self, convergence_threshold : float = 0.015):
         print("BOUNDARY DETECTION START.")
         # First test id
         test_id_start = self.params_normal_df.index[-1]
@@ -210,6 +210,7 @@ class RegimeSUMO:
         n_boundary_points = 0
         n_tests_between_boundary_points = []
         ratios = []
+        convergence_scores = []
         i = 0
         n_exceptions = 0
         while True:
@@ -223,39 +224,27 @@ class RegimeSUMO:
                 ratios.append(ratio)
                 print("\nRATIO %d:%d %.3f\n" % (n_boundary_points, n_tests, ratio))
                 i += 1
+
+                # Check for exit condition
+                b_params_df = self.params_df[self.params_df.index >= test_id_start]
+                convergence_score = self._adherence_convergence(b_params_df)
+                convergence_scores.append(convergence_score)
+
+                print("\n\nTest Set %d --> %.5f\n\n" % (i, convergence_score))
+
+                if convergence_score < convergence_threshold:
+                    break
+
             except adherer_core.BoundaryLostException:
                 print("BOUNDARY LOST")
                 n_exceptions += 1
-            if i >= 10:
-                break
+            
             
         print("RATIOS")
         print("n_exceptions:", n_exceptions)
         for i, r in enumerate(ratios):
             print("%d:%.3f" % (n_tests_between_boundary_points[i], r))
-
-        return
-
-        # Loop until adherence
-        convergence_scores = []
-        n_tests = []
-        while True:
-            try:
-                rrt.expand()
-            except adherer_core.BoundaryLostException:
-                print("BOUNDARY LOST")
-
-            # Check for exit condition
-            b_params_df = self.params_df[self.params_df.index >= test_id_start]
-            convergence_score = self._adherence_convergence(b_params_df)
-            convergence_scores.append(convergence_score)
-            n_tests.append(len(b_params_df.index))
-
-            print("\n\nTest Set %d --> %.5f\n\n" % (len(n_tests), convergence_score))
-
-            if convergence_score < convergence_threshold:
-                break
-            continue
+        
 
         # Get Performance Boundary Test Dataframes
         b_params_df = self.params_df[self.params_df.index >= test_id_start]
@@ -263,9 +252,8 @@ class RegimeSUMO:
 
         b_params_df.to_csv("b_params.csv",index=False)
         b_scores_df.to_csv("b_scores.csv",index=False)
-
         
-        print("BOUNDARY DETECTION END AFTER %d TESTS." % n_tests[-1])
+        print("BOUNDARY DETECTION END AFTER %d TESTS." % len(b_params_df.index))
         return 
 
     def _adherence_convergence(self, df : pd.DataFrame):
@@ -296,12 +284,15 @@ class RegimeSUMO:
     def local_sensitivity_reduction(self):
         print("LOCAL SENSITIVITY REDUCTION START.")
 
+        # Define the ranges of the envelope
+        params_min = self.params_df.min()
+        params_max = self.params_df.max()
 
-        # import random
-        # point = structs.Point([random.random() \
-        #     for _ in range(self.parameter_manager.n_dim)])
-        # params = self.parameter_manager.map_parameters(point)
-        # params, scores = self.run_test(params)
+        # Make a exploration plan
+        df = self.parameter_manager.param_summary.copy()
+        df.index = df["feat"]
+        print(df)
+            
 
 
         print("LOCAL SENSITIVITY REDUCTION END.")
@@ -314,7 +305,7 @@ class RegimeSUMO:
     def local_exploitation(self):
         print("LOCAL EXPLOITATION START.")
 
-        # Define the ranges of the envelope
+        
         
         print("LOCAL EXPLOITATION END.")
         return

@@ -100,7 +100,7 @@ class TestRegime(unittest.TestCase):
         return
 
     def test_boundary_detection(self):
-        # return
+        return
         print("\n\n")
         # Create the regime
         r = regime.RegimeSUMO(target_score_classifier)
@@ -118,13 +118,13 @@ class TestRegime(unittest.TestCase):
         r.global_exploration(seq)
         
         # Now do the boundary detection step
-        r.boundary_detection(convergence_threshold=0.0025)
+        r.boundary_detection(convergence_threshold=0.0065)
 
         print("\n\n")
         return
 
     def test_local_sensitivity_reduction(self):
-        return
+        # return
         print("\n\n")
 
         
