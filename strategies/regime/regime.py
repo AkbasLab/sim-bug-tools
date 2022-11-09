@@ -290,9 +290,11 @@ class RegimeSUMO:
 
         # Make a exploration plan
         df = self.parameter_manager.param_summary.copy()
-        df.index = df["feat"]
-        print(df)
-            
+
+        assert all(params_min.index == df["feat"])
+        assert all(params_min.index == df["feat"])
+        
+        
 
 
         print("LOCAL SENSITIVITY REDUCTION END.")
@@ -309,4 +311,4 @@ class RegimeSUMO:
         
         print("LOCAL EXPLOITATION END.")
         return
-# %%
+
