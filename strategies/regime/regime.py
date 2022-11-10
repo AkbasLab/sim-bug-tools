@@ -278,26 +278,33 @@ class RegimeSUMO:
         return self.window_rmsd(adbp, adbp.mean())
         
 
+
+
     def __LOCAL_SENSITIVITY_REDUCTION__(self):
         return
+
 
     def local_sensitivity_reduction(self):
         print("LOCAL SENSITIVITY REDUCTION START.")
 
-        # Define the ranges of the envelope
-        params_min = self.params_df.min()
-        params_max = self.params_df.max()
-
-        # Make a exploration plan
-        df = self.parameter_manager.param_summary.copy()
-
-        assert all(params_min.index == df["feat"])
-        assert all(params_min.index == df["feat"])
+        self._define_envelope_range()
         
-        
-
-
         print("LOCAL SENSITIVITY REDUCTION END.")
+        return
+
+
+    def _define_envelope_range(self):
+        # Gather relevant series and dataframes
+        params_min_s = self.params_df.min()
+        params_max_s = self.params_df.max()
+        summary_df = self.parameter_manager.param_summary.copy()
+        
+        # The feature order of the min/max series must be the same as the
+        # feature series from the parameter manager
+        assert all(params_min_s.index == summary_df["feat"])
+        assert all(params_max_s.index == summary_df["feat"])
+
+        # 
         return
 
 

@@ -11,14 +11,26 @@ import pandas as pd
 pd.options.mode.chained_assignment = None
 
 import warnings
-
+import abc
 
 
 
 FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TrafficLightRaceParameterManager:
+class ParameterManager(abc.ABC):
+    @abc.abstractmethod
+    def map_parameters(self, point : structs.Point):
+        pass
+
+    @abc.abstractproperty
+    def parameter_summary(self) -> pd.DataFrame:
+        pass
+
+
+
+
+class TrafficLightRaceParameterManager(ParameterManager):
     def __init__(self):
         """
         This class has helper functions to manage the logical parameters for
