@@ -2,14 +2,16 @@
 Contains a general collection of classes to provide necessary data structures.
 """
 
-from functools import reduce
-import logging
-import numpy as np
-from numpy import int32, float64, ndarray, sqrt
-import matplotlib.pyplot as plt
-import matplotlib.axes
 import json
+import logging
+from functools import reduce
+
+import matplotlib.axes
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+from numpy import float64, int32, ndarray, sqrt
+
 
 class Point:
     """
@@ -113,6 +115,29 @@ class Point:
 
     def as_series(self) -> pd.Series:
         return pd.Series(self._vector, index = self.index)
+
+    def scale_domain(self, d_from: "Domain", d_to: "Domain") -> "Point":
+        """
+        Scales self from one domain to another. Ensures that each axis is the same
+        percentage of d_from as d_to. If p is outside of d_from, it will be 
+        outside of d_to.
+        
+        Useful when mapping a point from one domain to another.
+        Example: Normalized vector, p, within domain Domain.normalized(N),
+        scaled to fit within d_to.
+        
+        result = (p - d_from.origin) / d_from.dimensions * d_to.dimensions + d_to.origin
+
+        Args:
+            p (Point): The point that is being scaled
+            d_from (Domain): The relative scale of the point
+            d_to (Domain): The target scale of the point
+
+        Returns:
+            Point: The resulting scaled point
+        """
+        
+        return Point((self.array - d_from.origin.array) / d_from.dimensions * d_to.dimensions) + d_to.origin.array
 
     @staticmethod
     def is_point(array: tuple) -> bool:
@@ -432,7 +457,8 @@ class Domain:
     @classmethod
     def normalized(cls, num_dimensions):
         "Returns a normalized domain with the given number of dimensions."
-        return Domain([(0, 1) for x in range(num_dimensions)])
+        return Domain([(0, 1) for x in range(num_dimensions)])        
+        
 
     @staticmethod
     def from_json(string: str):
