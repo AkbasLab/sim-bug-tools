@@ -6,11 +6,12 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
-from sim_bug_tools.structs import Point
+
+from sim_bug_tools.structs import Domain, Point
 
 
 def find_surface(
-    classifier: Callable[[Point], bool], t0: Point, d: float
+    classifier: Callable[[Point], bool], t0: Point, d: float, domain: Domain
 ) -> tuple[tuple[Point, ndarray], list[Point]]:
     """
     Finds the surface given a target sample and a jump distance. The error, e, 
@@ -38,7 +39,7 @@ def find_surface(
     cur = t0
 
     # First, reach within d distance from surface
-    while classifier(cur):
+    while cur in domain and classifier(cur):
         prev = cur
         interm += [prev]
         cur = prev + Point(s)
