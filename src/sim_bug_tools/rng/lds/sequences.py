@@ -1,12 +1,13 @@
 
-import numpy as np
-from numpy import int32
-from abc import abstractmethod
-import openturns as ot
 import json
+from abc import abstractmethod
+
+import numpy as np
+import openturns as ot
+from numpy import int32
 
 from sim_bug_tools.rng.lds.coverage import Sample
-from sim_bug_tools.structs import Point, Domain
+from sim_bug_tools.structs import Domain, Point
 
 
 class Sequence:
@@ -39,7 +40,7 @@ class Sequence:
         return None
 
     def get_sample(
-        self, num_points: int32, skip: int = 0, batch: int = 1, offset: int = 0
+        self, num_points: int32, skip: int = 1, batch: int = 1, offset: int = 0
     ) -> Sample:
         """
         Generates points using it while following a pattern defined by the parameters.
