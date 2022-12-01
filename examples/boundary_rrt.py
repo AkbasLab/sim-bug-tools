@@ -81,12 +81,10 @@ nsamples = 100
 nbatches = 20
 
 if ndims == 3:
-    import os
-    import sys
 
-    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     import matplotlib.pyplot as plt
-    from tools.grapher import Grapher  # (used for plotting)
+
+    from sim_bug_tools.graphics import Grapher  # (used for plotting)
 
     grapher = Grapher(is3d=True, domain=Domain.normalized(ndims))
 

@@ -5,7 +5,8 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
-from sim_bug_tools.structs import Point, Domain
+
+from sim_bug_tools.structs import Domain, Point
 
 
 class BoundaryLostException(Exception):
@@ -41,6 +42,7 @@ class Adherer(ABC):
 
     def __init__(self, classifier: Callable[[Point], bool], domain: Domain):
         self._classifier = classifier
+        self._domain = domain
 
     @property
     def classifier(self):
