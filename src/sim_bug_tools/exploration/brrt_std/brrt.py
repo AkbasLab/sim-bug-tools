@@ -1,16 +1,14 @@
-import os
-import sys
-from copy import copy
 from time import time
 from typing import Callable
 
 import numpy as np
 from numpy import ndarray
 from rtree import index
+from treelib import Node, Tree
+
 from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
 from sim_bug_tools.exploration.boundary_core.explorer import Explorer
 from sim_bug_tools.structs import Point
-from treelib import Node, Tree
 
 from .adherer import BoundaryAdherenceFactory
 
@@ -100,17 +98,11 @@ def measure_time(f: Callable, *args, **kwargs) -> float:
 
 
 if __name__ == "__main__":
-    # A simple test for showing the strategy in action
-    # append ./../../.. (sim-bug-tools / root folder)
-    sys.path.append(
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        )
-    )
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
+
     from sim_bug_tools.exploration.boundary_core.surfacer import find_surface
-    from tools.grapher import Grapher
+    from sim_bug_tools.graphics import Grapher
     
 
     ndims = 3

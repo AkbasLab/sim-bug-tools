@@ -3,6 +3,7 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
+
 from sim_bug_tools.exploration.boundary_core.adherer import (
     AdherenceFactory, Adherer, BoundaryLostException)
 from sim_bug_tools.structs import Domain, Point
@@ -45,6 +46,7 @@ class BoundaryAdherer(Adherer):
             direction (ndarray): The general direction to travel in (MUST NOT BE PARALLEL WITH @n)
             d (float): How far to travel from @p
             delta_theta (float): The initial change in angle (90 degrees is a good start).
+            r (float): Influences the rate of convergence
             init_class (bool): The initial classification of @p.
                 When None, initial state is determined by @classifier(@p)
         """
@@ -237,12 +239,13 @@ class BoundaryAdherenceFactory(AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
+        domain: Domain,
         d: float,
         delta_theta: float,
         r: float,
         num: int
     ):
-        super().__init__(classifier)
+        super().__init__(classifier, domain)
         self._d = d
         self._delta_theta = delta_theta
         self._r = r
@@ -252,6 +255,7 @@ class BoundaryAdherenceFactory(AdherenceFactory):
             init_class : bool = None) -> Adherer:
         return BoundaryAdherer(
             self.classifier,
+            self.domain,
             p,
             n,
             direction,
@@ -264,17 +268,10 @@ class BoundaryAdherenceFactory(AdherenceFactory):
 
 
 if __name__ == "__main__":
-    import os
-    import sys
-
-    sys.path.append(
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        )
-    )
     import matplotlib.pyplot as plt
     from matplotlib.axes import Axes
-    from tools.grapher import Grapher
+
+    from sim_bug_tools.graphics import Grapher
     
 
     d = 0.005

@@ -1,18 +1,71 @@
 """
 Visualization tools
 """
+import itertools
+import warnings
+
+import matplotlib.axes
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import pandas as pd
 import scipy.spatial
+import sklearn.decomposition
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D
+from numpy import ndarray
+
 import sim_bug_tools.structs as structs
 import sim_bug_tools.utils as utils
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import itertools
-import networkx as nx
-import warnings
-import sklearn.decomposition
-import matplotlib.axes
-import pandas as pd
+from sim_bug_tools.structs import Domain, Point
+
+
+class Grapher:
+    def __init__(self, is3d=False, domain: Domain = None):
+        self._fig = plt.figure()
+        self._ax : Axes = self._fig.add_subplot(111, projection="3d") if is3d else self._fig.add_subplot()
+        if domain is not None:
+            print(domain[0])
+            self._ax.set_xlim(domain[0])
+            self._ax.set_ylim(domain[1])
+            if is3d:
+                self._ax.set_zlim(domain[2])
+            
+            
+        
+        print(self._ax)
+        self._is3d = is3d
+        
+    @property
+    def ax(self):
+        return self._ax 
+    
+    def fig(self):
+        return self._fig 
+    
+    def create_sphere(self, loc: Point, radius: float):
+        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+        x = loc[0] + radius * np.cos(u)*np.sin(v)
+        y = loc[1] + radius * np.sin(u)*np.sin(v)
+        z = loc[2] + radius * np.cos(v)
+        return self._ax.plot_wireframe(x, y, z, color="r")
+    
+    def add_all_arrows(self, locs: list[Point], directions: list[ndarray], **kwargs):
+        "Uses matplotlib.pyplot.quiver. Kwargs will be passed to ax.quiver"
+        arrows = zip(*map(lambda l, d: np.append(l.array, d), locs, directions))
+        return self._ax.quiver(*arrows, **kwargs)
+    
+    def add_arrow(self, loc: Point, direction: ndarray, **kwargs):
+        return self._ax.quiver(*loc, *direction, **kwargs)
+    
+    def plot_point(self, loc: Point, **kwargs):
+        return self._ax.scatter(*loc, **kwargs)
+    
+    def plot_all_points(self, locs: list[Point], **kwargs):
+        return self._ax.scatter(*np.array(locs).T, **kwargs)
+    
 
 class Voronoi(scipy.spatial.Voronoi):
     def __init__(self, points : list[structs.Point], bugs : list[bool]):
