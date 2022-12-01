@@ -11,8 +11,8 @@ from sim_bug_tools.structs import Domain, Point
 
 
 def find_surface(
-    classifier: Callable[[Point], bool], t0: Point, d: float, domain: Domain
-) -> tuple[tuple[Point, ndarray], list[Point]]:
+    classifier: Callable[[Point], bool], t0: Point, d: float, domain: Domain, 
+    v: ndarray = None) -> tuple[tuple[Point, ndarray], list[Point]]:
     """
     Finds the surface given a target sample and a jump distance. The error, e, 
     between the estimated boundary point and the real boundary will be
@@ -21,7 +21,8 @@ def find_surface(
     Args:
         classifier (Callable[[Point], bool]): classifies a point as target or non-target
         t0 (Point): A target sample
-        d (float): The jump distance to take with each step
+        d (float): The jump distance to take with each step,
+        v (ndarray) [optional]: the direction to find the surface
 
     Raises:
         Exception: Thrown if the target sample is not classified as a target sample
@@ -29,7 +30,10 @@ def find_surface(
     Returns:
         tuple[tuple[Point, ndarray], list[Point]]: ((b0, n0), [intermediate_samples])
     """
-    v = np.random.rand(len(t0))
+    if v is not None:
+        assert len(np.squeeze(v)) == len(t0)
+    else:
+        v = np.random.rand(len(t0))
 
     s = v * d
 
