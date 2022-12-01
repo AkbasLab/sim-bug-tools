@@ -694,11 +694,11 @@ class PolyLine:
 
 
 class Ellipsoid:
-    def __init__(self, loc: Point, axes: tuple[float64]):
-        if len(loc) != len(axes):
+    def __init__(self, axes: tuple[float64], loc: Point = None):
+        self._loc = loc if loc is not None else Point.zeros(len(axes))
+        if len(self._loc) != len(axes):
             raise Exception("Dimension mismatch!")
 
-        self._loc = loc
         self._axes = np.array(axes)
 
     def radial_vector_towards(self, p: Point) -> ndarray:
