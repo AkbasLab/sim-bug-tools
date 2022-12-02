@@ -23,7 +23,7 @@ from sim_bug_tools.structs import Domain, Point
 
 
 class Grapher:
-    def __init__(self, is3d=False, domain: Domain = None):
+    def __init__(self, is3d=False, domain: Domain = None, axes_titles: list[str] = None):
         self._fig = plt.figure()
         self._ax : Axes = self._fig.add_subplot(111, projection="3d") if is3d else self._fig.add_subplot()
         if domain is not None:
@@ -32,6 +32,12 @@ class Grapher:
             self._ax.set_ylim(domain[1])
             if is3d:
                 self._ax.set_zlim(domain[2])
+                
+        if axes_titles is not None:
+            self._ax.set_xlabel(axes_titles[0])
+            self._ax.set_ylabel(axes_titles[1])
+            if is3d:
+                self._ax.set_zlabel(axes_titles[2])
             
             
         

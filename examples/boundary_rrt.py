@@ -19,7 +19,7 @@ p, is a target value, otherwise it is a non-target value.
 """
 
 # Importing commonly used structures
-from sim_bug_tools.structs import Domain, Point
+from sim_bug_tools.structs import Domain, Point, Spheroid
 
 # To illustrate this visually, we will stick to only 3 dimensions
 ndims = 3
@@ -69,7 +69,8 @@ b0, n0 = node0  # initial boundary point and surface vector
 # the predefined solution:
 from sim_bug_tools.exploration.brrt_std.adherer import BoundaryAdherenceFactory
 
-adhFactory = BoundaryAdherenceFactory(classifier, domain, d, theta)
+sphere_scaler = Spheroid(d)
+adhFactory = BoundaryAdherenceFactory(classifier, domain, sphere_scaler, theta)
 
 # Now, we can create our explorer:
 from sim_bug_tools.exploration.brrt_std.brrt import BoundaryRRT

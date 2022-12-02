@@ -8,7 +8,7 @@ from treelib import Node, Tree
 
 from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
 from sim_bug_tools.exploration.boundary_core.explorer import Explorer
-from sim_bug_tools.structs import Point
+from sim_bug_tools.structs import Domain, Point, Spheroid
 
 from .adherer import BoundaryAdherenceFactory
 
@@ -115,10 +115,12 @@ if __name__ == "__main__":
     loc = Point([0.5 for x in range(ndims)])
     radius = 0.25
     classifier = lambda p: p.distance_to(loc) <= radius
+    domain = Domain.normalized(ndims)
 
     print("Building brrt...")
     bpair, interm = find_surface(classifier, loc, d)
-    adhF = BoundaryAdherenceFactory(classifier, d, theta)
+    sphere_scaler = Spheroid(d)
+    adhF = BoundaryAdherenceFactory(classifier, domain, sphere_scaler, theta)
     brrt = BoundaryRRT(*bpair, adhF)
 
     # The series of points that were sampled to reach the surface

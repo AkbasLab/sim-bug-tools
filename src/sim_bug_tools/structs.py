@@ -4,6 +4,8 @@ Contains a general collection of classes to provide necessary data structures.
 
 import json
 import logging
+from abc import ABC
+from abc import abstractmethod as abstract
 from functools import reduce
 
 import matplotlib.axes
@@ -692,14 +694,47 @@ class PolyLine:
             ax.plot(x, y)
         return
 
+class Scaler(ABC):
+    @abstract
+    def scale(self, v: ndarray) -> ndarray:
+        pass 
+    
+    def __mul__(self, other):
+        if type(other) is ndarray:
+            return self.scale(other)
+        else:
+            raise NotImplemented(f"* (__mul__) operator not implemented for Scaler and type {type(other)}")
+            
+    
+class Spheroid(Scaler):
+    def __init__(self, radius: float64):
+        self.radius = radius
+        
+    def scale(self, v: ndarray) -> ndarray:
+        "Scales dimensions equally by a scalar"
+        return v * self.radius 
+    
+class Cuboid(Scaler):
+    def __init__(self, axes: tuple[float64]):
+        self._axes = axes 
+        
+    def scale(self, v: ndarray) -> ndarray:
+        "Scales dimensions proportionally to the axes of a cube"
+        return v * self._axes
+        
 
-class Ellipsoid:
+class Ellipsoid(Scaler):
     def __init__(self, axes: tuple[float64], loc: Point = None):
         self._loc = loc if loc is not None else Point.zeros(len(axes))
         if len(self._loc) != len(axes):
             raise Exception("Dimension mismatch!")
 
         self._axes = np.array(axes)
+        
+    def scale(self, v: ndarray) -> ndarray:
+        "Scales dimensions by the radius of the ellipse in the vector's direction"
+        # scales the vector by the radial vector's length to the surface
+        return v * np.linalg.norm(self.radial_vector_towards(Point(v)))
 
     def radial_vector_towards(self, p: Point) -> ndarray:
         t1, t2 = self._find_t(p)

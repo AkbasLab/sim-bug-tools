@@ -52,7 +52,7 @@ class BoundaryAdherer(Adherer):
         """
         super().__init__(classifier, domain)
         self._p = p
-
+        
         n = BoundaryAdherer.normalize(n)
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
@@ -65,7 +65,8 @@ class BoundaryAdherer(Adherer):
 
         self._cur: Point = p + Point(self._s)
         if init_class is None:
-            self._cur_class = classifier(self._cur)
+            self._cur_class = None
+            self._classify_sample()
         else:
             self._cur_class = init_class
 
@@ -78,7 +79,7 @@ class BoundaryAdherer(Adherer):
         self._prev_s = None
 
         self._iteration = 0
-        self._angle = self._next_angle(delta_theta)
+        self._angle = self._next_angle(-abs(delta_theta))
 
     @property
     def b(self) -> Point:
@@ -104,7 +105,18 @@ class BoundaryAdherer(Adherer):
         return self._b is None
     
     def _classify_sample(self):
+        self._prev_class = self._cur_class
         self._cur_class = self._cur in self._domain and self._classifier(self._cur)
+        if self._cur_class:
+            self._prev_b = self._p + Point(self._s)
+            self._prev_s = copy(self._s)
+            # """ DUBEG """
+            # global g_bn  
+            # if g_bn is not None:
+            #     g_bn.remove()
+            # g_bn = g_grapher.plot_point(self._prev_b, color="red")
+            # plt.pause(0.01)
+            # """ DUBEG """
 
     def sample_next(self) -> Point:
         """
@@ -124,15 +136,22 @@ class BoundaryAdherer(Adherer):
 
         self._s = np.dot(self._rotater_function(self._angle), self._s)
         self._cur = self._p + Point(self._s)
+        
+        # """ DUBEG """
+        # global g_s
+        # if g_s is not None:
+        #     g_s.remove()
+        # g_s = g_grapher.add_arrow(self._p, self._s, color="green")
+        # print("Angle:", self._angle * 180 / np.pi)
+        # plt.pause(0.01)
+        # """ DUBEG """
 
-        self._prev_class = self._cur_class
+        # self._prev_class = self._cur_class
         # self._cur_class = self._classifier(self._cur)
         self._classify_sample()
         self._angle = self._next_angle(self._angle)
 
-        if self._cur_class:
-            self._prev_b = self._p + Point(self._s)
-            self._prev_s = copy(self._s)
+        
 
         if self._iteration > self._num and self._prev_b is not None:
             self._b = self._prev_b
@@ -143,6 +162,10 @@ class BoundaryAdherer(Adherer):
 
         elif self._iteration > self._num and self._prev_b is None:
             raise BoundaryLostException()
+
+        # """ DEBUG """
+        # input("debug continue...")
+        # """ DEBUG """
 
         self._iteration += 1
         return self._cur

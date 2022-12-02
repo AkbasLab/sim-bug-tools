@@ -3,12 +3,10 @@ from typing import Callable
 
 import numpy as np
 from numpy import ndarray
+
 from sim_bug_tools.exploration.boundary_core.adherer import (
-    AdherenceFactory,
-    Adherer,
-    BoundaryLostException,
-)
-from sim_bug_tools.structs import Point, Domain
+    AdherenceFactory, Adherer, BoundaryLostException)
+from sim_bug_tools.structs import Domain, Point, Scaler
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -24,7 +22,8 @@ class BoundaryAdherer(Adherer):
         p: Point,
         n: ndarray,
         direction: ndarray,
-        d: float,
+        # d: float,
+        scaler: Scaler,
         theta: float,
     ):
         """
@@ -42,16 +41,21 @@ class BoundaryAdherer(Adherer):
         """
         self._classifier = classifier
         self._domain = domain
+        self._scaler = scaler
         self._p = p
 
         n = BoundaryAdherer.normalize(n)
         # print(f"n: {n}")
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
-        self._s: ndarray = (copy(n.squeeze()) * d).squeeze()
-
         A = self._rotater_function(-ANGLE_90)
-        self._s = np.dot(A, self._s)
+        # Get the direction we want to travel in
+        self._v = copy(n.squeeze())
+        self._v = np.dot(A, self._v)
+        
+        # Scale the vector to get our displacement vector
+        self._s: ndarray = self._v
+        self._s = self._scaler * np.dot(A, self._s)
 
         self._prev: Point = None
         self._prev_class = None
@@ -100,7 +104,8 @@ class BoundaryAdherer(Adherer):
 
     def sample_next(self) -> Point:
         self._prev = self._cur
-        self._s = np.dot(self._rotate, self._s)
+        self._v = np.dot(self._rotate, self._v)
+        self._s = self._scaler * self._v
         self._cur = self._p + Point(self._s)
 
         self._prev_class = self._cur_class
@@ -202,16 +207,18 @@ class BoundaryAdherenceFactory(AdherenceFactory):
         self,
         classifier: Callable[[Point], bool],
         domain: Domain,
-        d: float,
+        scaler: Scaler,
+        # d: float,
         theta: float,
     ):
         super().__init__(classifier, domain)
-        self._d = d
+        # self._d = d
+        self._scaler = scaler
         self._theta = theta
 
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
         return BoundaryAdherer(
-            self.classifier, self.domain, p, n, direction, self._d, self._theta
+            self.classifier, self.domain, p, n, direction, self._scaler, self._theta
         )
 
 
