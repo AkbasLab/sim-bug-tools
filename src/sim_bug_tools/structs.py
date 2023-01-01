@@ -31,7 +31,7 @@ class Point:
 
         self._vector: ndarray
         self._index = None
-        
+
         if len(args) == 1 and isinstance(args[0], ITERABLE):
             self._vector = self._format_array(args[0])
         elif Point.is_point(args):
@@ -59,7 +59,7 @@ class Point:
     @property
     def index(self) -> list[str]:
         return self._index
- 
+
     def __iter__(self):
         return self._vector.__iter__()
 
@@ -84,7 +84,9 @@ class Point:
 
     def __add__(self, other):
         if not isinstance(other, Point):
-            raise ValueError("Can only add a point to another point!")
+            raise ValueError(
+                f"Can only add a point to another point! Got type {type(other)}"
+            )
 
         return Point(
             list(map(lambda axis_self, axis_other: axis_self + axis_other, self, other))
@@ -116,18 +118,18 @@ class Point:
         return json.dumps(self.to_list())
 
     def as_series(self) -> pd.Series:
-        return pd.Series(self._vector, index = self.index)
+        return pd.Series(self._vector, index=self.index)
 
     def scale_domain(self, d_from: "Domain", d_to: "Domain") -> "Point":
         """
         Scales self from one domain to another. Ensures that each axis is the same
-        percentage of d_from as d_to. If p is outside of d_from, it will be 
+        percentage of d_from as d_to. If p is outside of d_from, it will be
         outside of d_to.
-        
+
         Useful when mapping a point from one domain to another.
         Example: Normalized vector, p, within domain Domain.normalized(N),
         scaled to fit within d_to.
-        
+
         result = (p - d_from.origin) / d_from.dimensions * d_to.dimensions + d_to.origin
 
         Args:
@@ -138,8 +140,13 @@ class Point:
         Returns:
             Point: The resulting scaled point
         """
-        
-        return Point((self.array - d_from.origin.array) / d_from.dimensions * d_to.dimensions) + d_to.origin.array
+
+        return (
+            Point(
+                (self.array - d_from.origin.array) / d_from.dimensions * d_to.dimensions
+            )
+            + d_to.origin.array
+        )
 
     @staticmethod
     def is_point(array: tuple) -> bool:
@@ -279,7 +286,7 @@ class Domain:
 
     @property
     def dimensions(self) -> ndarray:
-        "The dimensions of the array"
+        "The dimensions of the Domain"
         f = lambda limits: limits[1] - limits[0]
         return np.array(tuple(map(f, self._arr)))
 
@@ -384,6 +391,13 @@ class Domain:
 
         return f"{__class__.__name__}: {dims_str} at {self.origin}"
 
+    def clip(self, other: "Domain") -> "Domain":
+        new_bounds = []
+        for o, s in zip(other, self):
+            new_bounds.append((max(o[0], s[0]), min(o[1], s[1])))
+
+        return Domain(new_bounds)
+
     @classmethod
     def from_dimensions(cls, dimensions: tuple[float64], origin: Point = None):
         """
@@ -459,8 +473,7 @@ class Domain:
     @classmethod
     def normalized(cls, num_dimensions):
         "Returns a normalized domain with the given number of dimensions."
-        return Domain([(0, 1) for x in range(num_dimensions)])        
-        
+        return Domain([(0, 1) for x in range(num_dimensions)])
 
     @staticmethod
     def from_json(string: str):
@@ -505,6 +518,16 @@ class Domain:
             i += 1
 
         return isValid
+
+    @staticmethod
+    def translate_point_domains(
+        p: Point, source: "Domain", destination: "Domain"
+    ) -> Point:
+        "Translate a point from one domain to another. Retains scale relative to its source domain."
+        return Point(
+            ((p - source.origin) / source.dimensions) * destination.dimensions
+            + destination.origin
+        )
 
     def project(self, point: Point) -> Point:
         """
@@ -594,6 +617,7 @@ class Grid:
             [
                 (axis - (axis % self._res[i]) - self._origin[i])
                 for i, axis in enumerate(point)
+                if self._res[i] is not None
             ]
         )
 
@@ -694,34 +718,38 @@ class PolyLine:
             ax.plot(x, y)
         return
 
+
 class Scaler(ABC):
     @abstract
     def scale(self, v: ndarray) -> ndarray:
-        pass 
-    
+        pass
+
     def __mul__(self, other):
         if type(other) is ndarray:
             return self.scale(other)
         else:
-            raise NotImplemented(f"* (__mul__) operator not implemented for Scaler and type {type(other)}")
-            
-    
+            raise NotImplemented(
+                f"* (__mul__) operator not implemented for Scaler and type {type(other)}"
+            )
+
+
 class Spheroid(Scaler):
     def __init__(self, radius: float64):
         self.radius = radius
-        
+
     def scale(self, v: ndarray) -> ndarray:
         "Scales dimensions equally by a scalar"
-        return v * self.radius 
-    
+        return v * self.radius
+
+
 class Cuboid(Scaler):
     def __init__(self, axes: tuple[float64]):
-        self._axes = axes 
-        
+        self._axes = axes
+
     def scale(self, v: ndarray) -> ndarray:
         "Scales dimensions proportionally to the axes of a cube"
         return v * self._axes
-        
+
 
 class Ellipsoid(Scaler):
     def __init__(self, axes: tuple[float64], loc: Point = None):
@@ -730,7 +758,7 @@ class Ellipsoid(Scaler):
             raise Exception("Dimension mismatch!")
 
         self._axes = np.array(axes)
-        
+
     def scale(self, v: ndarray) -> ndarray:
         "Scales dimensions by the radius of the ellipse in the vector's direction"
         # scales the vector by the radial vector's length to the surface
@@ -767,13 +795,21 @@ def main():
     # domain = Domain.normalized(3)
 
     # print(point in domain)
-    loc = Point(0, 0)
-    axes = [2, 3]
+    p1 = Point(0, 0)
+    p2 = Point(0.5, 0)
+    p3 = Point(1, 0.5)
 
-    p = Point(3, 4)
+    domain = Domain.normalized(2)
+    target_domain = Domain.from_dimensions([2, 10], Point(2, 2))
 
-    e = Ellipsoid(loc, axes)
-    v = e.radial_vector_towards(p)
+    p1_ = Domain.translate_point_domains(p1, domain, target_domain)
+    p2_ = Domain.translate_point_domains(p2, domain, target_domain)
+    p3_ = Domain.translate_point_domains(p3, domain, target_domain)
+
+    print("Before:")
+    print(p1, p2, p3)
+    print("After:")
+    print(p1_, p2_, p3_)
 
 
 if __name__ == "__main__":
