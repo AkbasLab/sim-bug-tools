@@ -4,3 +4,5 @@ __pycache__
 *.egg-info
 strategies/regime/tests/temp/random_10k.pkl
 strategies/regime/error-log.txt
+
+*.pkl
