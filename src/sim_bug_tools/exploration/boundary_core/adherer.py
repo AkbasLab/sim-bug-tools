@@ -9,6 +9,17 @@ from numpy import ndarray
 from sim_bug_tools.structs import Domain, Point
 
 
+class SampleOutOfBoundsException(Exception):
+    "When a boundary Adherer samples out of bounds, this exception may be thrown"
+
+    def __init__(self, msg="Sample was out of bounds!"):
+        self.msg = msg
+        super().__init__(msg)
+
+    def __str__(self):
+        return f"<BoundaryLostException: {self.msg}>"
+
+
 class BoundaryLostException(Exception):
     "When a boundary Adherer fails to find the boundary, this exception is thrown"
 
@@ -17,16 +28,19 @@ class BoundaryLostException(Exception):
         super().__init__(msg)
 
     def __str__(self):
-        return f"<BoundaryLostException: Angle: {self.theta}, Jump Distance: {self.d}>"
+        return f"<BoundaryLostException: {self.msg}>"
 
 
 class _AdhererIterator:
     def __init__(self, ba: "Adherer"):
+        # global _v, _g, _p, _s, _exp # DEBUG
         self.ba = ba
 
     def __next__(self):
+        # global _s, _g, _exp
         if self.ba.has_next():
-            return self.ba.sample_next()
+            x = self.ba.sample_next()
+            return x
         else:
             raise StopIteration
 
@@ -49,7 +63,7 @@ class Adherer(ABC):
         return self._classifier
 
     @abstract
-    def sample_next(self) -> Point:
+    def sample_next(self) -> tuple[Point, bool]:
         """
         Takes the next sample to find the boundary. When the boundary is found,
         (property) b will be set to that point and sample_next will no longer
@@ -60,7 +74,7 @@ class Adherer(ABC):
                 fails to acquire the boundary.
 
         Returns:
-            Point: The next sample
+            Point, bool: The next sample and target class
             None: If the boundary was acquired or lost
         """
         pass

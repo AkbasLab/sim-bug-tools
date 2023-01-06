@@ -581,7 +581,9 @@ class Grid:
         pointA_index = self.calculate_point_index(pointA)
         pointB_index = self.calculate_point_index(pointB)
 
-        axis_falls_on_grid = lambda axis, dim_index: numpy.isclose(
+        axis_falls_on_grid = lambda axis, dim_index: self._res[
+            dim_index
+        ] is not None or np.isclose(
             (axis - self._origin[dim_index]) % self._res[dim_index], 0
         )
 
@@ -627,6 +629,8 @@ class Grid:
                 map(
                     lambda axis, step, o: int32(
                         (axis - ((axis - o) % step) - o) / step
+                        if step is not None
+                        else axis
                     ),
                     point,
                     self._res,
@@ -637,7 +641,12 @@ class Grid:
 
     def convert_index_to_point(self, index: list[int32]):
         return Point(
-            map(lambda i, step, o: i * step + o, index, self._res, self._origin)
+            map(
+                lambda i, step, o: i * step + o if step is not None else i,
+                index,
+                self._res,
+                self._origin,
+            )
         )
 
 

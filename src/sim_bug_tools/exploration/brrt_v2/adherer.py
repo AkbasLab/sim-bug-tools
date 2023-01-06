@@ -5,8 +5,12 @@ import numpy as np
 from numpy import ndarray
 
 from sim_bug_tools.exploration.boundary_core.adherer import (
-    AdherenceFactory, Adherer, BoundaryLostException)
-from sim_bug_tools.structs import Domain, Point
+    AdherenceFactory,
+    Adherer,
+    BoundaryLostException,
+    SampleOutOfBoundsException,
+)
+from sim_bug_tools.structs import Domain, Point, Scaler
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -14,7 +18,7 @@ DATA_NORMAL = "normal"
 ANGLE_90 = np.pi / 2
 
 
-class BoundaryAdherer(Adherer):
+class ExponentialAdherer(Adherer):
     """
     The BoundaryAdherer provides the ability to identify a point that lies on the
     boundary of a N-D volume (target envelope). A "classifier" function describes whether or not
@@ -28,14 +32,17 @@ class BoundaryAdherer(Adherer):
         p: Point,
         n: ndarray,
         direction: ndarray,
-        d: float,
-        delta_theta: float,
+        scaler: Scaler,
+        theta0: float,
         r: float,
         num: int,
-        init_class : bool = None,
+        fail_out_of_domain: bool = False,
+        init_class: bool = None,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
+
+        WARNING: init_class is not in a working state...
 
         Args:
             classifier (Callable[[Point], bool]): The function that returns true or false depending
@@ -52,18 +59,23 @@ class BoundaryAdherer(Adherer):
         """
         super().__init__(classifier, domain)
         self._p = p
-        
-        n = BoundaryAdherer.normalize(n)
+        self._fail_out_of_domain = fail_out_of_domain
+        n = ExponentialAdherer.normalize(n)
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
 
-        self._s: ndarray = copy(n) * d
+        self._initial_angle = abs(theta0)
+        self._s: ndarray = scaler * copy(n)
         self._s = np.dot(self._rotater_function(-ANGLE_90), self._s)
+
+        self._v = self._s  # DEBUG
 
         self._prev: Point = None
         self._prev_class = None
 
         self._cur: Point = p + Point(self._s)
+        self._prev_b: Point = None
+        self._prev_s: ndarray = None
         if init_class is None:
             self._cur_class = None
             self._classify_sample()
@@ -73,13 +85,12 @@ class BoundaryAdherer(Adherer):
         self._r = r
         self._num = num
 
-        self._b = None
-        self._n = None
-        self._prev_b = None
-        self._prev_s = None
+        self._b: Point = None
+        self._n: ndarray = None
 
         self._iteration = 0
-        self._angle = self._next_angle(-abs(delta_theta))
+        self._angle = self._next_angle(-self._initial_angle)
+        self._iteration += 1
 
     @property
     def b(self) -> Point:
@@ -103,20 +114,18 @@ class BoundaryAdherer(Adherer):
                 samples.
         """
         return self._b is None
-    
+
     def _classify_sample(self):
         self._prev_class = self._cur_class
-        self._cur_class = self._cur in self._domain and self._classifier(self._cur)
+
+        in_domain = self._cur in self._domain
+        if self._fail_out_of_domain and not in_domain:
+            raise SampleOutOfBoundsException()
+
+        self._cur_class = in_domain and self._classifier(self._cur)
         if self._cur_class:
             self._prev_b = self._p + Point(self._s)
             self._prev_s = copy(self._s)
-            # """ DUBEG """
-            # global g_bn  
-            # if g_bn is not None:
-            #     g_bn.remove()
-            # g_bn = g_grapher.plot_point(self._prev_b, color="red")
-            # plt.pause(0.01)
-            # """ DUBEG """
 
     def sample_next(self) -> Point:
         """
@@ -136,39 +145,22 @@ class BoundaryAdherer(Adherer):
 
         self._s = np.dot(self._rotater_function(self._angle), self._s)
         self._cur = self._p + Point(self._s)
-        
-        # """ DUBEG """
-        # global g_s
-        # if g_s is not None:
-        #     g_s.remove()
-        # g_s = g_grapher.add_arrow(self._p, self._s, color="green")
-        # print("Angle:", self._angle * 180 / np.pi)
-        # plt.pause(0.01)
-        # """ DUBEG """
 
-        # self._prev_class = self._cur_class
-        # self._cur_class = self._classifier(self._cur)
         self._classify_sample()
-        self._angle = self._next_angle(self._angle)
+        self._angle = self._next_angle(self._initial_angle)
 
-        
-
-        if self._iteration > self._num and self._prev_b is not None:
+        if self._iteration >= self._num - 1 and self._prev_b is not None:
             self._b = self._prev_b
             self._n = self.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._prev_s)
             )
             self.sample_next = lambda: None
 
-        elif self._iteration > self._num and self._prev_b is None:
+        elif self._iteration >= self._num - 1:
             raise BoundaryLostException()
 
-        # """ DEBUG """
-        # input("debug continue...")
-        # """ DEBUG """
-
         self._iteration += 1
-        return self._cur
+        return self._cur, self._cur_class
 
     def find_boundary(self) -> tuple[Point, ndarray]:
         """
@@ -214,9 +206,9 @@ class BoundaryAdherer(Adherer):
         u = u[np.newaxis]
         v = v[np.newaxis]
 
-        un = BoundaryAdherer.normalize(u)
+        un = ExponentialAdherer.normalize(u)
         vn = v - np.dot(un, v.T) * un
-        vn = BoundaryAdherer.normalize(vn)
+        vn = ExponentialAdherer.normalize(vn)
 
         if not (np.dot(un, vn.T) < 1e-4):
             raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
@@ -248,7 +240,7 @@ class BoundaryAdherer(Adherer):
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
 
-        u, v = BoundaryAdherer.orthonormalize(u, v)
+        u, v = ExponentialAdherer.orthonormalize(u, v)
 
         I = np.identity(len(u.T))
 
@@ -258,7 +250,7 @@ class BoundaryAdherer(Adherer):
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
 
 
-class BoundaryAdherenceFactory(AdherenceFactory):
+class ExponentialAdherenceFactory(AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
@@ -266,17 +258,20 @@ class BoundaryAdherenceFactory(AdherenceFactory):
         d: float,
         delta_theta: float,
         r: float,
-        num: int
+        num: int,
+        fail_out_of_bounds: bool = False,
     ):
         super().__init__(classifier, domain)
         self._d = d
         self._delta_theta = delta_theta
         self._r = r
         self._num = num
+        self._fail_out_of_bounds = fail_out_of_bounds
 
-    def adhere_from(self, p: Point, n: ndarray, direction: ndarray,
-            init_class : bool = None) -> Adherer:
-        return BoundaryAdherer(
+    def adhere_from(
+        self, p: Point, n: ndarray, direction: ndarray, init_class: bool = None
+    ) -> Adherer:
+        return ExponentialAdherer(
             self.classifier,
             self.domain,
             p,
@@ -286,7 +281,8 @@ class BoundaryAdherenceFactory(AdherenceFactory):
             self._delta_theta,
             self._r,
             self._num,
-            init_class
+            self._fail_out_of_bounds,
+            init_class,
         )
 
 
@@ -295,7 +291,6 @@ if __name__ == "__main__":
     from matplotlib.axes import Axes
 
     from sim_bug_tools.graphics import Grapher
-    
 
     d = 0.005
     r = 2
@@ -312,7 +307,7 @@ if __name__ == "__main__":
     classifier = lambda p: s_loc.distance_to(p) < s_rad
 
     g = Grapher(is3d=True, domain=Domain.normalized(3))
-    adh_f = BoundaryAdherenceFactory(classifier, d, angle, r, num)
+    adh_f = ExponentialAdherenceFactory(classifier, d, angle, r, num)
     adh = adh_f.adhere_from(p, n, direction)
     while adh.has_next():
         pk = adh.sample_next()

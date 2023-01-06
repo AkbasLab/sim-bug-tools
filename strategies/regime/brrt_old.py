@@ -9,14 +9,15 @@ import sim_bug_tools.exploration.brrt_std.brrt as brrt_std
 import sim_bug_tools.exploration.brrt_std.adherer as adherer_std
 import sim_bug_tools.exploration.boundary_core.adherer as adherer_core
 
+
 class BoundaryAdherenceFactory(adherer_core.AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[structs.Point], bool],
         d: float,
         theta: float,
-        lim_min : structs.Point,
-        lim_max : structs.Point
+        lim_min: structs.Point,
+        lim_max: structs.Point,
     ):
         super().__init__(classifier)
         self._d = d
@@ -25,23 +26,22 @@ class BoundaryAdherenceFactory(adherer_core.AdherenceFactory):
         self._lim_max = lim_max
         return
 
-    def adhere_from(self, 
-        p: structs.Point, 
-        n: np.ndarray, 
-        direction: np.ndarray
+    def adhere_from(
+        self, p: structs.Point, n: np.ndarray, direction: np.ndarray
     ) -> adherer_core.Adherer:
         return BoundaryAdhererLimits(
-            self.classifier, 
-            p, 
-            n, 
-            direction, 
-            self._d, 
+            self.classifier,
+            p,
+            n,
+            direction,
+            self._d,
             self._theta,
             self._lim_min,
-            self._lim_max
+            self._lim_max,
         )
 
-class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
+
+class BoundaryAdhererLimits(adherer_std.ConstantAdherer):
     def __init__(
         self,
         classifier: Callable[[structs.Point], bool],
@@ -50,8 +50,8 @@ class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
         direction: np.ndarray,
         d: float,
         theta: float,
-        lim_min : structs.Point,
-        lim_max : structs.Point
+        lim_min: structs.Point,
+        lim_max: structs.Point,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
@@ -84,11 +84,13 @@ class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
         self._prev: structs.Point = None
         self._prev_class = None
 
-        self._cur: structs.Point = structs.Point(round_to_limits(
-            (p + structs.Point(self._s)).array,
-            self.lim_min.array,
-            self.lim_max.array
-        ))
+        self._cur: structs.Point = structs.Point(
+            round_to_limits(
+                (p + structs.Point(self._s)).array,
+                self.lim_min.array,
+                self.lim_max.array,
+            )
+        )
         self._cur_class = classifier(self._cur)
 
         if self._cur_class:
@@ -116,12 +118,14 @@ class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
     def sample_next(self) -> structs.Point:
         self._prev = self._cur
         self._s = np.dot(self._rotate, self._s)
-        
-        self._cur = structs.Point(round_to_limits(
-            (self._p + structs.Point(self._s)).array,
-            self.lim_min.array,
-            self.lim_max.array
-        ))
+
+        self._cur = structs.Point(
+            round_to_limits(
+                (self._p + structs.Point(self._s)).array,
+                self.lim_min.array,
+                self.lim_max.array,
+            )
+        )
 
         self._prev_class = self._cur_class
         self._cur_class = self._classifier(self._cur)
@@ -129,10 +133,7 @@ class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
         if self._cur_class != self._prev_class:
             self._b = self._cur if self._cur_class else self._prev
             self._n = self.normalize(
-                np.dot(
-                    self._rotater_function(adherer_std.ANGLE_90), 
-                    self._s
-                )
+                np.dot(self._rotater_function(adherer_std.ANGLE_90), self._s)
             )
             self.sample_next = lambda: None
 
@@ -145,12 +146,11 @@ class BoundaryAdhererLimits(adherer_std.BoundaryAdherer):
         return self._cur
         # return super().sample_next()
 
-class BoundaryRRT(brrt_std.BoundaryRRT):
 
-    def __init__(self, 
-        b0: structs.Point, 
-        n0: np.ndarray, 
-        adhererF: adherer_core.AdherenceFactory):
+class BoundaryRRT(brrt_std.BoundaryRRT):
+    def __init__(
+        self, b0: structs.Point, n0: np.ndarray, adhererF: adherer_core.AdherenceFactory
+    ):
         """
         Args:
             classifier (Callable[[Point], bool]): The function that determines whether
@@ -186,7 +186,7 @@ class BoundaryRRT(brrt_std.BoundaryRRT):
         b, n = self._select_parent()
         direction = self._pick_direction()
         adherer = self._adhererF.adhere_from(b, n, direction)
-        
+
         for b in adherer:
             self._all_points.append(b)
 
@@ -195,13 +195,7 @@ class BoundaryRRT(brrt_std.BoundaryRRT):
         return adherer.boundary
 
 
-
-
-def round_to_limits(
-        arr : np.ndarray, 
-        min : np.ndarray, 
-        max : np.ndarray
-    ) -> np.ndarray:
+def round_to_limits(arr: np.ndarray, min: np.ndarray, max: np.ndarray) -> np.ndarray:
     """
     Rounds each dimensions in @arr to limits within @min limits and @max limits.
     """
@@ -214,12 +208,13 @@ def round_to_limits(
             arr[i] = max[i]
     return arr
 
+
 def find_surface(
-    classifier: Callable[[structs.Point], bool], 
-    t0: structs.Point, 
+    classifier: Callable[[structs.Point], bool],
+    t0: structs.Point,
     d: structs.Point,
-    lim_min : structs.Point,
-    lim_max : structs.Point
+    lim_min: structs.Point,
+    lim_max: structs.Point,
 ) -> tuple[tuple[structs.Point, np.ndarray], list[structs.Point]]:
     v = np.random.rand(len(t0))
     s = v * d
@@ -228,48 +223,42 @@ def find_surface(
     prev = None
     cur = t0
 
-
     # First, reach within d distance from surface
     while True:
         prev = cur
         interm += [prev]
-        cur = structs.Point(round_to_limits(
-            (prev + structs.Point(s)).array,
-            lim_min.array,
-            lim_max.array
-        ))
+        cur = structs.Point(
+            round_to_limits(
+                (prev + structs.Point(s)).array, lim_min.array, lim_max.array
+            )
+        )
 
         # At parameter boundary
         # print(cur-prev)
         if cur == prev:
             break
-        
+
         if not classifier(cur):
             break
         continue
 
     s *= 0.5
     ps = structs.Point(s)
-    cur = structs.Point(round_to_limits(
-        (prev + structs.Point(s)).array,
-        lim_min.array,
-        lim_max.array
-    ))
+    cur = structs.Point(
+        round_to_limits((prev + structs.Point(s)).array, lim_min.array, lim_max.array)
+    )
 
     # Get closer until within d/2 distance from surface
     while cur != prev and classifier(cur):
         prev = cur
         interm += [prev]
-        cur = structs.Point(round_to_limits(
-            (prev + ps).array,
-            lim_min.array,
-            lim_max.array
-        ))
-        
+        cur = structs.Point(
+            round_to_limits((prev + ps).array, lim_min.array, lim_max.array)
+        )
+
         # At parameter boundary
         if cur == prev:
             break
         continue
-        
 
     return ((prev, v), interm)

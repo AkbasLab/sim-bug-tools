@@ -10,13 +10,10 @@ import sim_bug_tools.exploration.brrt_std.adherer as adherer_std
 import sim_bug_tools.exploration.boundary_core.adherer as adherer_core
 
 
-
 class BoundaryRRT(brrt_std.BoundaryRRT):
-
-    def __init__(self, 
-        b0: structs.Point, 
-        n0: np.ndarray, 
-        adhererF: adherer_core.AdherenceFactory):
+    def __init__(
+        self, b0: structs.Point, n0: np.ndarray, adhererF: adherer_core.AdherenceFactory
+    ):
         """
         Args:
             classifier (Callable[[Point], bool]): The function that determines whether
@@ -52,7 +49,7 @@ class BoundaryRRT(brrt_std.BoundaryRRT):
     #     b, n = self._select_parent()
     #     direction = self._pick_direction()
     #     adherer = self._adhererF.adhere_from(b, n, direction)
-        
+
     #     for b in adherer:
     #         self._all_points.append(b)
 
@@ -67,35 +64,22 @@ class BoundaryAdherenceFactory(adherer_core.AdherenceFactory):
         classifier: Callable[[structs.Point], bool],
         d: float,
         theta: float,
-        domain : structs.Domain
+        domain: structs.Domain,
     ):
         super().__init__(classifier, domain)
         self._d = d
         self._theta = theta
         return
 
-    def adhere_from(self, 
-        p: structs.Point, 
-        n: np.ndarray, 
-        direction: np.ndarray
+    def adhere_from(
+        self, p: structs.Point, n: np.ndarray, direction: np.ndarray
     ) -> adherer_core.Adherer:
-        return adherer_std.BoundaryAdherer(
-            self.classifier, 
-            self.domain,
-            p, 
-            n, 
-            direction, 
-            self._d, 
-            self._theta
+        return adherer_std.ConstantAdherer(
+            self.classifier, self.domain, p, n, direction, self._d, self._theta
         )
 
 
-
-def round_to_limits(
-        arr : np.ndarray, 
-        min : np.ndarray, 
-        max : np.ndarray
-    ) -> np.ndarray:
+def round_to_limits(arr: np.ndarray, min: np.ndarray, max: np.ndarray) -> np.ndarray:
     """
     Rounds each dimensions in @arr to limits within @min limits and @max limits.
     """
@@ -108,12 +92,13 @@ def round_to_limits(
             arr[i] = max[i]
     return arr
 
+
 def find_surface(
-    classifier: Callable[[structs.Point], bool], 
-    t0: structs.Point, 
+    classifier: Callable[[structs.Point], bool],
+    t0: structs.Point,
     d: structs.Point,
-    lim_min : structs.Point,
-    lim_max : structs.Point
+    lim_min: structs.Point,
+    lim_max: structs.Point,
 ) -> tuple[tuple[structs.Point, np.ndarray], list[structs.Point]]:
     v = np.random.rand(len(t0))
     s = v * d
@@ -122,48 +107,42 @@ def find_surface(
     prev = None
     cur = t0
 
-
     # First, reach within d distance from surface
     while True:
         prev = cur
         interm += [prev]
-        cur = structs.Point(round_to_limits(
-            (prev + structs.Point(s)).array,
-            lim_min.array,
-            lim_max.array
-        ))
+        cur = structs.Point(
+            round_to_limits(
+                (prev + structs.Point(s)).array, lim_min.array, lim_max.array
+            )
+        )
 
         # At parameter boundary
         # print(cur-prev)
         if cur == prev:
             break
-        
+
         if not classifier(cur):
             break
         continue
 
     s *= 0.5
     ps = structs.Point(s)
-    cur = structs.Point(round_to_limits(
-        (prev + structs.Point(s)).array,
-        lim_min.array,
-        lim_max.array
-    ))
+    cur = structs.Point(
+        round_to_limits((prev + structs.Point(s)).array, lim_min.array, lim_max.array)
+    )
 
     # Get closer until within d/2 distance from surface
     while cur != prev and classifier(cur):
         prev = cur
         interm += [prev]
-        cur = structs.Point(round_to_limits(
-            (prev + ps).array,
-            lim_min.array,
-            lim_max.array
-        ))
-        
+        cur = structs.Point(
+            round_to_limits((prev + ps).array, lim_min.array, lim_max.array)
+        )
+
         # At parameter boundary
         if cur == prev:
             break
         continue
-        
 
     return ((prev, v), interm)

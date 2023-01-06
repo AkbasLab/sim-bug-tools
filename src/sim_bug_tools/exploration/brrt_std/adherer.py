@@ -5,7 +5,11 @@ import numpy as np
 from numpy import ndarray
 
 from sim_bug_tools.exploration.boundary_core.adherer import (
-    AdherenceFactory, Adherer, BoundaryLostException)
+    AdherenceFactory,
+    Adherer,
+    BoundaryLostException,
+    SampleOutOfBoundsException,
+)
 from sim_bug_tools.structs import Domain, Point, Scaler
 
 DATA_LOCATION = "location"
@@ -14,7 +18,7 @@ DATA_NORMAL = "normal"
 ANGLE_90 = np.pi / 2
 
 
-class BoundaryAdherer(Adherer):
+class ConstantAdherer(Adherer):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
@@ -22,9 +26,9 @@ class BoundaryAdherer(Adherer):
         p: Point,
         n: ndarray,
         direction: ndarray,
-        # d: float,
         scaler: Scaler,
-        theta: float,
+        delta_theta: float,
+        fail_out_of_bounds: bool = False,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
@@ -39,43 +43,43 @@ class BoundaryAdherer(Adherer):
             d (float): How far to travel from @p
             theta (float): How far to rotate to find the boundary.
         """
-        self._classifier = classifier
-        self._domain = domain
+        super().__init__(classifier, domain)
         self._scaler = scaler
         self._p = p
 
-        n = BoundaryAdherer.normalize(n)
-        # print(f"n: {n}")
+        self._fail_out_of_bounds = fail_out_of_bounds
+        n = ConstantAdherer.normalize(n)
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
         A = self._rotater_function(-ANGLE_90)
         # Get the direction we want to travel in
         self._v = copy(n.squeeze())
         self._v = np.dot(A, self._v)
-        
+
         # Scale the vector to get our displacement vector
         self._s: ndarray = self._v
-        self._s = self._scaler * np.dot(A, self._s)
+        self._s = self._scaler * self._s
 
         self._prev: Point = None
-        self._prev_class = None
+        self._prev_class: bool = None
 
         self._cur: Point = p + Point(self._s)
+        self._cur_class = None
         # self._cur_class = classifier(self._cur)
         self._classify_sample()
 
         if self._cur_class:
-            self._rotate = self._rotater_function(theta)
+            self._rotate = self._rotater_function(delta_theta)
         else:
-            self._rotate = self._rotater_function(-theta)
+            self._rotate = self._rotater_function(-delta_theta)
 
-        self._b = None
-        self._n = None
+        self._b: Point = None
+        self._n: ndarray = None
 
         self._sub_samples = []
 
         self._iteration = 0
-        self._max_iteration = (2 * np.pi) // theta
+        self._max_iteration = (2 * np.pi) // delta_theta
 
     @property
     def b(self) -> Point:
@@ -100,21 +104,25 @@ class BoundaryAdherer(Adherer):
 
     def _classify_sample(self):
         "Will only run the classifier IFF the sample is in domain"
-        self._cur_class = self._cur in self._domain and self._classifier(self._cur)
+        self._prev_class = self._cur_class
+        in_domain = self._cur in self._domain
+        if self._fail_out_of_bounds and not in_domain:
+            raise SampleOutOfBoundsException()
 
-    def sample_next(self) -> Point:
+        self._cur_class = in_domain and self._classifier(self._cur)
+
+    def sample_next(self) -> tuple[Point, bool]:
         self._prev = self._cur
         self._v = np.dot(self._rotate, self._v)
         self._s = self._scaler * self._v
         self._cur = self._p + Point(self._s)
 
-        self._prev_class = self._cur_class
         # self._cur_class = self._classifier(self._cur)
         self._classify_sample()
 
-        if self._cur_class != self._prev_class:
+        if self._prev_class is not None and self._cur_class != self._prev_class:
             self._b = self._cur if self._cur_class else self._prev
-            self._n = BoundaryAdherer.normalize(
+            self._n = ConstantAdherer.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._s)
             )
             self.sample_next = lambda: None
@@ -125,7 +133,7 @@ class BoundaryAdherer(Adherer):
         self._sub_samples.append(self._cur)
 
         self._iteration += 1
-        return self._cur
+        return self._cur, self._cur_class
 
     def find_boundary(self) -> tuple[Point, ndarray]:
         all_points = []
@@ -158,9 +166,9 @@ class BoundaryAdherer(Adherer):
         u = u[np.newaxis]
         v = v[np.newaxis]
 
-        un = BoundaryAdherer.normalize(u)
+        un = ConstantAdherer.normalize(u)
         vn = v - np.dot(un, v.T) * un
-        vn = BoundaryAdherer.normalize(vn)
+        vn = ConstantAdherer.normalize(vn)
 
         if not (np.dot(un, vn.T) < 1e-4):
             raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
@@ -192,7 +200,7 @@ class BoundaryAdherer(Adherer):
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
 
-        u, v = BoundaryAdherer.orthonormalize(u, v)
+        u, v = ConstantAdherer.orthonormalize(u, v)
 
         I = np.identity(len(u.T))
 
@@ -202,23 +210,31 @@ class BoundaryAdherer(Adherer):
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
 
 
-class BoundaryAdherenceFactory(AdherenceFactory):
+class ConstantAdherenceFactory(AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
         domain: Domain,
         scaler: Scaler,
-        # d: float,
-        theta: float,
+        delta_theta: float,
+        fail_out_of_bounds: bool = False,
     ):
         super().__init__(classifier, domain)
         # self._d = d
         self._scaler = scaler
-        self._theta = theta
+        self._theta = delta_theta
+        self._fail_out_of_bounds = fail_out_of_bounds
 
     def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
-        return BoundaryAdherer(
-            self.classifier, self.domain, p, n, direction, self._scaler, self._theta
+        return ConstantAdherer(
+            self.classifier,
+            self.domain,
+            p,
+            n,
+            direction,
+            self._scaler,
+            self._theta,
+            self._fail_out_of_bounds,
         )
 
 
@@ -243,7 +259,7 @@ if __name__ == "__main__":
     plt.pause(0.05)
 
     input("Waiting...")
-    rotate = BoundaryAdherer.generateRotationMatrix(u, v)(angle)
+    rotate = ConstantAdherer.generateRotationMatrix(u, v)(angle)
 
     while True:
         ar_vec.remove()

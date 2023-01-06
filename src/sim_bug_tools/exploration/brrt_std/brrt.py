@@ -10,10 +10,11 @@ from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
 from sim_bug_tools.exploration.boundary_core.explorer import Explorer
 from sim_bug_tools.structs import Domain, Point, Spheroid
 
-from .adherer import BoundaryAdherenceFactory
+from .adherer import ConstantAdherenceFactory
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
+ROOT_ID = 0
 
 
 class BoundaryRRT(Explorer):
@@ -39,14 +40,14 @@ class BoundaryRRT(Explorer):
         self._ndims = len(b0)
 
         self._tree = Tree()
-        self._root = Node(identifier=0, data=self._create_data(*self.prev))
+        self._root = Node(identifier=ROOT_ID, data=self._create_data(*self.prev))
         self._next_id = 1
 
         p = index.Property()
         p.set_dimension(self._ndims)
         self._index = index.Index(properties=p)
 
-        self._index.insert(0, b0)
+        self._index.insert(ROOT_ID, b0)
         self._tree.add_node(self._root)
 
         self._prev_dir: ndarray = None
@@ -78,12 +79,111 @@ class BoundaryRRT(Explorer):
         self._next_id += 1
 
     def _random_point(self) -> Point:
-        return Point(np.random.rand(self._ndims) * 2)
+        # return Point(np.random.rand(self._ndims) * 2)
+        return Point(np.random.rand(self._ndims))
 
     def _find_nearest(self, p: Point) -> Node:
         node = self._tree.get_node(next(self._index.nearest(p)))
 
         return node
+
+    def back_propegate_prev(self, k: int):
+        node = self._tree.get_node(self._next_id - 1)
+        if node.identifier == ROOT_ID:
+            return
+
+        for i in range(k):
+            parent = self._tree.parent(node.identifier)
+
+            osv = self._average_node_osv(parent, 1)
+            if osv is not None:
+                parent.data[DATA_NORMAL] = osv
+                self._boundary[parent.identifier] = (
+                    self._boundary[parent.identifier][0],
+                    osv,
+                )
+            # Propegate to next parent
+            node = parent
+            if node.identifier == ROOT_ID:
+                return
+
+    def back_propegate(self, k: int):
+        """
+        Propegates new information from leaf nodes to k parents.
+
+        THIS IS A SIMPLE SOLUTION THAT DOES NOT WORK AS WELL AS IT COULD.
+        Why? Because it doesn't account for "too many" samples in one
+        direction. This means if we have a disproportionate number of
+        samples in the same location, they will be mess up the results.
+        However, this may work fine for now.
+
+        Args:
+            k (int): How many nodes up the tree to propegate to
+        """
+        nodes = self._tree.leaves()
+
+        for i in range(k):
+            parents = [
+                self._tree.parent(node.identifier)
+                for node in nodes
+                if node.identifier != ROOT_ID
+            ]
+            for parent in parents:
+                osv = self._average_node_osv(parent, 1)
+                if osv is not None:
+                    parent.data[DATA_NORMAL] = osv
+                    self._boundary[parent.identifier] = (
+                        self._boundary[parent.identifier][0],
+                        osv,
+                    )
+
+            nodes = parents
+
+    def _average_node_osv(
+        self, node: Node, minimum_children: int = 2, node_weight: np.float64 = 0
+    ):
+        """
+        Averages a node's OSV with it's children and parent OSVs.
+
+        Returns None if min children not met
+
+        Args:
+            node_id (int): The id of the node to average
+            minimum_children (int, optional): Minimum children necessary to
+            average. Defaults to 2.
+            node_weight (float64, optional): Will account for the target node's OSV . Defaults to 0.
+
+        Returns:
+            ndarray: The new OSV or,
+            None: if one could not be created
+
+        Will fail if
+        """
+        neighbors = self._tree.children(node.identifier)
+        if len(neighbors) < minimum_children:
+            return None
+
+        new_osv = (
+            Point.zeros(self._ndims).array
+            if node_weight == 0
+            else node.data[DATA_NORMAL]
+        )
+
+        if node.identifier != ROOT_ID:
+            neighbors.append(self._tree.parent(node.identifier))
+
+        for osv in map(
+            lambda neighbor: self._tree.get_node(neighbor.identifier).data[DATA_NORMAL],
+            neighbors,
+        ):
+            new_osv += osv  # self._tree.get_node(node)[DATA_NORMAL]
+
+        if node_weight == 0:
+            new_osv /= len(neighbors)
+        else:
+            new_osv /= len(neighbors) + 1
+
+        return new_osv / np.linalg.norm(new_osv)
 
     @staticmethod
     def _create_data(location, normal) -> dict:
@@ -103,7 +203,6 @@ if __name__ == "__main__":
 
     from sim_bug_tools.exploration.boundary_core.surfacer import find_surface
     from sim_bug_tools.graphics import Grapher
-    
 
     ndims = 3
 
@@ -120,7 +219,7 @@ if __name__ == "__main__":
     print("Building brrt...")
     bpair, interm = find_surface(classifier, loc, d)
     sphere_scaler = Spheroid(d)
-    adhF = BoundaryAdherenceFactory(classifier, domain, sphere_scaler, theta)
+    adhF = ConstantAdherenceFactory(classifier, domain, sphere_scaler, theta)
     brrt = BoundaryRRT(*bpair, adhF)
 
     # The series of points that were sampled to reach the surface
