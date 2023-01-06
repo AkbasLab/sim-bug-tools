@@ -50,28 +50,30 @@ class HighwayPassTestParameterManager:
     def params_df(self) -> pd.DataFrame:
         return self._params_df
 
-    def map_parameters(self, point : structs.Point) -> pd.Series:
+    def map_parameters(self, point: structs.Point) -> pd.Series:
         """
         Maps a normal @point to concrete parameters.
         Returns a pandas series
         """
         s = pd.Series(
-            [utils.project(
-                a = self.params_df.iloc[i]["min"],
-                b = self.params_df.iloc[i]["max"],
-                n = x,
-                by = self.params_df.iloc[i]["inc"]
-            ) for i, x in enumerate(point)],
-            index = self.params_df["feature"]
+            [
+                utils.project(
+                    a=self.params_df.iloc[i]["min"],
+                    b=self.params_df.iloc[i]["max"],
+                    n=x,
+                    by=self.params_df.iloc[i]["inc"],
+                )
+                for i, x in enumerate(point)
+            ],
+            index=self.params_df["feature"],
         )
         return s
 
 
-
 class HighwayPassTest:
-    def __init__(self, params : structs.Point):
+    def __init__(self, params: structs.Point):
         """
-        This class is a fully encapsulated black box scenario which performs a 
+        This class is a fully encapsulated black box scenario which performs a
         simple AV scenario in SUMO traffic simulator.
 
         concrete parameters --> run test --> score test
@@ -83,35 +85,33 @@ class HighwayPassTest:
 
         # Check input
         params_s = pd.Series(params)
-        assert all([
-            any(params_s.index.str.contains(feat)) 
-            for feat in ["init_disp", "rel_vel", "e_decel"]])
+        assert all(
+            [
+                any(params_s.index.str.contains(feat))
+                for feat in ["init_disp", "rel_vel", "e_decel"]
+            ]
+        )
         self._params_s = params
-        
-         # SUMO configuration
+
+        # SUMO configuration
         self._map_dir = "%s" % FILE_DIR
         self._error_log_fn = "%s/error-log.txt" % self.map_dir
         self._config = {
-            "gui" : False,
-            # "gui" : True,
-
+            "gui": False,
+            # "gui": True,
             # Street network
-            "--net-file" : "%s/highway.net.xml" % self.map_dir,
-
+            "--net-file": "%s/highway.net.xml" % self.map_dir,
             # Logging
-            "--error-log" : self.error_log_fn,
+            "--error-log": self.error_log_fn,
             # "--log" : "%s/log.txt" % map_dir,
-
             # Traci Connection
-            "--num-clients" : 1,
-            "--remote-port" : 5522,
-
+            "--num-clients": 1,
+            "--remote-port": 5522,
             # GUI Options
-            "--delay" : 100,
+            "--delay": 100,
             # "--start" : "--quit-on-end",
-
             # RNG
-            "--seed" : 333
+            "--seed": 333,
         }
 
         # Start Client
@@ -129,7 +129,6 @@ class HighwayPassTest:
 
         # Determine scores
         self._scores_s = self._calc_scores()
-        
 
     def ___FEATURES___(self):
         return
@@ -179,9 +178,8 @@ class HighwayPassTest:
     def scores_s(self) -> pd.Series:
         return self._scores_s
 
-    def kph2mps(self, kph : float):
-        return kph/3.6
-
+    def kph2mps(self, kph: float):
+        return kph / 3.6
 
     def _add_actors(self):
         """
@@ -204,43 +202,34 @@ class HighwayPassTest:
 
         # Add the npc
         traci.vehicle.add(
-            "npc", 
-            warmup_rid, 
-            departSpeed = npc_init_speed,
-            departPos = 500,
+            "npc",
+            warmup_rid,
+            departSpeed=npc_init_speed,
+            departPos=500,
         )
         traci.vehicle.setMaxSpeed("npc", npc_init_speed)
         traci.vehicle.moveTo("npc", "highway_0", npc_init_pos)
 
-
-        # Add the DUT        
-        traci.vehicle.add(
-            "dut", 
-            warmup_rid, 
-            departSpeed = dut_init_speed
-        )
+        # Add the DUT
+        traci.vehicle.add("dut", warmup_rid, departSpeed=dut_init_speed)
         traci.vehicle.setMaxSpeed("dut", dut_init_speed)
-        traci.vehicle.setDecel("dut", dut_e_decel/2)
+        traci.vehicle.setDecel("dut", dut_e_decel / 2)
         traci.vehicle.setEmergencyDecel("dut", dut_e_decel)
         traci.vehicle.moveTo("dut", "highway_0", dut_init_pos)
 
-
     def _calc_scores(self):
-        scores = pd.Series({
-            "e_brake" : 0,
-            "collision" : 0
-        })
-        
+        scores = pd.Series({"e_brake": 0, "collision": 0})
+
         # Parse log for scores
         errors = open(self.error_log_fn).readlines()
         for err in errors:
             if "collision" in err:
                 scores["collision"] = 1
             elif "emergency braking" in err:
-                wished = float(re.findall(r"wished=-*\d*\.*\d*", err)[0]\
-                    .split("=")[-1])
-                observed = float(re.findall(r"decel=-*\d*\.*\d*", err)[0]\
-                    .split("=")[-1])
-                scores["e_brake"] = min(abs(wished/observed)*2,1)
+                wished = float(re.findall(r"wished=-*\d*\.*\d*", err)[0].split("=")[-1])
+                observed = float(
+                    re.findall(r"decel=-*\d*\.*\d*", err)[0].split("=")[-1]
+                )
+                scores["e_brake"] = min(abs(wished / observed) * 2, 1)
 
         return scores
