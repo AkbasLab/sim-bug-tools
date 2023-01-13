@@ -255,14 +255,14 @@ class ExponentialAdherenceFactory(AdherenceFactory):
         self,
         classifier: Callable[[Point], bool],
         domain: Domain,
-        d: float,
+        scaler: Scaler,
         delta_theta: float,
         r: float,
         num: int,
         fail_out_of_bounds: bool = False,
     ):
         super().__init__(classifier, domain)
-        self._d = d
+        self._scaler = scaler
         self._delta_theta = delta_theta
         self._r = r
         self._num = num
@@ -277,7 +277,7 @@ class ExponentialAdherenceFactory(AdherenceFactory):
             p,
             n,
             direction,
-            self._d,
+            self._scaler,
             self._delta_theta,
             self._r,
             self._num,
