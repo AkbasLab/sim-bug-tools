@@ -14,6 +14,7 @@ import scipy.spatial
 import sklearn.decomposition
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib import patches
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import ndarray
 
@@ -71,12 +72,19 @@ class Grapher:
     def plot_all_points(self, locs: list[Point], **kwargs):
         return self._ax.scatter(*np.array(locs).T, **kwargs)
 
-    def draw_sphere(self, loc: Point, radius: float):
+    def draw_sphere(self, loc: Point, radius: float, **kwargs):
+        return self._draw_3d_sphere(loc, radius, **kwargs) if self._is3d else self._draw_2d_circle(loc, radius, **kwargs)
+        
+    def _draw_3d_sphere(self, loc: Point, radius: float, **kwargs):
         u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 10j]
         x = loc[0] + radius * np.cos(u) * np.sin(v)
         y = loc[1] + radius * np.sin(u) * np.sin(v)
         z = loc[2] + radius * np.cos(v)
         return self._ax.plot_wireframe(x, y, z, color="r")
+
+    def _draw_2d_circle(self, loc: Point, radius: float, **kwargs):
+        circle = patches.Circle(loc, radius=radius, **kwargs)
+        return self._ax.add_patch(circle)
 
     def draw_cube(self, domain: Domain):
         r = [0, 1]

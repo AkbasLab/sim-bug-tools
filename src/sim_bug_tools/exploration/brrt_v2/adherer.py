@@ -28,21 +28,17 @@ class ExponentialAdherer(Adherer):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
-        domain: Domain,
-        p: Point,
+        b: Point,
         n: ndarray,
         direction: ndarray,
         scaler: Scaler,
         theta0: float,
-        r: float,
         num: int,
-        fail_out_of_domain: bool = False,
-        init_class: bool = None,
+        domain: Domain = None,
+        fail_out_of_bounds: bool = False,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
-
-        WARNING: init_class is not in a working state...
 
         Args:
             classifier (Callable[[Point], bool]): The function that returns true or false depending
@@ -57,75 +53,82 @@ class ExponentialAdherer(Adherer):
             init_class (bool): The initial classification of @p.
                 When None, initial state is determined by @classifier(@p)
         """
-        super().__init__(classifier, domain)
-        self._p = p
-        self._fail_out_of_domain = fail_out_of_domain
-        n = ExponentialAdherer.normalize(n)
-
+        super().__init__(classifier, (b, n), direction, domain, fail_out_of_bounds)
         self._rotater_function = self.generateRotationMatrix(n, direction)
 
         self._initial_angle = abs(theta0)
         self._s: ndarray = scaler * copy(n)
         self._s = np.dot(self._rotater_function(-ANGLE_90), self._s)
 
-        self._v = self._s  # DEBUG
+        self._prev_b: Point = None
+        self._prev_s: ndarray = None
 
         self._prev: Point = None
         self._prev_class = None
 
-        self._cur: Point = p + Point(self._s)
-        self._prev_b: Point = None
-        self._prev_s: ndarray = None
-        if init_class is None:
-            self._cur_class = None
-            self._classify_sample()
-        else:
-            self._cur_class = init_class
+        self._cur: Point = b + Point(self._s)
+        self._cur_class = None
 
-        self._r = r
         self._num = num
 
-        self._b: Point = None
-        self._n: ndarray = None
-
         self._iteration = 0
-        self._angle = self._next_angle(-self._initial_angle)
-        self._iteration += 1
+        self._found_nontarget = False
+
+    # @property
+    # def b(self) -> Point:
+    #     """The identified boundary point"""
+    #     return self._b
+
+    # @property
+    # def n(self) -> Point:
+    #     """The identified boundary point's estimated orthogonal surface vector"""
+    #     return self._n
+
+    # @property
+    # def bnode(self) -> tuple[Point, ndarray]:
+    #     """Boundary point and its surface vector"""
+    #     return (self._b, self._n)
 
     @property
-    def b(self) -> Point:
-        """The identified boundary point"""
-        return self._b
-
-    @property
-    def n(self) -> Point:
-        """The identified boundary point's estimated orthogonal surface vector"""
-        return self._n
-
-    @property
-    def boundary(self) -> tuple[Point, ndarray]:
-        """Boundary point and its surface vector"""
-        return (self._b, self._n)
-
-    def has_next(self) -> bool:
+    def boundary_found(self):
         """
-        Returns:
-            bool: True if the boundary has not been found and has remaining
-                samples.
+        The boundary has been found when a target and nontarget
+        sample has been acquired. NOTE that this does not mean
+        that the algorithm has finished (which only occurs after
+        max_iterations_exceeded occurs.) It only means that the
+        boundary has been found between two samples and that it
+        will not result in boundary lost exception.
         """
-        return self._b is None
+        return self._prev_b is not None and self._found_nontarget
 
-    def _classify_sample(self):
-        self._prev_class = self._cur_class
+    @property
+    def max_iterations_exceeded(self):
+        return self._iteration >= self._num
 
-        in_domain = self._cur in self._domain
-        if self._fail_out_of_domain and not in_domain:
-            raise SampleOutOfBoundsException()
+    def _classify_cur(self):
+        self._cur_class = self._classify(self._cur)
 
-        self._cur_class = in_domain and self._classifier(self._cur)
         if self._cur_class:
-            self._prev_b = self._p + Point(self._s)
+            self._prev_b = self._pivot + Point(self._s)
             self._prev_s = copy(self._s)
+        else:
+            self._found_nontarget = True
+
+    def _rotate_cur(self):
+        """
+        This executes an iteration of the exponentially decaying angle.Sets prev
+        to next, rotates next by angle, updates angle with next_angle().
+        """
+        self._prev = self._cur
+        self._prev_class = self._cur_class
+        
+        self._angle = self._next_angle(self._initial_angle)
+
+        self._s: ndarray = np.dot(self._rotater_function(self._angle), self._s)
+        self._cur = self._pivot + Point(self._s)
+        self._cur_class = None
+
+        self._iteration += 1
 
     def sample_next(self) -> Point:
         """
@@ -141,45 +144,28 @@ class ExponentialAdherer(Adherer):
             Point: The next sample
             None: If the boundary was acquired or lost
         """
-        self._prev = self._cur
+        self._classify_cur()
+        self._rotate_cur()
 
-        self._s = np.dot(self._rotater_function(self._angle), self._s)
-        self._cur = self._p + Point(self._s)
-
-        self._classify_sample()
-        self._angle = self._next_angle(self._initial_angle)
-
-        if self._iteration >= self._num - 1 and self._prev_b is not None:
-            self._b = self._prev_b
-            self._n = self.normalize(
+        if not self.max_iterations_exceeded:
+            pass
+        elif self.boundary_found:
+            self._new_b = self._prev_b
+            self._new_n = self.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._prev_s)
             )
             self.sample_next = lambda: None
 
-        elif self._iteration >= self._num - 1:
+        else:
             raise BoundaryLostException()
 
-        self._iteration += 1
-        return self._cur, self._cur_class
-
-    def find_boundary(self) -> tuple[Point, ndarray]:
-        """
-        Samples until the boundary point is found.
-
-        Returns:
-            Point: The estimated boundary point
-        """
-        all_points = []
-        while self.has_next():
-            all_points.append(self.sample_next())
-
-        return self._b, self._n
+        return self._prev, self._prev_class
 
     def _next_angle(self, angle: float):
         return (
-            abs(angle / (self._r**self._iteration))
+            abs(angle / (2**self._iteration))
             if self._cur_class
-            else -abs(angle / (self._r**self._iteration))
+            else -abs(angle / (2**self._iteration))
         )
 
     @staticmethod
@@ -254,63 +240,27 @@ class ExponentialAdherenceFactory(AdherenceFactory):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
-        domain: Domain,
         scaler: Scaler,
-        delta_theta: float,
-        r: float,
+        theta0: float,
         num: int,
+        domain: Domain = None,
         fail_out_of_bounds: bool = False,
     ):
-        super().__init__(classifier, domain)
+        super().__init__(classifier, domain, fail_out_of_bounds)
         self._scaler = scaler
-        self._delta_theta = delta_theta
-        self._r = r
+        self._theta0 = theta0
         self._num = num
         self._fail_out_of_bounds = fail_out_of_bounds
 
-    def adhere_from(
-        self, p: Point, n: ndarray, direction: ndarray, init_class: bool = None
-    ) -> Adherer:
+    def adhere_from(self, b: Point, n: ndarray, direction: ndarray) -> Adherer:
         return ExponentialAdherer(
             self.classifier,
-            self.domain,
-            p,
+            b,
             n,
             direction,
             self._scaler,
-            self._delta_theta,
-            self._r,
+            self._theta0,
             self._num,
+            self.domain,
             self._fail_out_of_bounds,
-            init_class,
         )
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    from matplotlib.axes import Axes
-
-    from sim_bug_tools.graphics import Grapher
-
-    d = 0.005
-    r = 2
-    num = 4
-    angle = 30 * np.pi / 180
-
-    s_loc = Point(0.5, 0.5, 0.5)
-    s_rad = 0.25
-
-    p = Point(0.5, 0.5, 0.25)
-    n = np.array([0, 0, -1])
-    direction = np.array([0, 1, 0])
-
-    classifier = lambda p: s_loc.distance_to(p) < s_rad
-
-    g = Grapher(is3d=True, domain=Domain.normalized(3))
-    adh_f = ExponentialAdherenceFactory(classifier, d, angle, r, num)
-    adh = adh_f.adhere_from(p, n, direction)
-    while adh.has_next():
-        pk = adh.sample_next()
-        g.plot_point(pk)
-        plt.pause(0.01)
-        input("Waiting...")

@@ -12,6 +12,7 @@ from .adherer import (
     Adherer,
     BoundaryLostException,
     SampleOutOfBoundsException,
+    T_BNODE,
 )
 
 
@@ -30,23 +31,19 @@ class Explorer(ABC):
         self._adherer: Adherer = None
         self._step_count = 0
 
-        self._test_n = None
-
     @property
-    def prev(self):
+    def prev(self) -> T_BNODE:
+        "Previous boundary node"
         return self._prev
 
     @property
     def step_count(self):
+        "The number of boundary nodes found, not including root."
         return self._step_count
 
     @property
-    def sub_samples(self) -> list[tuple[Point, bool]]:
-        "All samples taken, including the boundary points."
-        return self._all_points
-
-    @property
     def boundary(self):
+        "Returns the set of boundary nodes."
         return self._boundary
 
     @abstract
@@ -64,33 +61,28 @@ class Explorer(ABC):
         "Add a newly found boundary point and its surface vector."
         pass
 
-    def expand(self) -> tuple[Point, ndarray]:
-        """
-        Take one step along the boundary; i.e., Finds a new
-        boundary point.
+    def _explore_in_new_direction(self, parent: T_BNODE, direction: ndarray):
+        # Start new step
+        b, n = parent
+        direction = direction
 
-        Returns:
-            tuple[Point, ndarray]: The newly added point on the surface
-                and its estimated orthonormal surface vector
-
-        Throws:
-            BoundaryLostException: Thrown if the boundary is lost
-        """
-        b, n = self._select_parent()
-        self._test_n = n
-        direction = self._pick_direction()
         self._adherer = self._adhererF.adhere_from(b, n, direction)
-        for b in self._adherer:
-            pass
 
-        self._add_child(*self._adherer.boundary)
-        self._prev = self._adherer.boundary
-        self._step_count += 1
-        return self._adherer.boundary
+    def _continue_boundary_search(self):
+        # Continue to look for boundary
+        try:
+            p, cls = self._adherer.sample_next()
 
-    def expand_by(self, N: int) -> list[tuple[Point, ndarray]]:
-        for i in range(N):
-            yield self.expand()
+        except BoundaryLostException as e:
+            # If boundary lost, we need to reset adherer and rethrow exception
+            self._adherer = None
+            raise e
+
+        except SampleOutOfBoundsException as e:
+            self._adherer = None
+            raise e
+
+        return p, cls
 
     def step(self):
         """
@@ -107,45 +99,19 @@ class Explorer(ABC):
             tuple[Point, bool]: Returns the next sampled point and its
             target class.
         """
-        p = None
-        cls = None
         if self._adherer is None:
-            # Start new step
-            b, n = self._select_parent()
-            direction = self._pick_direction()
-            self._test_n = n
-            self._test_dir = direction
+            self._explore_in_new_direction(
+                self._select_parent(), self._pick_direction()
+            )
 
-            try:
-                self._adherer = self._adhererF.adhere_from(b, n, direction)
-                # NOTE: PRONE TO FAILURE! Not in the ABC, needs refactor
-                p = self._adherer._cur
-                cls = self._adherer._cur_class
-
-            except SampleOutOfBoundsException as e:
-                self._adherer = None
-                raise e
-
-        else:
-            # Continue to look for boundary
-            try:
-                p, cls = self._adherer.sample_next()
-
-            except BoundaryLostException as e:
-                # If boundary lost, we need to reset adherer and rethrow exception
-                self._adherer = None
-                raise e
-
-            except SampleOutOfBoundsException as e:
-                self._adherer = None
-                raise e
+        p, cls = self._continue_boundary_search()
 
         if self._adherer is not None and not self._adherer.has_next():
             # Handle newly found boundary
-            node = self._adherer.boundary
+            node = self._adherer.bnode
             self._boundary.append(node)
             self._add_child(*node)
-            self._prev = self._adherer.boundary
+            self._prev = self._adherer.bnode
             self._adherer = None
             self._step_count += 1
 
