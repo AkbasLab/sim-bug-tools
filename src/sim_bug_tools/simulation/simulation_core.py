@@ -26,7 +26,7 @@ class LogicalScenario(ABC):
     @abstract
     def actualizeScenario(self, *params, **kwargs) -> ConcreteScenario:
         pass
-
+    
     __call__ = actualizeScenario
 
 
@@ -34,30 +34,35 @@ TargetSDL = NewType("TargetSDL", str)
 
 
 class Simulator(ABC):
+    def __init__(self, builders: dict[TargetSDL]):
+        self._builders = builders
+    
     @abstract
     @property
     def builders(self) -> dict[TargetSDL, "ScenarioBuilder"]:
-        raise NotImplementedError()
+        self._builders
 
     def run(self, scenario: ConcreteScenario):
         with self.builders[scenario.sdl].build(scenario, self) as executable:
             executable()  # just thoughts
+            
+    def setup_environment(self, scenario: LogicalScenario):
+        # the issue is that it would be nice to run
+        pass
 
 
 S = TypeVar("S", bound=Simulator)
 
 
 class ScenarioBuilder(ABC, Generic[S]):
-    def __init__(self, target_sdl: str):
-        self._target_sdl = target_sdl
-
+       
     @abstract
     def build(self, scenario: ConcreteScenario, sim: S):
         pass
 
     @property
-    def target_sdl(self):
-        return self._target_sdl
+    def target_sdl(self) -> TargetSDL:
+        raise NotImplementedError("Must describe the target SDL!")
 
     __call__ = build
 
