@@ -83,7 +83,7 @@ class Point:
         )
 
     def __add__(self, other):
-        if not isinstance(other, Point):
+        if not isinstance(other, Point) or not isinstance(other, ndarray):
             raise ValueError(
                 f"Can only add a point to another point! Got type {type(other)}"
             )
