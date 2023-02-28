@@ -25,12 +25,17 @@ class Explorer(ABC):
     def __init__(self, b0: Point, n0: ndarray, adhererF: AdherenceFactory):
         self._adhererF = adhererF
         self._boundary = [(b0, n0)]
+        self._ndims = len(b0)
 
         self._prev = (b0, n0)
 
         self._adherer: Adherer = None
         self._step_count = 0
 
+    @property
+    def ndims(self) -> int:
+        return self._ndims
+    
     @property
     def prev(self) -> T_BNODE:
         "Previous boundary node"
