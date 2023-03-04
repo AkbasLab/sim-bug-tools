@@ -149,13 +149,12 @@ class ConstantAdherer(Adherer):
         vn = v - np.dot(un, v.T) * un
         vn = ConstantAdherer.normalize(vn)
 
-        if not (np.dot(un, vn.T) < 1e-4):
-            raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
+        return un, vn if (np.dot(un, vn.T) < 1e-4) else u, v
 
-        return un, vn
-
-    @staticmethod
-    def generateRotationMatrix(u: ndarray, v: ndarray) -> Callable[[float], ndarray]:
+    @classmethod
+    def generateRotationMatrix(
+        cls, u: ndarray, v: ndarray
+    ) -> Callable[[float], ndarray]:
         """
         Creates a function that can construct a matrix that rotates by a given angle.
 
@@ -179,7 +178,7 @@ class ConstantAdherer(Adherer):
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
 
-        u, v = ConstantAdherer.orthonormalize(u, v)
+        u, v = cls.orthonormalize(u, v)
 
         I = np.identity(len(u.T))
 
