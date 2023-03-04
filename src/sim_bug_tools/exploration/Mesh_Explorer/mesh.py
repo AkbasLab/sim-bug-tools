@@ -1,60 +1,80 @@
-import numpy as np 
+import numpy as np
 
 from numpy import ndarray
 from itertools import permutations
 from rtree.index import Index, Property
 from typing import Callable, NewType
 
-from sim_bug_tools.exploration.boundary_core.explorer import Explorer
+from sim_bug_tools.exploration.boundary_core.explorer import (
+    Explorer,
+    ExplorationCompletedException,
+)
 from sim_bug_tools.exploration.boundary_core.adherer import AdherenceFactory
 from sim_bug_tools.structs import Domain, Point, Scaler
 
 # A path is a boundary point and a direction to travel along.
 # It indicates where to go next.
-ENUM_CARDINAL = NewType('cardinal', int)
-PATH = tuple[Point, ndarray, ENUM_CARDINAL] 
+ENUM_CARDINAL = NewType("cardinal", int)
+BID = NewType("id", int)
+PATH = NewType("path", tuple[BID, ndarray])
+
 
 class MeshExplorer(Explorer):
-    
-    def __init__(self, b0: Point, n0: ndarray, adhererF: AdherenceFactory, scaler: Scaler, margin: float = -0.01):
+    def __init__(
+        self,
+        b0: Point,
+        n0: ndarray,
+        adhererF: AdherenceFactory,
+        scaler: Scaler,
+        margin: float = -0.01,
+    ):
         super().__init__(b0, n0, adhererF)
-        self._scaler = scaler 
+        self._scaler = scaler
         self._margin = margin
-        
+
         p = Property()
         p.set_dimension(self.ndims)
         self._index = Index(properties=p)
-        
+
         # ENUM_CARDINAL = index of basis vector
         self._BASIS_VECTORS = tuple(np.identity(self.ndims))
-        
-        self._next_id = 0
-        
+
         self._next_paths: list[PATH] = []
         self._add_child(b0, n0)
-        
+
     def _add_child(self, bk: Point, nk: ndarray):
-        self._next_paths.extend(self._get_next_paths_from(bk, nk))
-        self._index.insert(self._next_id, bk)
-    
+        next_id = len(self.boundary) - 1
+        self._next_paths = self._get_next_paths_from(next_id) + self._next_paths
+        self._index.insert(next_id, bk)
+
     def _select_parent(self) -> tuple[Point, ndarray]:
         finding_gap = True
-        while finding_gap:   
+        while finding_gap and len(self._next_paths) > 0:
             # Find a point that doesn't overlap with others
-            bk, self._v = self._next_paths.pop()
-            b_new = bk + self._v 
-            finding_gap = not self._check_overlap(b_new)
-    
+            bid, self._v = self._next_paths.pop()
+            bk, nk = self.boundary[bid]
+            b_new = bk + self._scaler.scale(self._v)
+            finding_gap = self._check_overlap(b_new)
+
+        if finding_gap:
+            raise ExplorationCompletedException()
+
+        return bk, nk
+
     def _pick_direction(self) -> ndarray:
         return self._v
-    
-    def _get_next_paths_from(self, bk: Point, nk: ndarray) -> list[PATH]:
-        return [(bk, cardinal) for cardinal in self._find_cardinals(nk)]
-    
-    
-    def _find_cardinals(self, n: ndarray) -> list[ndarray]:
+
+    def _get_next_paths_from(self, bid: BID) -> list[PATH]:
+        _, nk = self.boundary[bid]
+        return [
+            (bid, cardinal)
+            for cardinal in self._find_cardinals(nk, self._BASIS_VECTORS)
+        ]
+
+    @classmethod
+    def _find_cardinals(cls, n: ndarray, basis_vectors: list[ndarray]) -> list[ndarray]:
         """
-        Gets the cardinal vectors and their enum type from a given OSV. 
+        Gets the cardinal vectors and their enum type from a given OSV.
 
         Args:
             n (ndarray): _description_
@@ -63,50 +83,50 @@ class MeshExplorer(Explorer):
         Returns:
             list[ndarray]: _description_
         """
-        unit_vectors = list(self._BASIS_VECTORS)
-        
+        unit_vectors = list(basis_vectors)
+
         align_vector = unit_vectors[0]
         unit_vectors = unit_vectors[1:]
-        
-        angle = self.angle_between(align_vector, n)
-        
-        A = self.generateRotationMatrix(align_vector, n)(angle)
-        
+
+        angle = cls.angle_between(align_vector, n)
+
+        A = cls.generateRotationMatrix(align_vector, n)(-angle)
+
         cardinals = []
-        
+
         for uv in unit_vectors:
             c = np.dot(A, uv)
             cardinals.extend((c, -c))
-            
+
         return cardinals
 
-    def _check_overlap(self, bk: Point) -> bool:
+    def _check_overlap(self, p: Point) -> bool:
         "Returns True if there is an overlap"
-        bnear_id = next(self._index.nearest(bk, 1))
+        bnear_id = next(self._index.nearest(p, 1))
         bnear = self._boundary[bnear_id][0]
-        
-        displacement: ndarray = (bk - bnear).array
-        
-        min_distance = np.linalg.norm(self._scaler.scale(displacement) * (1 + self._margin))
-        distance = np.linalg.norm(displacement)       
-        
+
+        displacement: ndarray = (p - bnear).array
+
+        min_distance = np.linalg.norm(self._scaler.scale(self._v) * (1 + self._margin))
+        distance = np.linalg.norm(displacement)
+
         return distance < min_distance
-        
+
     @classmethod
     def angle_between(cls, v1, v2) -> np.float64:
-        """ Returns the angle in radians between vectors 'v1' and 'v2'::
+        """Returns the angle in radians between vectors 'v1' and 'v2'::
 
-            >>> angle_between((1, 0, 0), (0, 1, 0))
-            1.5707963267948966
-            >>> angle_between((1, 0, 0), (1, 0, 0))
-            0.0
-            >>> angle_between((1, 0, 0), (-1, 0, 0))
-            3.141592653589793
+        >>> angle_between((1, 0, 0), (0, 1, 0))
+        1.5707963267948966
+        >>> angle_between((1, 0, 0), (1, 0, 0))
+        0.0
+        >>> angle_between((1, 0, 0), (-1, 0, 0))
+        3.141592653589793
         """
         v1_u = cls.normalize(v1)
         v2_u = cls.normalize(v2)
-        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))    
-        
+        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
     @staticmethod
     def normalize(u: ndarray):
         return u / np.linalg.norm(u)
@@ -141,7 +161,9 @@ class MeshExplorer(Explorer):
         return un, vn
 
     @classmethod
-    def generateRotationMatrix(cls, u: ndarray, v: ndarray) -> Callable[[float], ndarray]:
+    def generateRotationMatrix(
+        cls, u: ndarray, v: ndarray
+    ) -> Callable[[float], ndarray]:
         """
         Creates a function that can construct a matrix that rotates by a given angle.
 
@@ -174,39 +196,148 @@ class MeshExplorer(Explorer):
 
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
 
-if __name__ == "__main__":
+
+def test_mesh():
     import matplotlib.pyplot as plt
     from sim_bug_tools.graphics import Grapher
     from sim_bug_tools.structs import Spheroid
     from sim_bug_tools.exploration.brrt_std.adherer import ConstantAdherenceFactory
+    from sim_bug_tools.exploration.boundary_core.adherer import (
+        BoundaryLostException,
+        SampleOutOfBoundsException,
+    )
+
     ndims = 3
     domain = Domain.normalized(ndims)
-    
+
     g = Grapher(ndims == 3, domain)
-    
+
     d = 0.05
     scaler = Spheroid(d)
     delta_theta = np.pi * 5 / 180
-    
+
     radius = 0.4
     loc = Point([0.5 for i in range(ndims)])
-    classifier = lambda p: loc.distance_to(p) <= radius 
-    
-    b0 = [0.5 for i in range(ndims - 1)] + [radius]
+    g.draw_sphere(loc, radius, color="grey")
+
+    classifier = lambda p: loc.distance_to(p) <= radius
+
+    b0 = Point([0.5 for i in range(ndims - 1)] + [0.5 - radius])
     n0 = np.array([0 for i in range(ndims - 1)] + [-1])
-    
+    g.plot_point(b0, color="green")
+
     adhf = ConstantAdherenceFactory(classifier, scaler, delta_theta, domain, True)
-    
+
     exp = MeshExplorer(b0, n0, adhf, scaler)
-    
-    i = 0
+
+    g_card = None
+    g_osv = None
+
+    count = 50
+    i = 1
     points = []
     while True:
-        while len(exp.boundary) == i:
-            points.append(exp.step())
-        
-        g.plot_point(exp.boundary[-1])
-        
+        while len(exp.boundary) % (count * i):
+            try:
+                points.append(exp.step())
+            except BoundaryLostException as e:
+                print("BLE")
+            except SampleOutOfBoundsException as e:
+                print("SooB")
+
+        g.plot_all_points(list(zip(*exp.boundary[-count:]))[0], color="red")
+
+        if g_card is not None:
+            g_card.remove()
+            g_osv.remove()
+
+        # path_data = [
+        #     (exp.boundary[bid][0], cardinal * 0.1) for bid, cardinal in exp._next_paths
+        # ]
+
+        # g_card = g.add_all_arrows(*zip(*path_data))
+        # g_osv = g.add_all_arrows(
+        #     *zip(*[(b, n * 0.1) for b, n in exp.boundary]), color="yellow"
+        # )
+
         plt.pause(0.01)
-        input("enter")
-        
+        i += 1
+
+
+g_vec = None
+g_uv = None
+
+
+def test_rotation():
+    import matplotlib.pyplot as plt
+    from matplotlib.widgets import Slider
+    from sim_bug_tools.graphics import Grapher
+    from sim_bug_tools.structs import Spheroid
+    from sim_bug_tools.exploration.brrt_std.adherer import ConstantAdherenceFactory
+    from sim_bug_tools.exploration.boundary_core.adherer import (
+        BoundaryLostException,
+        SampleOutOfBoundsException,
+    )
+
+    plt.ion()
+
+    fig, ui_ax = plt.subplots()
+
+    ndims = 3
+    domain = Domain.normalized(ndims)
+
+    g = Grapher(ndims == 3, domain)
+
+    radius = 0.4
+    loc = Point([0.5 for i in range(ndims)])
+    basis = tuple(np.identity(ndims))
+
+    phi0 = 0
+    theta0 = 0
+
+    phi_slider = Slider(
+        ax=ui_ax,
+        label="phi",
+        valmin=0,
+        valmax=np.pi,
+        valinit=phi0,
+        orientation="vertical",
+    )
+
+    theta_slider = Slider(
+        ax=ui_ax,
+        label="theta",
+        valmin=0,
+        valmax=np.pi,
+        valinit=theta0,
+        orientation="horizontal",
+    )
+
+    def update(val):
+        global g_vec, g_uv
+        y = radius * np.cos(phi_slider.val)
+        ab = radius * np.sin(phi_slider.val)
+        x = ab * np.cos(theta_slider.val)
+        z = ab * np.sin(theta_slider.val)
+
+        vec = np.array([x, y, z])
+
+        uvs = MeshExplorer._find_cardinals(vec, basis)
+
+        if g_vec is not None:
+            g_vec.remove()
+
+        if g_uv is not None:
+            g_uv.remove()
+
+        g_vec = g.add_arrow(loc, vec, color="green")
+        g_uv = g.add_all_arrows([loc for i in range(ndims)], uvs, color="blue")
+
+    phi_slider.on_changed(update)
+    theta_slider.on_changed(update)
+
+    plt.show(block=True)
+
+
+if __name__ == "__main__":
+    test_mesh()

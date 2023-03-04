@@ -16,6 +16,17 @@ from .adherer import (
 )
 
 
+class ExplorationCompletedException(Exception):
+    "When an exploration algorithm has finished, this exception may be thrown."
+
+    def __init__(self, msg="Exploration complete"):
+        self.msg = msg
+        super().__init__(msg)
+
+    def __str__(self):
+        return f"<ExplorationCompletedException: {self.msg}>"
+
+
 class Explorer(ABC):
     """
     An abstract class that provides the skeleton for a Boundary Exploration
@@ -35,7 +46,7 @@ class Explorer(ABC):
     @property
     def ndims(self) -> int:
         return self._ndims
-    
+
     @property
     def prev(self) -> T_BNODE:
         "Previous boundary node"
@@ -99,6 +110,19 @@ class Explorer(ABC):
         the boundary, and a "adherence step" is a single sample towards
         finding the boundary. There are two or more adherence steps per
         boundary step.
+
+        Sequence for constructing adherer:
+            1. _select_parent
+            2. _pick_direction
+            3. _explore_in_new_direction
+
+        Sequence after boundary found:
+            1. fetch boundary from adherer
+            2. append node to _boundary
+            3. _add_child()
+            4. set _prev
+            5. reset _adherer
+            6. update _step_count
 
         Returns:
             tuple[Point, bool]: Returns the next sampled point and its
