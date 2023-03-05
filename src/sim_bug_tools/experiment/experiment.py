@@ -4,27 +4,55 @@ from abc import ABC, abstractmethod as abstract
 from sim_bug_tools.structs import Point, Domain
 import json
 
-T = TypeVar('T')
+T = TypeVar("T")
+
+
 class ParameterSpace(ABC, Generic[T]):
     def __init__(self, domain: Domain, axes_names: list[str] = None) -> None:
         self._domain = domain
         self._axes_names = (
-            axes_names 
+            axes_names
             if axes_names is not None
-            else [chr(ord('x') + i) for i in range(len(domain))]
+            else [chr(ord("x") + i) for i in range(len(domain))]
         )
-    
+
     @abstract
-    def evaluate(p : Point) -> T:
+    def evaluate(p: Point) -> T:
         raise NotImplementedError()
-    
-    
-class Experiment(ABC):
+
+
+class ExperimentParams(ABC):
+    """
+    A class that represents input parameters into an experiment. The purpose of
+    this class is to enable type-hinting for interdependencies between
+    Experiments, allowing for a dependent Experiment to know what another
+    Experiment's parameters are.`
+    """
+
+    def __init__(self, dimensions: list[str], name: str = None):
+        """
+        Args:
+            dimensions (list[str]): A list of names for each parameter.
+            name (str, optional): A name to give the resulting concrete
+                experiment. Defaults to None.
+        """
+        self.dimensions = dimensions
+        self.name = "None" if name is None else name
+
+    def to_dict(self):
+        return self.__dict__
+
+
+P = TypeVar("P", bound=ExperimentParams)
+
+
+class Experiment(ABC, Generic[P]):
     """
     A class that provides tools for creating, documenting, and varying
     experiments.
     """
-    KW_EXP_NAME = 'name'
+
+    KW_EXP_NAME = "name"
 
     def __init__(self, name: str, abbrevation: str, output_path: str):
         self._name = name
@@ -34,7 +62,7 @@ class Experiment(ABC):
         self.setup()
 
     @abstract
-    def experiment(self, params: dict) -> dict:
+    def experiment(self, params: P) -> dict:
         raise NotImplementedError()
 
     def setup(self):
@@ -43,7 +71,7 @@ class Experiment(ABC):
         """
         pass
 
-    def execute(self, variations: list[dict], save_separately=False):
+    def execute(self, variations: list[P], save_separately=False):
         """
         Executes the experiment with the provided variations. If a "name" key is
         found within a variation (i.e. experiment params) then it will be used
@@ -56,13 +84,9 @@ class Experiment(ABC):
                 separate file. Files will be labeled with their variation's
                 name. Defaults to False.
         """
-        variations = [variations] if type(variations) is dict else variations
-        if type(variations) is not list:
-            raise TypeError("Variations must be an experiment params (dict) or a list of params (list[dict])")
-            
         _name_counts = {}
 
-        results: list[dict] = []
+        results: dict = {}
 
         for i, params in enumerate(variations):
             completion = "OK"
@@ -72,31 +96,30 @@ class Experiment(ABC):
             except Exception as e:
                 completion = f"Exception: {e}"
 
-            # Ensure dict
-            result = result if result is not None else {}
+            result = {} if result is None else result
 
-            name = params[self.KW_EXP_NAME] if self.KW_EXP_NAME in params else str(i)
             result["exit"] = completion
+            result["params"] = params.to_dict()
 
             # Handle name duplicates...
-            if name in _name_counts:
-                results[f"{name}-{_name_counts[name]}"] = result
-                _name_counts[name] += 1
+            if params.name in _name_counts:
+                results[f"{params.name}-{_name_counts[params.name]}"] = result
+                _name_counts[params.name] += 1
             else:
-                results[name] = result
-                _name_counts[name] = 1
+                results[params.name] = result
+                _name_counts[params.name] = 1
 
         self.teardown(completion)
-    
-    
 
+        return result
 
     def teardown(self, completion: str):
         """
         Will automatically output the data
         """
         with open(
-            f"{datetime.strftime('%y%m%d-%H%M%S')}-{self._abbreviation}", "w"
+            f"{self._output_path}/{datetime.strftime('%y%m%d-%H%M%S')}-{self._abbreviation}",
+            "w",
         ) as f:
             data = self.data
             data["exit"] = completion
