@@ -7,11 +7,13 @@ import warnings
 import matplotlib.axes
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import networkx as nx
 import numpy as np
 import pandas as pd
 import scipy.spatial
 import sklearn.decomposition
+from matplotlib.path import Path
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib import patches
@@ -115,6 +117,15 @@ class Grapher:
                     *zip(parent_point, child.data[DATA_LOCATION]), "bo", linestyle="-"
                 )
                 stack.append((child, tree.children(child.identifier)))
+
+    def draw_path(self, vertices: list[Point], typ="--", **kwargs):
+        # codes = [Path.MOVETO] + [Path.LINETO] * (len(vertices) - 1)
+        # path = Path(vertices, codes)
+        # patch = patches.PathPatch(path, facecolor='none', lw=2)
+
+        # self._ax.add_patch(patch)
+
+        self._ax.plot(*np.array(vertices).T, typ, **kwargs)
 
     def save(self, path: str):
         self._fig.savefig(path)
