@@ -14,8 +14,11 @@ from numpy import ndarray
 
 class ExperimentParams(ABC):
     def __init__(self, name: str, desc: str):
-        self.name = name
+        self.name = self._format_name(name)
         self.desc = desc
+        
+    def _format_name(self, name: str):
+        return name.strip().replace(" ", "_")
 
     def __repr__(self) -> str:
         return (
@@ -44,10 +47,8 @@ class ExperimentResults(ABC, Generic[P]):
     DATE = "date"
     PARAMS = "experiment-parameters"
 
-    def __init__(self, exp_name: str, params: P, param_name: str = None):
+    def __init__(self, params: P):
         self.date = datetime.now()
-        self.exp_name = exp_name
-        self.param_name = param_name
         self.params = params
 
     def _misc_json_parser(self, o):
@@ -71,12 +72,7 @@ class ExperimentResults(ABC, Generic[P]):
         return json.dumps(d, default=self._misc_json_parser, sort_keys=True, indent=4)
 
     def __repr__(self):
-        if self.param_name is not None:
-            s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}-{self.param_name}"
-        else:
-            s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}"
-
-        return s
+        return f"{self.params.name}-{self.date.strftime('%Y%m%d_%H%M%S')}"
 
     __str__ = __repr__
 
@@ -93,7 +89,7 @@ class ExperimentIndex(Generic[P, R]):
 
     RE_INDEX = re.compile("_*-index.json")
 
-    def __init__(self, parent_path: str, name: str, desc: str = None, load=False):
+    def __init__(self, parent_path: str, name: str, desc: str = None, force_init=False):
         """
         Constructs a new index within the parent_path. The index folder will
         have a name of @name, and will construct an index json file
@@ -120,7 +116,7 @@ class ExperimentIndex(Generic[P, R]):
 
         self._path = os.path.join(self._root, self.get_index_name(name))
 
-        if load:
+        if not force_init and os.path.exists(self._path):
             self._json = self._load_index()
         else:
             self._json = self._init_index(name, desc)
@@ -161,7 +157,7 @@ class ExperimentIndex(Generic[P, R]):
         self._write_json()
 
     def get_result(self, name: ResultName) -> R:
-        with open(os.path.join(self._root, f"{name}.pkl"), "r") as f:
+        with open(os.path.join(self._root, f"{name}.pkl"), "rb") as f:
             result = pickle.load(f)
 
         return result
@@ -201,15 +197,19 @@ class ExperimentIndex(Generic[P, R]):
     @property
     def json(self):
         return self._json
-
+    
     @staticmethod
-    def from_experiment(parent_path: str, experiment: E) -> "ExperimentIndex[P, R]":
-        return ExperimentIndex(parent_path, experiment.name, experiment.description)
+    def from_experiment_name(parent_path: str, name: str, desc: str = None) -> "ExperimentIndex":
+        return ExperimentIndex(parent_path, name, desc)
+
+    # @staticmethod
+    # def from_experiment(parent_path: str, experiment: E) -> "ExperimentIndex":
+    #     return ExperimentIndex(parent_path, experiment.name, experiment.description)
 
     @staticmethod
     def load_from_index_path(index_path: str) -> "ExperimentIndex":
         parent_path, name = os.path.split(index_path)
-        return ExperimentIndex(parent_path, name, load=True)
+        return ExperimentIndex(parent_path, name)
 
     @staticmethod
     def get_index_name(exp_name: str) -> str:
@@ -230,29 +230,10 @@ class ExperimentIndex(Generic[P, R]):
 
 
 class Experiment(ABC, Generic[P, R]):
-    CACHE_FOLDER = "experiment_caches"
+    CACHE_FOLDER = ".experiment_caches"
 
-    def __init__(self, name: str, description: str):
-        self.name = name
-        self.description = description
-
-        self._lazily_init_index()
-
-    ## Caching ##
-    def _lazily_init_index(self):
-        "Inits the cache index for managing cache files if it's not already init'd."
-        if os.path.exists(self.index_root_path):
-            self._index = ExperimentIndex.load_from_index_path(self.index_path)
-        else:
-            self._index = ExperimentIndex.from_experiment(self.CACHE_FOLDER, self)
-
-    # Running
-    # @abstract
-    # def experiment(self):
-    #     """
-    #     Implement this method for creating your experiment.
-    #     """
-    #     raise NotImplementedError()
+    def __init__(self):
+        self._index: ExperimentIndex[P, R] = ExperimentIndex(self.CACHE_FOLDER, self.name) #.from_experiment(self.CACHE_FOLDER, self)
 
     def experiment(self, params: P) -> R:
         "Implement this with your experiment's code"
@@ -261,7 +242,7 @@ class Experiment(ABC, Generic[P, R]):
     def run(self, params: P) -> R:
         "Execute this to run your experiment"
         result = self.experiment(params)
-        self._cache()
+        self._index.add_result(result)
 
     __call__ = run
 
@@ -290,4 +271,15 @@ class Experiment(ABC, Generic[P, R]):
     @property
     def index_path(self):
         "The path to the index file for the cache."
-        return os.path.join(f"{self.CACHE_FOLDER}", self.name)
+        return os.path.join(f"{self.CACHE_FOLDER}", self.name, ExperimentIndex.get_index_name(self.__name__))
+    
+    @property 
+    def name(self):
+        return self.__class__.__name__
+    
+    @classmethod
+    def get_index(cls):
+        return ExperimentIndex(cls.CACHE_FOLDER, cls.__name__)
+
+
+    
