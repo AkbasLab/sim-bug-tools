@@ -1,4 +1,4 @@
-from typing import Callable, Generic, TypeVar, NewType
+from typing import Callable, Generic, TypeVar, NewType, Any
 from datetime import datetime
 from abc import ABC, abstractmethod as abstract
 from sim_bug_tools.structs import Point, Domain
@@ -8,18 +8,88 @@ import os
 import re
 import pickle
 from sim_bug_tools.structs import Point, Domain
+from uuid import uuid3
+from numpy import ndarray
+
+
+class ExperimentParams(ABC):
+    def __init__(self, name: str, desc: str):
+        self.name = name
+        self.desc = desc
+
+    def __repr__(self) -> str:
+        return (
+            "<ExperimentParams | {self.name}>\n{self.desc}\n"
+            + "{\n"
+            + str(self.__dict__)
+            + "\n}"
+        )
+
+    __str__ = __repr__
+
+
+P = TypeVar("P", bound=ExperimentParams)
+
+
+class ExperimentResults(ABC, Generic[P]):
+    """
+    Implement this class for defining dependencies for sequencing
+    experiments. This provides type hints for when you depend on the result
+    of another experiment, also enables caching of results. Make this a
+    dataclass for easy boiler plate.
+    """
+
+    EXP_NAME = "experiment-name"
+    SPEC_NAME = "specific-name"
+    DATE = "date"
+    PARAMS = "experiment-parameters"
+
+    def __init__(self, exp_name: str, params: P, param_name: str = None):
+        self.date = datetime.now()
+        self.exp_name = exp_name
+        self.param_name = param_name
+        self.params = params
+
+    def _misc_json_parser(self, o):
+        "Add additional cases here for handling sim-bug-tools objects"
+        if type(o) is Point:
+            return tuple(o)
+        elif type(o) is Domain:
+            return tuple(map(lambda x: tuple(x), tuple(o)))
+        else:
+            return o.__dict__
+
+    def to_json(self):
+        "Use this method to save in a readable format."
+        d = {}
+
+        # Format keys to use - instead of _
+        for key, value in self.__dict__.items():
+            key = key.replace("_", "-").strip("-", " ")
+            d[key] = value
+
+        return json.dumps(d, default=self._misc_json_parser, sort_keys=True, indent=4)
+
+    def __repr__(self):
+        if self.param_name is not None:
+            s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}-{self.param_name}"
+        else:
+            s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}"
+
+        return s
+
+    __str__ = __repr__
+
 
 ResultName = NewType("ResultName", str)
-R = TypeVar("R", bound="Experiment.ExperimentResults")
+R = TypeVar("R", bound=ExperimentResults)
 E = TypeVar("E", bound="Experiment")
 
-T = TypeVar("T")
 
-
-class ExperimentIndex(Generic[R]):
+class ExperimentIndex(Generic[P, R]):
     EXPERIMENT_NAME = "name"
     EXPERIMENT_DESCRIPTION = "description"
-    RESULT_NAMES = "results"
+    RESULT_IDS = "results"
 
     RE_INDEX = re.compile("_*-index.json")
 
@@ -59,7 +129,7 @@ class ExperimentIndex(Generic[R]):
         _json = {
             self.EXPERIMENT_NAME: name,
             self.EXPERIMENT_DESCRIPTION: desc,
-            self.RESULT_NAMES: [],
+            self.RESULT_IDS: [],
         }
 
         with open(self._path, "w") as f:
@@ -82,15 +152,15 @@ class ExperimentIndex(Generic[R]):
         self._write_json()
 
     def add_result(self, result: R):
+        "Add results to index and pickle result for future retrieval"
         with open(os.path.join(f"{self._root}", f"{str(result)}.pkl"), "wb") as f:
             pickle.dump(result, f)
 
-        self._json[self.RESULT_NAMES].append(str(result))
+        self._json[self.RESULT_IDS].append(str(result))
 
         self._write_json()
 
     def get_result(self, name: ResultName) -> R:
-        result: R
         with open(os.path.join(self._root, f"{name}.pkl"), "r") as f:
             result = pickle.load(f)
 
@@ -102,7 +172,7 @@ class ExperimentIndex(Generic[R]):
 
     @property
     def result_names(self) -> list[ResultName]:
-        return self._json[self.RESULT_NAMES]
+        return self._json[self.RESULT_IDS]
 
     @property
     def previous_result_name(self) -> ResultName:
@@ -133,8 +203,8 @@ class ExperimentIndex(Generic[R]):
         return self._json
 
     @staticmethod
-    def from_experiment(parent_path: str, experiment: E) -> "ExperimentIndex"[E]:
-        return ExperimentIndex(parent_path, experiment.name, experiment.desc)
+    def from_experiment(parent_path: str, experiment: E) -> "ExperimentIndex[P, R]":
+        return ExperimentIndex(parent_path, experiment.name, experiment.description)
 
     @staticmethod
     def load_from_index_path(index_path: str) -> "ExperimentIndex":
@@ -159,101 +229,16 @@ class ExperimentIndex(Generic[R]):
         return cls.load_from_index_path(index_paths[0])
 
 
-class Experiment(ABC):
+class Experiment(ABC, Generic[P, R]):
     CACHE_FOLDER = "experiment_caches"
 
-    def __init__(self, name: str, desc: str):
-        self._name = name
-        self._desc = desc
+    def __init__(self, name: str, description: str):
+        self.name = name
+        self.description = description
 
-        self._setup()
         self._lazily_init_index()
 
-    @property
-    def desc(self):
-        return self._desc
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def state(self):
-        return self.__dict__
-
-    @property
-    def has_cache(self) -> bool:
-        return os.path.exists(self.index_path)
-
-    def _setup(self):
-        """
-        Wraps the run method with setup and teardown operations at runtime.
-        """
-        run = self.run
-
-        def new_run(*args, **kwargs):
-            # setup
-            self.fetch_dependencies()
-
-            # run
-            run(*args, **kwargs)
-
-            # teardown
-            self._cache()
-
-        return new_run
-
-    # Caching
-    class ExperimentResults(ABC):
-        """
-        Implement this class for defining dependencies for sequencing
-        experiments. This provides type hints for when you depend on the result
-        of another experiment, also enables caching of results. Make this a
-        dataclass for easy boiler plate.
-        """
-
-        EXP_NAME = "experiment-name"
-        SPEC_NAME = "specific-name"
-        DATE = "date"
-        PARAMS = "experiment-parameters"
-
-        def __init__(self, exp_name: str, params: dict, spec_name: str = None):
-            self.date = datetime.now()
-            self.exp_name = exp_name
-            self.spec_name = spec_name
-            self.params = params
-
-        def _misc_json_parser(self, o):
-            if type(o) is Point:
-                return tuple(o)
-            elif type(o) is Domain:
-                return tuple(map(lambda x: tuple(x), tuple(o)))
-            else:
-                return o.__dict__
-
-        def to_json(self):
-            "Use this method to save in a readable format."
-            d = {}
-
-            # Format keys to use - instead of _
-            for key, value in self.__dict__.items():
-                key = key.replace("_", "-").strip("-", " ")
-                d[key] = value
-
-            return json.dumps(
-                d, default=self._misc_json_parser, sort_keys=True, indent=4
-            )
-
-        def __repr__(self):
-            if self.spec_name is not None:
-                s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}-{self.spec_name}"
-            else:
-                s = f"{self.date.strftime('%Y%m%d_%H%M%S')}-{self.exp_name}"
-
-            return s
-
-        __str__ = __repr__
-
+    ## Caching ##
     def _lazily_init_index(self):
         "Inits the cache index for managing cache files if it's not already init'd."
         if os.path.exists(self.index_root_path):
@@ -262,58 +247,47 @@ class Experiment(ABC):
             self._index = ExperimentIndex.from_experiment(self.CACHE_FOLDER, self)
 
     # Running
-    @abstract
-    def run(self) -> ExperimentResults:
-        """
-        Implement this method to execute your experiment.
-        Notes:
-        - all object variables will be part of the "state" of the experiment, if
-        you want to save that information as a result, store it in self.
+    # @abstract
+    # def experiment(self):
+    #     """
+    #     Implement this method for creating your experiment.
+    #     """
+    #     raise NotImplementedError()
 
-        Returns:
-            ExperimentResults: The results of the experiment.
-        """
+    def experiment(self, params: P) -> R:
+        "Implement this with your experiment's code"
         pass
 
-    def lazily_run(self) -> ExperimentResults:
-        """
-        Runs only if there is no cached result, otherwise returns the cached
-        result.
+    def run(self, params: P) -> R:
+        "Execute this to run your experiment"
+        result = self.experiment(params)
+        self._cache()
 
-        Returns:
-            ExperimentResults: The results of the experiment.
-        """
-        if self.has_cache:
-            return self._cache()
-        else:
-            return self.run()
+    __call__ = run
 
-    def run_all(self, sequence: tuple) -> list[ExperimentResults]:
-        """
-        Runs a sequence of parameters. Each parameter is ran by the experiment,
-        the results from which are returned as a list in the order of their execution.
-
-        Args:
-            sequence (tuple): The sequence of parameters. Parameters must match
-                the signature of the self.run command.
-
-        Returns:
-            list[ExperimentResults]: The list of results, where each result corresponds to a
-                parameter within @sequence.
-        """
-        return [self.run(params) for params in sequence]
-
-    @property
-    def index_root_path(self):
-        "The root folder of the cache index."
-        return os.path.join(f"{self.CACHE_FOLDER}", self._name)
-
-    @property
-    def index_path(self):
-        "The path to the index file for the cache."
-        return os.path.join(f"{self.CACHE_FOLDER}", self._name)
+    def _cache_result(self, result: R):
+        # self._index.
+        pass
 
     @property
     def index(self):
         "The experiment index object for managing the cached results."
         return self._index
+
+    @property
+    def state(self):
+        return {key: value for key, value in self.__dict__.items() if key[0] != "_"}
+
+    @property
+    def has_cache(self) -> bool:
+        return os.path.exists(self.index_path)
+
+    @property
+    def index_root_path(self):
+        "The root folder of the cache index."
+        return os.path.join(f"{self.CACHE_FOLDER}", self.name)
+
+    @property
+    def index_path(self):
+        "The path to the index file for the cache."
+        return os.path.join(f"{self.CACHE_FOLDER}", self.name)
