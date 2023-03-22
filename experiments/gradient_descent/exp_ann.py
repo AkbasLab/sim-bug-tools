@@ -1,41 +1,298 @@
-
+import numpy as np
+import tensorflow as tf
 
 from numpy import ndarray
 from typing import Callable
+from abc import abstractmethod as abstract
 
 from sim_bug_tools.structs import Point, Domain
 from sim_bug_tools.experiment import Experiment, ExperimentParams, ExperimentResults
+from sim_bug_tools.rng.lds.sequences import Sequence, SobolSequence
 
 
 class Scorable:
-    pass 
+    @abstract
+    def score(self, p: Point) -> ndarray:
+        raise NotImplementedError()
+
+    @abstract
+    def classify_score(self, score: ndarray) -> bool:
+        raise NotImplementedError()
+
+    @abstract
+    def classify(self, p: Point) -> bool:
+        return self.classify_score(self.score(p))
+
+    @abstract
+    def get_input_dims(self):
+        raise NotImplementedError()
+
+    @abstract
+    def get_score_dims(self):
+        raise NotImplementedError()
+
 
 class Graded(Scorable):
-    pass
+    @abstract
+    def gradient(self, p: Point) -> ndarray:
+        raise NotImplementedError()
+
+
+class ProbilisticSphere(Graded):
+    def __init__(self, loc: Point, radius: float, lmbda: float):
+        """
+        Probability density is formed from the base function f(x) = e^-(x^2),
+        such that f(radius) = lmbda and is centered around the origin with a max
+        of 1.
+
+        Args:
+            loc (Point): Where the sphere is located
+            radius (float): The radius of the sphere
+            lmbda (float): The density of the sphere at its radius
+        """
+        self.loc = loc
+        self.radius = radius
+        self.lmda = lmbda
+        self.ndims = len(loc)
+
+        self._c = 1 / radius**2 * np.log(1 / lmbda)
+
+    def score(self, p: Point) -> ndarray:
+        "Returns between 0 (far away) and 1 (center of) envelope"
+        dist = self.loc.distance_to(p)
+
+        return np.array(1 / np.e ** (self._c * dist**2))
+
+    def classify_score(self, score: ndarray) -> bool:
+        return np.linalg.norm(score) < self.lmda
+
+    def gradient(self, p: Point) -> np.ndarray:
+        s = p - self.loc
+        s /= np.linalg.norm(s)
+
+        return s * self._dscore(p)
+
+    def get_input_dims(self):
+        return len(self.loc)
+
+    def get_score_dims(self):
+        return 1
+
+    def boundary_err(self, b: Point) -> float:
+        "Negative error is inside the boundary, positive is outside"
+        return self.loc.distance_to(b) - self.radius
+
+    def _dscore(self, p: Point) -> float:
+        return -self._c * self.score(p) * self.loc.distance_to(p)
+
 
 class ANNParams(ExperimentParams):
     def __init__(
         self,
         name: str,
-        classified_points: list[tuple[Point, bool]],
-        envelope,
-        batch_size=128,
+        envelope: Scorable,
+        seq: Sequence,
+        n_samples=2**10,
+        batch_size=2**7,
         n_epochs=500,
+        optimizer="adam",
         desc: str = None,
     ):
+        """
+        Args:
+            envelope (Scorable): The envelope to model
+            seq (Sequence): The sequence used to sample the envelope with for
+                constructing training set
+            n_samples (_type_, optional): The number of @seq samples from
+                @envelope to train the model. Defaults to 2**10.
+            batch_size (_type_, optional): How many samples per batch. Defaults to 2**7.
+            n_epochs (int, optional): How many epochs. Defaults to 500.
+            optimizer (str, optional): Tensorflow optimizer to use in training
+                the model. Defaults to "adam".
+        """
         super().__init__(name, desc)
-        self.classified_points = classified_points
-        
-    
+
+        self.envelope = envelope
+        self.seq = seq
+        self.n_samples = n_samples
+        self.batch_size = batch_size
+        self.n_epochs = n_epochs
+        self.optimizer = optimizer
+        self.model_name = name
 
 
 class ANNResults(ExperimentResults[ANNParams]):
-    def __init__(self, params: ANNParams, model, labeled_data):
+    def __init__(
+        self,
+        params: ANNParams,
+        model_path: str,
+        scored_data: list[tuple[ndarray, ndarray]],
+    ):
         super().__init__(params)
+        self.model_path = model_path
+        self.scored_data = scored_data
 
 
 class ANNExperiment(Experiment[ANNParams, ANNResults]):
+    def bare_model(self, input_dims: int, output_dims: int) -> tf.keras.Sequential:
+        "Creates an ANN according to Wang et al."
+        tanh = tf.keras.activations.tanh
+        relu = tf.keras.activations.relu
+
+        model = tf.keras.Sequential(
+            [
+                tf.keras.layers.Input(shape=(input_dims,), name="parameters"),
+                tf.keras.layers.Dense(32, activation=tanh),
+                tf.keras.layers.Dense(64, activation=tanh),
+                tf.keras.layers.Dense(32, activation=tanh),
+                tf.keras.layers.Dense(output_dims, activation=relu),
+            ]
+        )
+
+        model.compile(
+            optimizer="adam",  # not sure if ADAM was used for training the ANN itself...
+            loss=tf.keras.losses.mse,
+            metrics=["accuracy"],
+        )
+
+        return model
+
+    def get_dataset_partitions(
+        self,
+        ds: list[tuple[Point, ndarray]],
+        train_split=0.8,
+        val_split=0.1,
+        test_split=0.1,
+        shuffle=True,
+    ):
+        "Break data up into train, validation, and testing sets"
+        assert (train_split + test_split + val_split) == 1
+
+        ds_size = len(ds)
+
+        if shuffle:
+            # Specify seed to always have the same split distribution between runs
+            np.random.shuffle(ds)
+
+        train_size = int(train_split * ds_size)
+        val_size = int(val_split * ds_size)
+        test_size = int(ds_size - val_split * ds_size)
+
+        train_ds = ds[:train_size]
+        val_ds = ds[train_size : train_size + val_size]
+        test_ds = ds[-test_size:]
+
+        return train_ds, val_ds, test_ds
+
+    def train_model(
+        self,
+        model: tf.keras.Sequential,
+        scored_points: list[tuple[Point, ndarray]],
+        batch: int,
+        epochs: int,
+    ):
+        train, val, test = self.get_dataset_partitions(np.array(scored_points))
+
+        X_train, Y_train = zip(*train)
+
+        X_train = np.asarray(X_train)
+        Y_train = np.asarray(Y_train)
+
+        model.fit(X_train, Y_train, batch_size=batch, epochs=epochs)
+
+    def generate_data(self, params: ANNParams):
+        """
+        Generate inputs labeled with the results from the envelope's scoring.
+        Returns list[tuple[input (Point), score (NDArray)]]
+        """
+        return [
+            (p.array, params.envelope.score(p))
+            for p in params.seq.get_sample(params.n_samples).points
+        ]
+
     def experiment(self, params: ANNParams) -> ANNResults:
-        pass
-    
-    
+        model = self.bare_model(
+            params.envelope.get_input_dims(), params.envelope.get_score_dims()
+        )
+
+        data = self.generate_data(params)
+
+        self.train_model(model, data, params.batch_size, params.n_epochs)
+
+        path = self.get_path(params.model_name)
+        model.save(path)
+
+        return ANNResults(params, path, data)
+
+    @classmethod
+    def get_path(cls, model_name: str) -> str:
+        """
+        Generates a path that follows a consistent formatting for caching models
+        """
+        return f"{cls.CACHE_FOLDER}/{cls.get_name()}/{model_name}"
+
+    @staticmethod
+    def class_acc(
+        model: tf.keras.Sequential,
+        scored_data: list[tuple[ndarray, ndarray]],
+        envelope: Scorable,
+    ):
+        tp, tn, fp, fn = 0, 0, 0, 0
+
+        for p, score in scored_data:
+            true_cls = envelope.classify_score(score)
+            pred_cls = model(p[None])
+
+            if true_cls:
+                if pred_cls:
+                    tp += 1
+                else:
+                    fn += 1
+            else:
+                if not pred_cls:
+                    tn += 1
+                else:
+                    fp += 1
+
+        return tp, tn, fp, fn
+
+
+def _ann_param_name(n_samples: int):
+    return f"ANN-psphere-{n_samples}"
+
+
+def test_ann():
+    print("Tensorflow is required to run this test...")
+    ndims = 3
+    domain = Domain.normalized(ndims)
+
+    ann_exp = ANNExperiment()
+
+    # Probabilistic sphere with radius .4, where the prob-density that defines
+    # the boundary is 0.25
+    envelope = ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
+    seq = SobolSequence(domain, [str(i) for i in range(ndims)])
+
+    # how many samples from the envelope to train the ANN on
+    ann_training_size = 100
+
+    ann_name = _ann_param_name(ann_training_size)
+    ann_params = ANNParams(
+        ann_name, envelope, seq, ann_training_size, int(ann_training_size / 10)
+    )
+
+    ann_results = ann_exp.lazily_run(ann_params)
+
+    model = tf.keras.models.load_model(ann_results.model_path)
+    data = ann_results.scored_data
+
+    # determine True positive/negative and false positive/negative for all
+    # scored data within the training set
+    truth_table = ANNExperiment.class_acc(model, data, envelope)
+    tp, tn, fp, fn = truth_table
+
+    print(truth_table)
+
+
+if __name__ == "__main__":
+    test_ann()

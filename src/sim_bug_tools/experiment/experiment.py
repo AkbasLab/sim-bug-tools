@@ -1,28 +1,36 @@
-from typing import Callable, Generic, TypeVar, NewType, Any
-from datetime import datetime
-from abc import ABC, abstractmethod as abstract
-from sim_bug_tools.structs import Point, Domain
 import json
-from abc import ABC, abstractmethod as abstract
 import os
+import sys
 import re
 import pickle
+
+from typing import Generic, TypeVar, NewType
+from datetime import datetime
+from abc import ABC, abstractmethod as abstract
+
 from sim_bug_tools.structs import Point, Domain
-from uuid import uuid3
-from numpy import ndarray
 
 
 class ExperimentParams(ABC):
     def __init__(self, name: str, desc: str):
+        """
+        Args:
+            name (str): A UNIQUE name for this set of parameters. Used for
+                fetching previous results derived from these parameters.
+            desc (str): A simple description for what the experiment is aiming
+                for.
+        """
         self.name = self._format_name(name)
         self.desc = desc
-        
+
+    # def copy_with(self, **kwargs):
+
     def _format_name(self, name: str):
         return name.strip().replace(" ", "_")
 
     def __repr__(self) -> str:
         return (
-            "<ExperimentParams | {self.name}>\n{self.desc}\n"
+            f"<{self.__class__.__name__} | {self.name}>\n{self.desc}\n"
             + "{\n"
             + str(self.__dict__)
             + "\n}"
@@ -156,9 +164,22 @@ class ExperimentIndex(Generic[P, R]):
 
         self._write_json()
 
-    def get_result(self, name: ResultName) -> R:
-        with open(os.path.join(self._root, f"{name}.pkl"), "rb") as f:
+    def get_result(self, filename: str) -> R:
+        with open(os.path.join(self._root, f"{filename}.pkl"), "rb") as f:
             result = pickle.load(f)
+
+        return result
+
+    def get_previous_result_by_name(self, param_name: str) -> R:
+        most_recent = sorted(
+            [name for name in self.result_names if name.startswith(param_name)]
+        )
+
+        if len(most_recent) > 0:
+            with open(os.path.join(self._root, f"{most_recent[-1]}.pkl"), "rb") as f:
+                result = pickle.load(f)
+        else:
+            result = None
 
         return result
 
@@ -197,9 +218,11 @@ class ExperimentIndex(Generic[P, R]):
     @property
     def json(self):
         return self._json
-    
+
     @staticmethod
-    def from_experiment_name(parent_path: str, name: str, desc: str = None) -> "ExperimentIndex":
+    def from_experiment_name(
+        parent_path: str, name: str, desc: str = None
+    ) -> "ExperimentIndex":
         return ExperimentIndex(parent_path, name, desc)
 
     # @staticmethod
@@ -233,22 +256,43 @@ class Experiment(ABC, Generic[P, R]):
     CACHE_FOLDER = ".experiment_caches"
 
     def __init__(self):
-        self._index: ExperimentIndex[P, R] = ExperimentIndex(self.CACHE_FOLDER, self.name) #.from_experiment(self.CACHE_FOLDER, self)
+        self._index: ExperimentIndex[P, R] = ExperimentIndex(
+            self.CACHE_FOLDER, self.get_name()
+        )  # .from_experiment(self.CACHE_FOLDER, self)
 
+    @abstract
     def experiment(self, params: P) -> R:
         "Implement this with your experiment's code"
-        pass
+        raise NotImplementedError()
+
+    def setup(self):
+        "Implement this to support with statement"
+        raise NotImplementedError("Setup method was not defined for this experiment!")
+
+    def teardown(self):
+        "Implement this to support with statement"
+        raise NotImplementedError(
+            "Teardown method was not defined for this experiment!"
+        )
 
     def run(self, params: P) -> R:
         "Execute this to run your experiment"
         result = self.experiment(params)
         self._index.add_result(result)
+        return result
+
+    def lazily_run(self, params: P) -> R:
+        "Execute if no params with the same name have already been executed"
+        result = self.index.get_previous_result_by_name(params.name)
+        if result is None:
+            result = self.run(params)
+
+        return result
 
     __call__ = run
 
-    def _cache_result(self, result: R):
-        # self._index.
-        pass
+    __enter__ = setup
+    __exit__ = teardown
 
     @property
     def index(self):
@@ -266,20 +310,21 @@ class Experiment(ABC, Generic[P, R]):
     @property
     def index_root_path(self):
         "The root folder of the cache index."
-        return os.path.join(f"{self.CACHE_FOLDER}", self.name)
+        return os.path.join(f"{self.CACHE_FOLDER}", self.get_name())
 
     @property
     def index_path(self):
         "The path to the index file for the cache."
-        return os.path.join(f"{self.CACHE_FOLDER}", self.name, ExperimentIndex.get_index_name(self.__name__))
-    
-    @property 
-    def name(self):
-        return self.__class__.__name__
-    
+        return os.path.join(
+            f"{self.CACHE_FOLDER}",
+            self.get_name(),
+            ExperimentIndex.get_index_name(self.__name__),
+        )
+
     @classmethod
-    def get_index(cls):
+    def get_name(cls):
+        return cls.__name__
+
+    @classmethod
+    def get_index(cls) -> ExperimentIndex[P, R]:
         return ExperimentIndex(cls.CACHE_FOLDER, cls.__name__)
-
-
-    
