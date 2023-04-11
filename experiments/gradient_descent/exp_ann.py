@@ -1,13 +1,14 @@
 import numpy as np
 import tensorflow as tf
 
+from datetime import datetime
 from numpy import ndarray
 from typing import Callable
 from abc import abstractmethod as abstract
 
 from sim_bug_tools.structs import Point, Domain
 from sim_bug_tools.experiment import Experiment, ExperimentParams, ExperimentResults
-from sim_bug_tools.rng.lds.sequences import Sequence, SobolSequence
+from sim_bug_tools.rng.lds.sequences import Sequence, SobolSequence, RandomSequence
 
 
 class Scorable:
@@ -145,14 +146,14 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
                 tf.keras.layers.Dense(32, activation=tanh),
                 tf.keras.layers.Dense(64, activation=tanh),
                 tf.keras.layers.Dense(32, activation=tanh),
-                tf.keras.layers.Dense(output_dims, activation=relu),
+                tf.keras.layers.Dense(output_dims, activation=tanh),
             ]
         )
 
         model.compile(
             optimizer="adam",  # not sure if ADAM was used for training the ANN itself...
-            loss=tf.keras.losses.mse,
-            metrics=["accuracy"],
+            loss="mse",
+            metrics=[tf.keras.metrics.mean_squared_error],
         )
 
         return model
@@ -198,15 +199,62 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         X_train = np.asarray(X_train)
         Y_train = np.asarray(Y_train)
 
-        model.fit(X_train, Y_train, batch_size=batch, epochs=epochs)
+        log_dir = ".tmp/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
 
-    def generate_data(self, params: ANNParams):
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir, histogram_freq=1
+        )
+
+        model.fit(
+            X_train,
+            Y_train,
+            batch_size=batch,
+            epochs=epochs,
+            callbacks=[tensorboard_callback],
+        )
+
+    def generate_data_targetdistr(
+        self, params: ANNParams, min_score=0, target_percentage=0.5
+    ):
         """
         Generate inputs labeled with the results from the envelope's scoring.
         Returns list[tuple[input (Point), score (NDArray)]]
+
+        The distribution between Target and Nontarget is uniform.
+        """
+        data: list[tuple[Point, ndarray]] = []
+        true_cnt = 0
+        false_cnt = 0
+        while true_cnt + false_cnt < (params.n_samples // 2) * 2:  # round nearest even
+            for p in params.seq.get_sample(params.n_samples).points:
+                score = params.envelope.score(p)
+
+                if params.envelope.classify_score(score) and true_cnt < (
+                    params.n_samples * target_percentage
+                ):
+                    true_cnt += 1
+                    data.append((p, score))
+                elif (
+                    score >= min_score
+                    and not params.envelope.classify_score(score)
+                    and false_cnt < params.n_samples * (1 - target_percentage)
+                ):
+                    false_cnt += 1
+                    data.append((p, score))
+                elif true_cnt + false_cnt >= (params.n_samples // 2) * 2:
+                    break
+
+        return data
+
+    def generate_data_spatialuniform(self, params: ANNParams):
+        """
+        Generate inputs labeled with the results from the envelope's scoring.
+        Returns list[tuple[input (Point), score (NDArray)]]
+
+        The distribution between Target and Nontarget is uniform.
         """
         return [
-            (p.array, params.envelope.score(p))
+            (p, params.envelope.score(p))
             for p in params.seq.get_sample(params.n_samples).points
         ]
 
@@ -215,7 +263,7 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
             params.envelope.get_input_dims(), params.envelope.get_score_dims()
         )
 
-        data = self.generate_data(params)
+        data = self.generate_data_targetdistr(params)
 
         self.train_model(model, data, params.batch_size, params.n_epochs)
 
@@ -238,10 +286,14 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         envelope: Scorable,
     ):
         tp, tn, fp, fn = 0, 0, 0, 0
+        _lst = list(map(lambda t: envelope.classify_score(t[1]), scored_data))
+
+        print(_lst.count(True), _lst.count(False))
+        print(_lst)
 
         for p, score in scored_data:
             true_cls = envelope.classify_score(score)
-            pred_cls = model(p[None])
+            pred_cls = envelope.classify_score(model(p[None]))
 
             if true_cls:
                 if pred_cls:
@@ -271,27 +323,42 @@ def test_ann():
     # Probabilistic sphere with radius .4, where the prob-density that defines
     # the boundary is 0.25
     envelope = ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
-    seq = SobolSequence(domain, [str(i) for i in range(ndims)])
+    seq = RandomSequence(domain, [str(i) for i in range(ndims)])
 
     # how many samples from the envelope to train the ANN on
-    ann_training_size = 100
+    ann_training_size = 1000
 
     ann_name = _ann_param_name(ann_training_size)
     ann_params = ANNParams(
-        ann_name, envelope, seq, ann_training_size, int(ann_training_size / 10)
+        ann_name,
+        envelope,
+        seq,
+        ann_training_size,
+        ann_training_size // 10,
+        n_epochs=100,
     )
 
-    ann_results = ann_exp.lazily_run(ann_params)
+    # ann_results = ann_exp.index.previous_result
+    ann_results = ann_exp.run(ann_params)
 
     model = tf.keras.models.load_model(ann_results.model_path)
     data = ann_results.scored_data
 
     # determine True positive/negative and false positive/negative for all
     # scored data within the training set
-    truth_table = ANNExperiment.class_acc(model, data, envelope)
-    tp, tn, fp, fn = truth_table
 
-    print(truth_table)
+    for p, score in data:
+        print(
+            score,
+            np.array(model(p.array[None])).squeeze(),
+            envelope.classify_score(score),
+            envelope.classify_score(np.array(model(p.array[None])).squeeze()),
+        )
+
+    truth_table = ANNExperiment.class_acc(model, data, envelope)
+    acc = lambda tab: sum(tab[:2]) / (tab)
+    tp, tn, fp, fn = truth_table
+    print(truth_table, f"\nAcc = {acc * 100}%")
 
 
 if __name__ == "__main__":
