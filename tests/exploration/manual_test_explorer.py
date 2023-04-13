@@ -27,6 +27,7 @@ class Sphere:
     def __contains__(self, p: Point):
         return (self.loc.distance_to(p)) <= self.radius
 
+
 ADH_V = 1
 
 
@@ -55,18 +56,18 @@ g = Grapher(ndims == 3, domain, "x y z".split()[:ndims])
 if ADH_V == 1:
     adh_f = const_adh_f
 elif ADH_V == 2:
-    adh_f = exp_adh_f 
-    
+    adh_f = exp_adh_f
+
 brrt = BoundaryRRT(b0, n0, adh_f)
 
 points = []
-while brrt.step_count < 100:
+while brrt.boundary_ < 100:
     points.append(brrt.step())
-    
+
 boundary_set = set([tuple(b) for b, _ in brrt.boundary])
-g.plot_all_points([p for p, _ in brrt.boundary], color="blue", marker='o')
-if len(lst:=[p for p, cls in points if cls and tuple(p) not in boundary_set]) > 0:
-    g.plot_all_points(lst, color="red", marker='x')
-if len(lst:=[p for p, cls in points if not cls]) > 0:
-    g.plot_all_points(lst, color="green", marker='x')
+g.plot_all_points([p for p, _ in brrt.boundary], color="blue", marker="o")
+if len(lst := [p for p, cls in points if cls and tuple(p) not in boundary_set]) > 0:
+    g.plot_all_points(lst, color="red", marker="x")
+if len(lst := [p for p, cls in points if not cls]) > 0:
+    g.plot_all_points(lst, color="green", marker="x")
 plt.show()

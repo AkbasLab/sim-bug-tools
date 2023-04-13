@@ -20,7 +20,6 @@ class Scorable:
     def classify_score(self, score: ndarray) -> bool:
         raise NotImplementedError()
 
-    @abstract
     def classify(self, p: Point) -> bool:
         return self.classify_score(self.score(p))
 
@@ -65,7 +64,7 @@ class ProbilisticSphere(Graded):
         return np.array(1 / np.e ** (self._c * dist**2))
 
     def classify_score(self, score: ndarray) -> bool:
-        return np.linalg.norm(score) < self.lmda
+        return np.linalg.norm(score) > self.lmda
 
     def gradient(self, p: Point) -> np.ndarray:
         s = p - self.loc

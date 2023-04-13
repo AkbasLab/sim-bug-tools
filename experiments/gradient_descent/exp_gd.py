@@ -159,22 +159,44 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
         v = prev_v * beta + (1 - beta) * g
         return v
 
-class GD_Comparison_Params (ExperimentParams):
-    def __init__(self, name: str, desc: str, ndims: int, envelope: Scorable, n_bpoints: int, training_sizes: list[int], gd_func: Callable):
+
+class GD_Comparison_Params(ExperimentParams):
+    def __init__(
+        self,
+        name: str,
+        desc: str,
+        ndims: int,
+        envelope: Scorable,
+        n_bpoints: int,
+        training_sizes: list[int],
+        gd_func: Callable,
+    ):
         super().__init__(name, desc)
-        self.ndims = ndims 
+        self.ndims = ndims
         self.envelope = envelope
         self.n_bpoints = n_bpoints
         self.training_sizes = training_sizes
         self.gd_func = gd_func
 
-class GD_Comparison_Results (ExperimentResults[GD_Comparison_Params]):
+
+class GD_Comparison_Results(ExperimentResults[GD_Comparison_Params]):
     def __init__(self, params: GD_Comparison_Params, subresults: list[dict]):
         super().__init__(params)
         self.subresults = subresults
-        
+
     @staticmethod
-    def create_gd_subresult(avg_err: float, min_err: float, max_err: float, stdd_err: float, b_count: int, nonb_count: int, pretrain_eff: float, posttrain_eff: float, train_size: int, ann_name: str):
+    def create_gd_subresult(
+        avg_err: float,
+        min_err: float,
+        max_err: float,
+        stdd_err: float,
+        b_count: int,
+        nonb_count: int,
+        pretrain_eff: float,
+        posttrain_eff: float,
+        train_size: int,
+        ann_name: str,
+    ):
         return {
             "ann-name": ann_name,
             "train-size": train_size,
@@ -188,9 +210,19 @@ class GD_Comparison_Results (ExperimentResults[GD_Comparison_Params]):
             "pretrain-eff": pretrain_eff,
             "posttrain-eff": posttrain_eff,
         }
-        
+
     @staticmethod
-    def create_be_subresult(be_params: dict, exp_type: str, adh_type: str, avg_err: float, min_err: float, max_err: float, stdd_err: float, b_count: int, nonb_count: int):
+    def create_be_subresult(
+        be_params: dict,
+        exp_type: str,
+        adh_type: str,
+        avg_err: float,
+        min_err: float,
+        max_err: float,
+        stdd_err: float,
+        b_count: int,
+        nonb_count: int,
+    ):
         return {
             "explorer": exp_type,
             "adherer": adh_type,
@@ -204,28 +236,35 @@ class GD_Comparison_Results (ExperimentResults[GD_Comparison_Params]):
             "nonb-count": nonb_count,
             "eff": b_count / nonb_count,
         }
-    
-class GD_Comparison_Experiment (Experiment[GD_Comparison_Params, GD_Comparison_Results]):
+
+
+class GD_Comparison_Experiment(Experiment[GD_Comparison_Params, GD_Comparison_Results]):
+    """
+    Goal: compare how well B-Mesh and GD perform.
+    """
+
     def __init__(self):
         super().__init__()
-    
+
     def _ann_param_name(envelope_name: str, ndims: int, n_samples: int):
         return f"{envelope_name}-{ndims}d-{n_samples}"
-    
-    def _gd_param_name(envelope_name: str, ndims: int, ann_train_size: int, gd_type: str):
+
+    def _gd_param_name(
+        envelope_name: str, ndims: int, ann_train_size: int, gd_type: str
+    ):
         return f"{envelope_name}-{ndims}d-{ann_train_size}-{gd_type}"
-    
+
     def experiment(self, params: GD_Comparison_Params) -> GD_Comparison_Results:
-        
+
         ndims = params.ndims
         n_bpoints = params.n_bpoints
         domain = Domain.normalized(ndims)
         envelope = params.envelope
-        
+
         gd_exp = GDExplorerExperiment()
         ann_exp = ANNExperiment()
         seq = SobolSequence(domain, [str(i) for i in range(ndims)])
-            
+
         run_results: list[dict] = []
 
         for ann_samples in params.training_sizes:
@@ -255,14 +294,12 @@ class GD_Comparison_Experiment (Experiment[GD_Comparison_Params, GD_Comparison_R
 
             avg = lambda lst: sum(lst) / len(lst)
 
-            run_results.append({
-                
-            })
-
+            run_results.append({})
 
 
 def _ann_param_name(n_samples: int, ndims: int):
     return f"ANN-psphere-{ndims}d-{n_samples}"
+
 
 def test_samplesXgd():
     import matplotlib.pyplot as plt
@@ -351,7 +388,6 @@ def test_samplesXgd():
 
     with open("tmp-sd.json", "w") as f:
         f.write(json.dumps(meta_data, indent=4))
-
 
 
 def test_oddones():

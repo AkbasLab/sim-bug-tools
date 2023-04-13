@@ -214,7 +214,7 @@ def test1():
 
     # while len(input("Press enter...")) == 0:
     #    errs = 0
-    while brrt.step_count < nsamples:
+    while brrt.boundary_ < nsamples:
         try:
             all_points.append(brrt.step())
         except BoundaryLostException as e:
@@ -222,8 +222,8 @@ def test1():
         except SampleOutOfBoundsException as e:
             out_of_bounds_count += 1
 
-        if backprop_enabled and i != brrt.step_count:
-            i = brrt.step_count
+        if backprop_enabled and i != brrt.boundary_:
+            i = brrt.boundary_
             brrt.back_propegate_prev(bp_k)
 
     print("Setting up data...")
@@ -245,8 +245,8 @@ def test1():
         "meta-data": {
             "err-count": errs,
             "out-of-bounds-count": out_of_bounds_count,
-            "ratio": brrt.step_count / len(non_boundary_points),
-            "b-count": brrt.step_count,
+            "ratio": brrt.boundary_ / len(non_boundary_points),
+            "b-count": brrt.boundary_,
             "nonb-count": len(non_boundary_points),
         },
         "dimensions": axes_names,

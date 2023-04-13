@@ -12,10 +12,19 @@ from sim_bug_tools.exploration.boundary_core.adherer import (
 )
 from sim_bug_tools.structs import Domain, Point, Scaler
 
+import matplotlib.pyplot as plt
+
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
 
 ANGLE_90 = np.pi / 2
+
+normalize = lambda v: v / np.linalg.norm(v)
+
+
+def angle_between(u, v):
+    u, v = normalize(u), normalize(v)
+    return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
 
 
 class ConstantAdherer(Adherer):
@@ -60,6 +69,9 @@ class ConstantAdherer(Adherer):
         self._v = copy(n.squeeze())
         self._v: ndarray = np.dot(A, self._v)
 
+        if angle_between(self._v, n) * 180 / np.pi > 92:
+            print("wonk occurred")
+
         # Scale the vector to get our displacement vector
         self._s: ndarray = copy(self._v)
         self._s = self._scaler * self._s
@@ -73,7 +85,18 @@ class ConstantAdherer(Adherer):
         self._initialized = False
 
         self._iteration = 0
-        self._max_iteration = (2 * np.pi) // delta_theta
+        self._max_iteration = int((np.pi) // delta_theta)
+
+        # from sim_bug_tools.graphics import Grapher
+
+        # self._g = Grapher(True, Domain.normalized(3))
+        # self._g.draw_sphere(Point([0.5] * 3), 0.4)
+        # self._tmp_b = b
+        # # self._tmp_n = n
+        # self._gb = self._g.plot_point(b, color="green")
+        # self._gn = self._g.add_arrow(b, n, color="green")
+        # self._gs = None
+        # # plt.pause(0.01)
 
     @property
     def delta_theta(self):
@@ -97,6 +120,7 @@ class ConstantAdherer(Adherer):
 
     def _rotate_displacement(self):
         self._prev = self._cur
+        self._prev_v = self._v
         self._v: ndarray = np.dot(self._rotate, self._v)
         self._s = self._scaler * self._v
         self._cur = self._pivot + Point(self._s)
@@ -108,11 +132,21 @@ class ConstantAdherer(Adherer):
             self._rotate_displacement()
             self._classify_cur()
 
+        # if self._gs != None:
+        #     self._gs.remove()
+        # self._gs = self._g.add_arrow(self._tmp_b, self._v * 0.10)
+        # plt.pause(0.01)
+
         if self._prev_class is not None and self._cur_class != self._prev_class:
             self._new_b = self._cur if self._cur_class else self._prev
             self._new_n = self.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._s)
             )
+            # self._gb.remove()
+            # self._gn.remove()
+            # if self._gs is not None:
+            #     self._gs.remove()
+
             self.sample_next = lambda: None
 
         elif self._iteration > self._max_iteration:
@@ -146,10 +180,11 @@ class ConstantAdherer(Adherer):
         v = v[np.newaxis]
 
         un = ConstantAdherer.normalize(u)
+        vn = ConstantAdherer.normalize(v)
         vn = v - np.dot(un, v.T) * un
         vn = ConstantAdherer.normalize(vn)
-
-        return un, vn if (np.dot(un, vn.T) < 1e-4) else u, v
+        print(un, vn)
+        return (un.squeeze(), vn.squeeze())
 
     @classmethod
     def generateRotationMatrix(
@@ -178,7 +213,13 @@ class ConstantAdherer(Adherer):
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
 
-        u, v = cls.orthonormalize(u, v)
+        u, v = (
+            cls.orthonormalize(u, v)
+            if abs(np.dot(u, v[np.newaxis].T)) > 1e-4
+            else (u, v)
+        )
+        u = u[np.newaxis]
+        v = v[np.newaxis]
 
         I = np.identity(len(u.T))
 
@@ -213,3 +254,47 @@ class ConstantAdherenceFactory(AdherenceFactory[ConstantAdherer]):
             self.domain,
             self._fail_out_of_bounds,
         )
+
+
+def test_rotation():
+    from sim_bug_tools.graphics import Grapher
+    import matplotlib.pyplot as plt
+
+    theta = np.pi * 10 / 180
+
+    ndims = 3
+    domain = Domain.normalized(ndims)
+    g = Grapher(ndims == 3, domain)
+
+    v1 = np.array([1, 0, 0])
+    v2 = np.array([1, 1, 1])
+    print(v1, v2)
+    _v1 = g.add_arrow(Point.zeros(ndims), v1, color="blue")
+    _v2 = g.add_arrow(Point.zeros(ndims), v2, color="red")
+    plt.pause(0.01)
+
+    v1, v2 = ConstantAdherer.orthonormalize(v1, v2)
+    print(v1, v2)
+    _v1.remove()
+    _v2.remove()
+    _v1 = g.add_arrow(Point.zeros(ndims), v1, color="blue")
+    _v2 = g.add_arrow(Point.zeros(ndims), v2, color="red")
+    plt.pause(0.01)
+
+    rotater = ConstantAdherer.generateRotationMatrix(v1, v2)
+    s = copy(v2)
+    _s = g.add_arrow(Point.zeros(ndims), s, color="green")
+    plt.pause(0.01)
+
+    for i in range(int(np.pi // theta)):
+        s = np.dot(rotater(theta), s)
+        _s.remove()
+        _s = g.add_arrow(Point.zeros(ndims), s, color="green")
+        _p = g.plot_point(Point(s), color="blue")
+        plt.pause(0.01)
+        print("next")
+    print("done")
+
+
+if __name__ == "__main__":
+    test_rotation()

@@ -41,7 +41,7 @@ class Explorer(ABC):
         self._prev = (b0, n0)
 
         self._adherer: Adherer = None
-        self._step_count = 0
+        self._boundary_count = 0
 
     @property
     def ndims(self) -> int:
@@ -53,13 +53,13 @@ class Explorer(ABC):
         return self._prev
 
     @property
-    def step_count(self):
+    def boundary_count(self):
         "The number of boundary nodes found, not including root."
-        return self._step_count
+        return self._boundary_count
 
     @property
     def boundary(self):
-        "Returns the set of boundary nodes."
+        "Returns the set of boundary nodes, including root."
         return self._boundary
 
     @abstract
@@ -80,6 +80,7 @@ class Explorer(ABC):
     def _explore_in_new_direction(self, parent: T_BNODE, direction: ndarray):
         # Start new step
         b, n = parent
+        self._tmp_parent = parent
         direction = direction
 
         self._adherer = self._adhererF.adhere_from(b, n, direction)
@@ -88,6 +89,7 @@ class Explorer(ABC):
         # Continue to look for boundary
         try:
             p, cls = self._adherer.sample_next()
+            self._s = self._adherer._s
 
         except BoundaryLostException as e:
             # If boundary lost, we need to reset adherer and rethrow exception
@@ -142,6 +144,6 @@ class Explorer(ABC):
             self._add_child(*node)
             self._prev = self._adherer.bnode
             self._adherer = None
-            self._step_count += 1
+            self._boundary_count += 1
 
         return p, cls

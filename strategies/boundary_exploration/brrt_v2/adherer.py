@@ -6,7 +6,10 @@ from numpy import ndarray
 
 from sim_bug_tools.structs import Domain, Point
 from strategies.boundary_exploration.boundary_core.adherer import (
-    AdherenceFactory, Adherer, BoundaryLostException)
+    AdherenceFactory,
+    Adherer,
+    BoundaryLostException,
+)
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -251,30 +254,30 @@ class BoundaryAdherenceFactory(AdherenceFactory):
         )
 
 
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
+# if __name__ == "__main__":
+#     # import matplotlib.pyplot as plt
 
-    from sim_bug_tools.graphics import Grapher
+#     # from sim_bug_tools.graphics import Grapher
 
-    d = 0.005
-    r = 2
-    num = 4
-    angle = 30 * np.pi / 180
+#     d = 0.005
+#     r = 2
+#     num = 4
+#     angle = 30 * np.pi / 180
 
-    s_loc = Point(0.5, 0.5, 0.5)
-    s_rad = 0.25
+#     s_loc = Point(0.5, 0.5, 0.5)
+#     s_rad = 0.25
 
-    p = Point(0.5, 0.5, 0.25)
-    n = np.array([0, 0, -1])
-    direction = np.array([0, 1, 0])
+#     p = Point(0.5, 0.5, 0.25)
+#     n = np.array([0, 0, -1])
+#     direction = np.array([0, 1, 0])
 
-    classifier = lambda p: s_loc.distance_to(p) < s_rad
+#     classifier = lambda p: s_loc.distance_to(p) < s_rad
 
-    g = Grapher(is3d=True, domain=Domain.normalized(3))
-    adh_f = BoundaryAdherenceFactory(classifier, d, angle, r, num)
-    adh = adh_f.adhere_from(p, n, direction)
-    while adh.has_next():
-        pk = adh.sample_next()
-        g.plot_point(pk)
-        plt.pause(0.01)
-        input("Waiting...")
+#     g = Grapher(is3d=True, domain=Domain.normalized(3))
+#     adh_f = BoundaryAdherenceFactory(classifier, d, angle, r, num)
+#     adh = adh_f.adhere_from(p, n, direction)
+#     while adh.has_next():
+#         pk = adh.sample_next()
+#         g.plot_point(pk)
+#         plt.pause(0.01)
+#         input("Waiting...")

@@ -168,7 +168,7 @@ exp_step = {"b-node": None, "all-points": []}
 errs = 0
 out_of_bounds_count = 0
 
-while brrt.step_count < (nsamples):
+while brrt.boundary_ < (nsamples):
     try:
         tmp = brrt.step()
         all_points.append(tmp)
@@ -185,14 +185,14 @@ while brrt.step_count < (nsamples):
         # envelope.
         out_of_bounds_count += 1
 
-    if brrt.step_count > i:
+    if brrt.boundary_ > i:
         if backprop_enabled:
             brrt.back_propegate_prev(bp_k)
 
         exp_step["b-node"] = [tuple(x) for x in brrt.boundary[-1]]
         all_exp_steps.append(exp_step)
         exp_step = {"b-node": None, "all-points": []}
-        i = brrt.step_count
+        i = brrt.boundary_
 
 # How to determine the non-boundary points
 non_boundary_points = [
@@ -213,8 +213,8 @@ data = {
     "meta-data": {
         "err-count": errs,
         "out-of-bounds-count": out_of_bounds_count,
-        "ratio": brrt.step_count / len(non_boundary_points),
-        "b-count": brrt.step_count,
+        "ratio": brrt.boundary_ / len(non_boundary_points),
+        "b-count": brrt.boundary_,
         "nonb-count": len(non_boundary_points),
     },
     "dimensions": [str(x) for x in range(ndims)],
