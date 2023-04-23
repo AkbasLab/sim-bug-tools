@@ -4,13 +4,49 @@ import json
 from abc import ABC, abstractmethod as abstract
 from typing import TypeVar, Generic, NewType
 from dataclasses import dataclass
+from numpy import ndarray
 
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.decorators import copy_signature
 
 
-class ScenarioReport:
-    pass
+class Scorable:
+    @abstract
+    def score(self, p: Point) -> ndarray:
+        raise NotImplementedError()
+
+    @abstract
+    def classify_score(self, score: ndarray) -> bool:
+        raise NotImplementedError()
+
+    def classify(self, p: Point) -> bool:
+        return self.classify_score(self.score(p))
+
+    @abstract
+    def get_input_dims(self):
+        raise NotImplementedError()
+
+    @abstract
+    def get_score_dims(self):
+        raise NotImplementedError()
+
+    @abstract
+    def generate_random_target(self):
+        raise NotImplementedError()
+
+    @abstract
+    def generate_random_nontarget(self):
+        raise NotImplementedError()
+
+    def boundary_err(self, p: Point) -> float:
+        "distance from boundary"
+        raise NotImplementedError()
+
+
+class Graded(Scorable):
+    @abstract
+    def gradient(self, p: Point) -> ndarray:
+        raise NotImplementedError()
 
 
 @abstract
@@ -26,7 +62,7 @@ class LogicalScenario(ABC):
     @abstract
     def actualizeScenario(self, *params, **kwargs) -> ConcreteScenario:
         pass
-    
+
     __call__ = actualizeScenario
 
 
@@ -36,7 +72,7 @@ TargetSDL = NewType("TargetSDL", str)
 class Simulator(ABC):
     def __init__(self, builders: dict[TargetSDL]):
         self._builders = builders
-    
+
     @abstract
     @property
     def builders(self) -> dict[TargetSDL, "ScenarioBuilder"]:
@@ -45,7 +81,7 @@ class Simulator(ABC):
     def run(self, scenario: ConcreteScenario):
         with self.builders[scenario.sdl].build(scenario, self) as executable:
             executable()  # just thoughts
-            
+
     def setup_environment(self, scenario: LogicalScenario):
         # the issue is that it would be nice to run
         pass
@@ -55,7 +91,6 @@ S = TypeVar("S", bound=Simulator)
 
 
 class ScenarioBuilder(ABC, Generic[S]):
-       
     @abstract
     def build(self, scenario: ConcreteScenario, sim: S):
         pass
