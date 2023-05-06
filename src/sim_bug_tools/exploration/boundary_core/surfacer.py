@@ -19,7 +19,7 @@ def find_surface(
     v: ndarray = None,
     cut_off=None,
     fail_out_of_bounds: bool = False,
-) -> tuple[tuple[Point, ndarray], list[Point]]:
+) -> tuple[tuple[Point, ndarray], list[Point], bool]:
     """
     Finds the surface given a target sample and a jump distance. The error, e,
     between the estimated boundary point and the real boundary will be
