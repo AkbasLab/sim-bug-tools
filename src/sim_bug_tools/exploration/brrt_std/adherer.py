@@ -68,9 +68,10 @@ class ConstantAdherer(Adherer):
         # Get the direction we want to travel in
         self._v = copy(n.squeeze())
         self._v: ndarray = np.dot(A, self._v)
-
         if angle_between(self._v, n) * 180 / np.pi > 92:
-            print("wonk occurred")
+            raise Exception(
+                "[ConstantAdherer] Rotation matrix malformed: improperly rotated vector?"
+            )
 
         # Scale the vector to get our displacement vector
         self._s: ndarray = copy(self._v)
@@ -159,8 +160,8 @@ class ConstantAdherer(Adherer):
     def normalize(u: ndarray):
         return u / np.linalg.norm(u)
 
-    @staticmethod
-    def orthonormalize(u: ndarray, v: ndarray) -> tuple[ndarray, ndarray]:
+    @classmethod
+    def orthonormalize(cls, u: ndarray, v: ndarray) -> tuple[ndarray, ndarray]:
         """
         Generates orthonormal vectors given two vectors @u, @v which form a span.
 
@@ -179,11 +180,10 @@ class ConstantAdherer(Adherer):
         u = u[np.newaxis]
         v = v[np.newaxis]
 
-        un = ConstantAdherer.normalize(u)
-        vn = ConstantAdherer.normalize(v)
+        un = cls.normalize(u)
+        vn = cls.normalize(v)
         vn = v - np.dot(un, v.T) * un
-        vn = ConstantAdherer.normalize(vn)
-        print(un, vn)
+        vn = cls.normalize(vn)
         return (un.squeeze(), vn.squeeze())
 
     @classmethod
