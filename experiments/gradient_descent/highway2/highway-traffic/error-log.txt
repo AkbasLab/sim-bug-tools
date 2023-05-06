@@ -1,0 +1,1197 @@
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-3.59', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.44', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.04', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-6.78', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.56, wished=0.28, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.72', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-3.60', latGap=-2.47, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-13.83', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.67, wished=3.33, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-3.66', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-8.68', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=8.06, wished=4.03, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=11.39, wished=5.69, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-2.63', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.35', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-6.09', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.94, wished=0.97, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.50', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-3.85', latGap=-1.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.60', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-4.43', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.39', latGap=-1.53, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.33', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-3.75', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.27', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.87', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-10.89', latGap=-2.55, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.85', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-6.30', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.56, wished=0.28, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-0.46', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.45', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-9.27', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-0.84', latGap=-1.98, time=1.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.49', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.78', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.96', latGap=-2.40, time=1.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=1.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.50, wished=1.25, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-5.56', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-2.74', latGap=-1.98, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-16.94', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.67, wished=0.83, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.37', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-2.43', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-6.21', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-8.08', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-6.43', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-8.33', latGap=-2.47, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-1.74', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-6.44', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.67, wished=0.83, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-2.06', latGap=-1.98, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-6.44', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-0.90', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-13.85', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-3.81', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-0.86', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.50, wished=1.25, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-10.11', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-0.43', latGap=-1.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.30', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-0.77', latGap=-1.65, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-7.76', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-7.60', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=10.00, wished=5.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-7.60', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-5.04', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.39, wished=0.69, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.44', latGap=-1.53, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-3.20', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl1', lane='highway_1', gap=-11.39', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.47', latGap=-1.65, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-7.13', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-2.55', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.99', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-9.27', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.04', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-3.61', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr3', lane='highway_0', gap=-7.11', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-3.04', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.50, wished=1.25, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-7.00', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.27', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-1.38', latGap=-2.10, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-7.49', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-1.20', latGap=-0.90, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.67, wished=0.83, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-18.28', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-5.77', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-7.17', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-3.00', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=3.61, wished=1.81, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-11.93', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-9.97', latGap=-2.55, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-12.89', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-17.22', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-5.20', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-6.23', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-6.93', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr3', lane='highway_0', gap=-5.16', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-7.44', latGap=-1.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=3.61, wished=1.81, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-3.75', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.97', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.99', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.44', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-3.44', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-3.71', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-4.94', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-5.46', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl2', lane='highway_1', gap=-0.17', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.56, wished=0.28, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.61', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.78, wished=1.39, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.53', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-2.51', latGap=-0.90, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.57', latGap=-1.98, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-2.15', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-9.42', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=10.28, wished=5.14, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.28, wished=0.14, severity=1.01, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-6.39', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-6.78', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.39, wished=3.19, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.07', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.67, wished=0.83, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-7.49', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-3.10', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-2.61', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-2.81', latGap=-0.90, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr5', lane='highway_0', gap=-1.72', latGap=-2.10, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-3.00', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.32', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.94, wished=0.97, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=4.72, wished=2.36, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.54', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-4.13', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-7.00', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-1.04', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-7.07', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-15.50', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-6.72', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-2.42', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-12.25', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-2.23', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-4.44', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-1.08', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.98', latGap=-0.90, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.36', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.72', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.81', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.78, wished=1.39, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-5.17', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-1.11', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-1.81', latGap=-1.53, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-6.39', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.07', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-8.22', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-14.56', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.67, wished=0.83, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.35', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.64', latGap=-0.90, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-0.29', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl5', lane='highway_1', gap=-4.24', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-14.76', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-13.31', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-8.67', latGap=-2.16, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-6.14', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.56, wished=0.28, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-2.26', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-2.14', latGap=-0.90, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.78, wished=1.39, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.25', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-2.45', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-9.49', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.39, wished=3.19, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-5.60', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=5.00, wished=2.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-4.13', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-3.11', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=5.56, wished=2.78, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-7.39', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-3.03', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-13.31', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl1', lane='highway_1', gap=-5.06', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-17.28', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-11.72', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.39, wished=3.19, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-10.88', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-5.82', latGap=-2.17, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-2.61', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-6.71', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-6.87', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-3.83', latGap=-1.98, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-2.00', latGap=-2.16, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-7.86', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.13', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-1.15', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-8.99', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-6.04', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-6.06', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr5', lane='highway_0', gap=-1.24', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-8.61', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.20', latGap=-1.80, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-0.60', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-4.60', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-1.20', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr3', lane='highway_0', gap=-5.32', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=4.17, wished=2.08, severity=1.00, time=1.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-2.99', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-3.99', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.27', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-3.92', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.63', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-7.28', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-2.48', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-2.16', latGap=-1.65, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl1', lane='highway_1', gap=-6.79', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.78', latGap=-2.10, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-8.13', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-1.48', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=2.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.54', latGap=-2.28, time=2.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=2.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-0.75', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-1.88', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-2.56', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-11.21', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.58', latGap=-2.16, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-4.62', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-9.25', latGap=-2.17, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-8.65', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.66', latGap=-2.17, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-2.50', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr1', lane='highway_0', gap=-6.37', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl4', lane='highway_1', gap=-0.59', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl4', lane='highway_1', gap=-3.76', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-17.49', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-9.92', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-5.77', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=4.17, wished=2.08, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-0.20', latGap=-1.65, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-0.28', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=3.06, wished=1.53, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-4.33', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.93', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-8.44', latGap=-2.16, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr4', lane='highway_0', gap=-2.03', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.50', latGap=-1.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.93', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.41', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-6.32', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.91', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-1.14', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-1.01', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-0.09', latGap=-1.65, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr5', lane='highway_0', gap=-15.17', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.62', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-0.20', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-7.67', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.32', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.50, wished=1.25, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.32', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-7.94', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=4.44, wished=2.22, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl2', lane='highway_1', gap=-4.45', latGap=-2.17, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-7.28', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-2.33', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-6.04', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-8.33', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.92', latGap=-1.53, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-7.41', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-1.20', latGap=-1.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.50', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-2.67', latGap=-2.10, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-4.99', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-14.00', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.88', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-0.26', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.11, wished=0.56, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.39', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.02', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-5.62', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-17.48', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-1.34', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl1', lane='highway_1', gap=-4.39', latGap=-2.28, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-3.40', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-7.00', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-0.25', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-2.10', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr4', lane='highway_0', gap=-0.64', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl5', lane='highway_1', gap=-2.67', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-5.93', latGap=-1.65, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.39, wished=3.19, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-8.44', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=8.89, wished=4.44, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.89', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-3.60', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl2', lane='highway_1', gap=-1.38', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-8.12', latGap=-2.47, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.49', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=6.67, wished=3.33, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-12.02', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-1.09', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-0.69', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=11.94, wished=5.97, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl5', lane='highway_1', gap=-1.62', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl1', lane='highway_1', gap=-4.11', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-2.66', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-4.81', latGap=-2.55, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-7.04', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr5', lane='highway_0', gap=-5.74', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=5.00, wished=2.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl5', lane='highway_1', gap=-15.44', latGap=-2.17, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-17.44', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.13', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-5.50', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl4', lane='highway_1', gap=-11.80', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-5.39', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr3', lane='highway_0', gap=-4.72', latGap=-2.35, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-14.33', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-1.16', latGap=-2.16, time=1.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=1.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl1', lane='highway_1', gap=-2.61', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr3', lane='highway_0', gap=-2.94', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr3', lane='highway_0', gap=-2.16', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-3.43', latGap=-2.47, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-4.22', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl4', lane='highway_1', gap=-4.60', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-5.33', latGap=-2.16, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-3.22', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=3.61, wished=1.81, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'dut', lane='highway_0', gap=-5.06', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.06', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr2'; collision with vehicle 'npcr4', lane='highway_0', gap=-5.89', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-0.35', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=1.39, wished=0.69, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.83, wished=0.42, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr1', lane='highway_0', gap=-0.23', latGap=-1.98, time=6.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=6.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-5.64', latGap=-2.17, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr4', lane='highway_0', gap=-4.37', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl1' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl1'; collision with vehicle 'npcl3', lane='highway_1', gap=-0.44', latGap=-1.98, time=0.00 stage=move.
+Warning: Vehicle 'npcl1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-10.06', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-7.56', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-0.75', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl1', lane='highway_1', gap=-3.00', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr1', lane='highway_0', gap=-0.71', latGap=-2.40, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=7.78, wished=3.89, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl5', lane='highway_1', gap=-8.67', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-6.85', latGap=-2.55, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl5', lane='highway_1', gap=-17.67', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-8.23', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr4'; collision with vehicle 'npcr5', lane='highway_0', gap=-5.78', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcr4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl3', lane='highway_1', gap=-1.40', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-4.00', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl5'; collision with vehicle 'npcl2', lane='highway_1', gap=-7.83', latGap=-2.16, time=0.00 stage=move.
+Warning: Vehicle 'npcl5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr2', lane='highway_0', gap=-7.95', latGap=-2.47, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-17.91', latGap=-1.72, time=1.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=1.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-1.05', latGap=-2.28, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr2' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl2'; collision with vehicle 'npcl3', lane='highway_1', gap=-8.86', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl2' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr2', lane='highway_0', gap=-5.68', latGap=-1.80, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' performs emergency braking on lane 'highway_0' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr3'; collision with vehicle 'npcr4', lane='highway_0', gap=-9.62', latGap=-1.72, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr2', lane='highway_0', gap=-1.57', latGap=-2.35, time=0.00 stage=move.
+Warning: Vehicle 'npcr3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl5' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcr5'; collision with vehicle 'npcr1', lane='highway_0', gap=-15.16', latGap=-1.72, time=0.00 stage=move.
+Warning: Vehicle 'npcr5' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=1.00.
+Warning: Vehicle 'npcr3' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl3' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=2.22, wished=1.11, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl3', lane='highway_1', gap=-1.10', latGap=-2.40, time=0.00 stage=move.
+Warning: Teleporting vehicle 'npcl3'; collision with vehicle 'npcl2', lane='highway_1', gap=-4.52', latGap=-2.10, time=0.00 stage=move.
+Warning: Vehicle 'npcl3' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Vehicle 'npcl2' performs emergency braking on lane 'highway_1' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr1' performs emergency braking on lane 'highway_0' with decel=9.00, wished=4.50, severity=1.00, time=0.00.
+Warning: Vehicle 'dut' performs emergency braking on lane 'highway_0' with decel=0.56, wished=0.28, severity=1.00, time=0.00.
+Warning: Teleporting vehicle 'npcl4'; collision with vehicle 'npcl2', lane='highway_1', gap=-2.44', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcl4' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'npcr1'; collision with vehicle 'npcr5', lane='highway_0', gap=-4.42', latGap=-1.53, time=0.00 stage=move.
+Warning: Vehicle 'npcr1' teleports beyond arrival edge 'highway', time=0.00.
+Warning: Teleporting vehicle 'dut'; collision with vehicle 'npcr3', lane='highway_0', gap=-1.59', latGap=-1.98, time=1.00 stage=move.
+Warning: Vehicle 'dut' teleports beyond arrival edge 'highway', time=1.00.
+Warning: Vehicle 'npcl4' performs emergency braking on lane 'highway_1' with decel=7.00, wished=4.00, severity=1.00, time=0.00.
+Warning: Vehicle 'npcr4' per

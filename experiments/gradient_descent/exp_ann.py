@@ -9,33 +9,7 @@ from abc import abstractmethod as abstract
 from sim_bug_tools.structs import Point, Domain
 from sim_bug_tools.experiment import Experiment, ExperimentParams, ExperimentResults
 from sim_bug_tools.rng.lds.sequences import Sequence, SobolSequence, RandomSequence
-
-
-class Scorable:
-    @abstract
-    def score(self, p: Point) -> ndarray:
-        raise NotImplementedError()
-
-    @abstract
-    def classify_score(self, score: ndarray) -> bool:
-        raise NotImplementedError()
-
-    def classify(self, p: Point) -> bool:
-        return self.classify_score(self.score(p))
-
-    @abstract
-    def get_input_dims(self):
-        raise NotImplementedError()
-
-    @abstract
-    def get_score_dims(self):
-        raise NotImplementedError()
-
-
-class Graded(Scorable):
-    @abstract
-    def gradient(self, p: Point) -> ndarray:
-        raise NotImplementedError()
+from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 
 
 class ProbilisticSphere(Graded):
@@ -78,6 +52,18 @@ class ProbilisticSphere(Graded):
     def get_score_dims(self):
         return 1
 
+    def generate_random_target(self):
+        v = np.random.rand(self.get_input_dims())
+        v = self.loc + Point(self.radius * v / np.linalg.norm(v) * np.random.rand(1))
+        return v
+
+    def generate_random_nontarget(self):
+        v = np.random.rand(self.get_input_dims())
+        v = self.loc + Point(
+            self.radius * v / np.linalg.norm(v) * (1 + np.random.rand(1))
+        )
+        return v
+
     def boundary_err(self, b: Point) -> float:
         "Negative error is inside the boundary, positive is outside"
         return self.loc.distance_to(b) - self.radius
@@ -92,7 +78,7 @@ class ANNParams(ExperimentParams):
         name: str,
         envelope: Scorable,
         seq: Sequence,
-        n_samples=2**10,
+        training_size=2**10,
         batch_size=2**7,
         n_epochs=500,
         optimizer="adam",
@@ -114,7 +100,7 @@ class ANNParams(ExperimentParams):
 
         self.envelope = envelope
         self.seq = seq
-        self.n_samples = n_samples
+        self.training_size = training_size
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.optimizer = optimizer
@@ -213,7 +199,7 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         )
 
     def generate_data_targetdistr(
-        self, params: ANNParams, min_score=0, target_percentage=0.5
+        self, params: ANNParams, target_percentage=0.1, min_score=None
     ):
         """
         Generate inputs labeled with the results from the envelope's scoring.
@@ -221,29 +207,40 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
 
         The distribution between Target and Nontarget is uniform.
         """
+        # ts = [
+        #     (params.envelope.generate_random_target(), True)
+        #     for i in range(int(params.training_size * target_percentage))
+        # ]
+        # nonts = [
+        #     (params.envelope.generate_random_nontarget(), False)
+        #     for i in range(int(params.training_size * (1 - target_percentage)))
+        # ]
+
         data: list[tuple[Point, ndarray]] = []
         true_cnt = 0
         false_cnt = 0
-        while true_cnt + false_cnt < (params.n_samples // 2) * 2:  # round nearest even
-            for p in params.seq.get_sample(params.n_samples).points:
+        while (
+            true_cnt + false_cnt < (params.training_size // 2) * 2
+        ):  # round nearest even
+            for p in params.seq.get_sample(params.training_size).points:
                 score = params.envelope.score(p)
 
                 if params.envelope.classify_score(score) and true_cnt < (
-                    params.n_samples * target_percentage
+                    params.training_size * target_percentage
                 ):
                     true_cnt += 1
                     data.append((p, score))
                 elif (
-                    score >= min_score
+                    (min_score is None or score >= min_score)
                     and not params.envelope.classify_score(score)
-                    and false_cnt < params.n_samples * (1 - target_percentage)
+                    and false_cnt < params.training_size * (1 - target_percentage)
                 ):
                     false_cnt += 1
                     data.append((p, score))
-                elif true_cnt + false_cnt >= (params.n_samples // 2) * 2:
+                elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
                     break
 
-        return data
+        return data  # ts + nonts
 
     def generate_data_spatialuniform(self, params: ANNParams):
         """
@@ -254,7 +251,7 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         """
         return [
             (p, params.envelope.score(p))
-            for p in params.seq.get_sample(params.n_samples).points
+            for p in params.seq.get_sample(params.training_size).points
         ]
 
     def experiment(self, params: ANNParams) -> ANNResults:
@@ -279,16 +276,61 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         return f"{cls.CACHE_FOLDER}/{cls.get_name()}/{model_name}"
 
     @staticmethod
+    def predict_gradient(p: Point, model: tf.keras.Sequential) -> ndarray:
+        inp = tf.Variable(np.array([p]), dtype=tf.float32)
+
+        with tf.GradientTape() as tape:
+            preds = model(inp)
+
+        return np.array(tape.gradient(preds, inp)).squeeze()
+
+    @classmethod
+    def grad_accs(
+        cls,
+        model: tf.keras.Sequential,
+        points: list[ndarray],
+        envelope: Graded,
+    ) -> list[float]:
+        norm = lambda v: v / np.linalg.norm(v)
+
+        def angle_between(u, v):
+            u, v = norm(u), norm(v)
+            return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
+
+        gs = [cls.predict_gradient(p, model) for p in points]
+        return list(
+            map(
+                lambda p, v: 1 - 2 * angle_between(v, envelope.gradient(p)) / np.pi,
+                points,
+                gs,
+            )
+        )
+
+    @staticmethod
+    def calc_err(
+        model: tf.keras.Sequential,
+        scored_data: list[tuple[ndarray, ndarray]],
+        envelope: Scorable,
+    ):
+        "Mean Absolute Percent Error"
+        errs = [
+            abs((score - (pred := model(p[None]))) / pred) for p, score in scored_data
+        ]
+        return sum(errs) / len(errs)
+
+    @staticmethod
     def class_acc(
         model: tf.keras.Sequential,
         scored_data: list[tuple[ndarray, ndarray]],
         envelope: Scorable,
     ):
+        """
+        tn, tp
+        fn, fp
+        """
+        table = np.zeros((2, 2))
+        truth = np.identity(2)
         tp, tn, fp, fn = 0, 0, 0, 0
-        _lst = list(map(lambda t: envelope.classify_score(t[1]), scored_data))
-
-        print(_lst.count(True), _lst.count(False))
-        print(_lst)
 
         for p, score in scored_data:
             true_cls = envelope.classify_score(score)
@@ -360,5 +402,67 @@ def test_ann():
     print(truth_table, f"\nAcc = {acc * 100}%")
 
 
+def test_previous_ann():
+    print("Tensorflow is required to run this test...")
+
+    ann_exp = ANNExperiment()
+
+    ann_results = ann_exp.index.previous_result
+
+    model = tf.keras.models.load_model(ann_results.model_path)
+    data = ann_results.scored_data
+    envelope = ann_results.params.envelope
+
+    # determine True positive/negative and false positive/negative for all
+    # scored data within the training set
+
+    # for p, score in data:
+    #     print(
+    #         score,
+    #         np.array(model(p.array[None])).squeeze(),
+    #         envelope.classify_score(score),
+    #         envelope.classify_score(np.array(model(p.array[None])).squeeze()),
+    #     )
+
+    test_size = 1000
+    target_p = 0.5
+    target_points = [
+        (envelope.generate_random_target(), True)
+        for i in range(int(test_size * target_p))
+    ]
+    nontarget_points = [
+        (envelope.generate_random_nontarget(), False)
+        for i in range(int(test_size * (1 - target_p)))
+    ]
+    test_data = target_points + nontarget_points
+
+    acc = lambda tab: sum(tab[:2]) / sum(tab)
+
+    train_truth_table = ANNExperiment.class_acc(model, data, envelope)
+    test_truth_table = ANNExperiment.class_acc(model, test_data, envelope)
+
+    train_g_accs = ANNExperiment.grad_accs(
+        model, list(map(lambda x: x[0], data)), envelope
+    )
+    train_g_avg_acc = sum(train_g_accs) / len(train_g_accs)
+    test_g_accs = ANNExperiment.grad_accs(
+        model, list(map(lambda x: x[0], test_data)), envelope
+    )
+    test_g_avg_acc = sum(test_g_accs) / len(test_g_accs)
+
+    print(
+        "Training data accuracy:",
+        train_truth_table,
+        f"\nAcc = {acc(train_truth_table) * 100}%",
+        f"Gradient acc = {train_g_avg_acc}",
+    )
+    print(
+        "Test data accuracy:",
+        test_truth_table,
+        f"\nAcc = {acc(test_truth_table) * 100}%",
+        f"Gradient acc = {test_g_avg_acc}",
+    )
+
+
 if __name__ == "__main__":
-    test_ann()
+    test_previous_ann()

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-12-01 14:52:04 by Eclipse SUMO netedit Version 1.15.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <sumo-net-file value="highway-traffic.net.xml"/>
+    </input>
+
+    <output>
+        <output-file value="highway-traffic.net.xml"/>
+    </output>
+
+    <processing>
+        <geometry.min-radius.fix.railways value="false"/>
+        <geometry.max-grade.fix value="false"/>
+        <offset.disable-normalization value="true"/>
+        <lefthand value="0"/>
+    </processing>
+
+    <junctions>
+        <no-internal-links value="true"/>
+        <no-turnarounds value="true"/>
+        <junctions.corner-detail value="5"/>
+        <junctions.limit-turn-speed value="5.50"/>
+        <rectangular-lane-cut value="0"/>
+    </junctions>
+
+    <pedestrian>
+        <walkingareas value="0"/>
+    </pedestrian>
+
+</configuration>
+-->
+
+<net version="1.9" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,10000.00,0.00" origBoundary="-10000000000.00,-10000000000.00,10000000000.00,10000000000.00" projParameter="!"/>
+
+    <edge id="highway" from="gneJ15" to="gneJ16" priority="-1" length="10000.00">
+        <lane id="highway_0" index="0" speed="100.00" length="10000.00" shape="0.00,-4.80 10000.00,-4.80"/>
+        <lane id="highway_1" index="1" speed="100.00" length="10000.00" shape="0.00,-1.60 10000.00,-1.60"/>
+    </edge>
+    <edge id="warmup" from="gneJ16" to="gneJ15" priority="-1">
+        <lane id="warmup_0" index="0" speed="100.00" length="10000.00" shape="10000.00,4.80 0.00,4.80"/>
+        <lane id="warmup_1" index="1" speed="100.00" length="10000.00" shape="10000.00,1.60 0.00,1.60"/>
+    </edge>
+
+    <junction id="gneJ15" type="priority" x="0.00" y="0.00" incLanes="warmup_0 warmup_1" intLanes="" shape="0.00,0.00 0.00,6.40 0.00,0.00">
+        <request index="0" response="0" foes="0"/>
+    </junction>
+    <junction id="gneJ16" type="dead_end" x="10000.00" y="0.00" incLanes="highway_0 highway_1" intLanes="" shape="10000.00,0.00 10000.00,-6.40 10000.00,0.00"/>
+
+    <connection from="warmup" to="highway" fromLane="1" toLane="1" dir="t" state="M"/>
+
+</net>

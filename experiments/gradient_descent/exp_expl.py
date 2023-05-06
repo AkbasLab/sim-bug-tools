@@ -56,66 +56,28 @@ class ExplorationResults(ExperimentResults[ExplorationParams]):
 
 class ExplorationExperiment(Experiment[ExplorationParams, ExplorationResults]):
     def experiment(self, params: ExplorationParams) -> ExplorationResults:
-        from sim_bug_tools.graphics import Grapher
-
-        g = Grapher(True, Domain.normalized(3))
-        g.draw_sphere(Point([0.5] * 3), 0.4)
         ble_count = 0
         oob_count = 0
         points = []
 
-        _prev = None
-
-        # g = Grapher(True, Domain.normalized(3))
-        # g.draw_sphere(Point([0.5] * 3), 0.4)
-        # g.plot_point(params.explorer.boundary[-1][0])
-        # g.add_arrow(*params.explorer.boundary[-1])
-        # plt.pause(0.01)
         i = 0
-        cntrl = False
-
         sequence = []
         while params.explorer.boundary_count < params.n_bpoints:
             try:
-                p, cls = params.explorer.step()
-                if cntrl:
-                    g.plot_point(p, color="red" if cls else "blue")
-                    plt.pause(0.01)
-                sequence.append((p, cls))
+                sequence.append(params.explorer.step())
             except BoundaryLostException:
-                path = [p for p, cls in sequence]
-                # g.plot_all_points(path)
-                # g.plot_point(params.explorer._tmp_parent[0], color="red")
-                # g.add_arrow(
-                #     params.explorer._tmp_parent[0],
-                #     params.explorer._tmp_parent[1] * 0.1,
-                #     color="red",
-                # )
-                # g.draw_path(path, typ="-")
-                # v1 = path[0].array - params.explorer._tmp_parent[0].array
-                # v1 /= np.linalg.norm(v1)
-                # v2 = path[-1].array - params.explorer._tmp_parent[0].array
-                # v2 /= np.linalg.norm(v2)
-                # plt.pause(0.01)
                 ble_count += 1
                 sequence = []
             except SampleOutOfBoundsException:
                 oob_count += 1
                 sequence = []
 
-            if params.bp and i != params.explorer.boundary_count:
-                params.explorer.back_propegate_prev(1)
+            if i != params.explorer.boundary_count:
+                if params.bp:
+                    params.explorer.back_propegate_prev(1)
                 points.extend(sequence)
                 sequence = []
-                # if _prev is not None:
-                #     _prev.remove()
                 i += 1
-            #     i += 1
-            #     g.plot_point(params.explorer.boundary[-1][0])
-            #     g.add_arrow(*params.explorer.boundary[-1])
-            #     g.add_arrow(params.explorer.boundary[-2][0], params.explorer._s)
-
-            #     plt.pause(0.01)
 
         nonbpoints = [
             (p, cls)
@@ -133,18 +95,18 @@ def test():
 
     expl_exp = ExplorationExperiment()
 
-    ndims = 3
+    ndims = 30
     loc = Point([0.5] * ndims)
     radius = 0.4
 
     theta = np.pi * 10 / 180
-    d = 0.01
+    d = 0.05
     scaler = Spheroid(d)
 
     # v = np.random.rand(ndims)
-    v = np.array([1.0, 1.0, 1.0])
+    v = np.ones(ndims)
     v /= np.linalg.norm(v)
-    b0 = Point(loc.array + radius * v * (1 - (d * 0.1) / radius))
+    b0 = Point(loc.array + v * radius * (1 - (d * 0.1) / radius))
     n0 = v
 
     normalize = lambda v: v / np.linalg.norm(v)
@@ -164,24 +126,23 @@ def test():
     expl_params = ExplorationParams(f"brrt-const-{ndims}d", expl, 500)
 
     results = expl_exp.experiment(expl_params)
-    errs = [
+    osv_errs = [
         angle_between(osv, true_osv_at(b)) * 180 / np.pi for b, osv in results.bpoints
     ]
-    avg_err = sum(errs) / len(errs)
+    b_errs = [loc.distance_to(b) - radius for b, osv in results.bpoints]
 
-    from sim_bug_tools.graphics import Grapher
+    avg_osv_err = sum(osv_errs) / len(osv_errs)
+    avg_b_err = sum(b_errs) / len(b_errs)
 
-    g = Grapher(True, Domain.normalized(3))
-    g.plot_all_points([p for p, n in results.bpoints])
-    for b, n in results.bpoints:
-        g.add_arrow(b, n, color="blue")
-        plt.pause(0.01)
+    # from sim_bug_tools.graphics import Grapher
 
-    # g.add_all_arrows(*zip(*results.bpoints))
-    plt.show()
+    # g = Grapher(True, Domain.normalized(3))
+    # g.plot_all_points([p for p, n in results.bpoints])
+
+    # plt.show()
 
     print(
-        f"BLEs: {results.ble_count}, OOBs: {results.out_of_bounds_count}, eff: {results.eff}, avg-err: {avg_err}"
+        f"BLEs: {results.ble_count}, OOBs: {results.out_of_bounds_count}, eff: {results.eff}, avg-osv-err: {avg_osv_err}, avg-b-err: {avg_b_err}"
     )
 
 

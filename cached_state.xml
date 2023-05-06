@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2023-05-04 14:35:58 by Eclipse SUMO sumo Version 1.15.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="E:\Repositories\sim-bug-tools\experiments\gradient_descent\highway2\highway-traffic\highway-traffic.net.xml"/>
+        <route-files value="E:\Repositories\sim-bug-tools\experiments\gradient_descent\highway2\highway-traffic\highway-traffic.rou.xml"/>
+    </input>
+
+    <processing>
+        <lanechange.duration value="1.1"/>
+    </processing>
+
+    <report>
+        <error-log value="E:\Repositories\sim-bug-tools\experiments\gradient_descent\highway2\highway-traffic\error-log.txt"/>
+    </report>
+
+    <traci_server>
+        <remote-port value="5522"/>
+        <num-clients value="1"/>
+    </traci_server>
+
+    <random_number>
+        <seed value="333"/>
+    </random_number>
+
+    <gui_only>
+        <delay value="100"/>
+    </gui_only>
+
+</configuration>
+-->
+
+<snapshot xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/state_file.xsd" version="1.15.0" time="0.00" type="micro">
+    <delay number="0" begin="0" end="0" depart="0.00" time="0.00"/>
+    <vType id="motorcycle" vClass="motorcycle"/>
+    <vType id="passenger" vClass="passenger"/>
+    <vType id="semitrailer" vClass="trailer"/>
+    <vType id="truck" vClass="truck"/>
+    <vType id="van" vClass="delivery"/>
+</snapshot>
