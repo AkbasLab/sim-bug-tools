@@ -57,6 +57,9 @@ class Grapher:
     def ax(self):
         return self._ax
 
+    def set_title(self, name: str):
+        self._ax.set_title(name)
+
     def fig(self):
         return self._fig
 
