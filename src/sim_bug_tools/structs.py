@@ -12,7 +12,7 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from numpy import float64, int32, ndarray, sqrt
+from numpy import float32, float64, int32, int64, ndarray, sqrt
 
 
 class Point:
@@ -472,9 +472,9 @@ class Domain:
         return result
 
     @classmethod
-    def normalized(cls, num_dimensions):
+    def normalized(cls, num_dimensions, axes_names: list[str] = None):
         "Returns a normalized domain with the given number of dimensions."
-        return Domain([(0, 1) for x in range(num_dimensions)])
+        return Domain([(0, 1) for x in range(num_dimensions)], axes_names)
 
     @staticmethod
     def from_json(string: str):
@@ -494,7 +494,7 @@ class Domain:
         the Domain type.
         """
 
-        NUMERIC = (int, float, int32, float64)
+        NUMERIC = (int, float, int32, int64, float32, float64)
 
         isValid = True
         i = 0
