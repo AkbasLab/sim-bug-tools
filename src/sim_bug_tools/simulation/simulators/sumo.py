@@ -10,7 +10,14 @@ from sim_bug_tools.structs import Point, Domain, Grid
 import sim_bug_tools.utils as utils
 from pandas import Series, DataFrame
 
-from ..simulation_core import (Simulator, ScenarioBuilder, TargetSDL, ConcreteScenario, LogicalScenario, ScenarioReport)
+from ..simulation_core import (
+    Simulator,
+    ScenarioBuilder,
+    TargetSDL,
+    ConcreteScenario,
+    LogicalScenario,
+    ScenarioReport,
+)
 
 
 if shutil.which("sumo") is None:
@@ -19,6 +26,7 @@ if shutil.which("sumo") is None:
     )
 
 PY_SDL = "python"
+
 
 # Sumo-specific scenario format
 class SumoConcreteScenario(ConcreteScenario):
@@ -38,39 +46,41 @@ class SumoConcreteScenario(ConcreteScenario):
         # RNG
         "--seed": 333,
     }
-    
+
     def __init__(self, name: str, desc: str, params: dict, config: dict = None):
         super().__init__(name, desc, PY_SDL, params)
-    
+
     def validate_configuration(self, config: dict) -> bool:
         return all(map(lambda x: x in self.DEFAULT_CONFIG, config))
 
 
 ## Supported SDLs
 ### Raw Python Scenarios
-class PySumoConcreteScenario(ConcreteScenario): 
+class PySumoConcreteScenario(ConcreteScenario):
     def __init__(self, name, desc, params):
         super().__init__(name, desc, PY_SDL, params)
-    
+
     @abstract
     def execute(self, sim: "Sumo") -> ScenarioReport:
         raise NotImplementedError()
 
+
 class PyLogicalScenario(LogicalScenario):
     @abstract
-    def actualizeScenario(self, *params, **kwargs) -> PySumoConcreteScenario:
+    def run(self, *params, **kwargs) -> PySumoConcreteScenario:
         raise NotImplementedError()
+
 
 class PyBuilder(ScenarioBuilder["Sumo"]):
     def build(self, scenario: PySumoConcreteScenario, sim: "Sumo"):
         return scenario.execute(sim)
-    
+
     @property
     def target_sdl(self) -> TargetSDL:
         return PY_SDL
-    
+
+
 ### e.g. Scenic
-    
 
 
 # Simulator
@@ -85,10 +95,8 @@ class Sumo(Simulator):
         config : dict
             SUMO arguments stored as a python dictionary.
         """
-        super().__init__({
-            PY_SDL: PyBuilder()
-        })
-        
+        super().__init__({PY_SDL: PyBuilder()})
+
         self._config = config
         self._priority = priority
 
@@ -107,7 +115,7 @@ class Sumo(Simulator):
         Closes the client.
         """
         traci.close()
-    
+
     def _start_first_client(self):
         cmd = []
 
@@ -117,7 +125,6 @@ class Sumo(Simulator):
                 if val:
                     sumo += "-gui"
                 cmd.append(sumo)
-                
 
             elif key != "--remote-port":
                 cmd.append(key)
@@ -133,18 +140,24 @@ class Sumo(Simulator):
         warnings.simplefilter("ignore", ResourceWarning)
         # Start the traci server with the first client
         if self.priority == 1:
-            self._start_first_client()        
+            self._start_first_client()
         else:
             # Initialize every client after the first.
             traci.init(port=self.config["--remote-port"])
             traci.setOrder(self.priority)
-            
-            
-    def config(self, scenario: SumoLogicalScenario, gui: bool = False, num_clients: int = 1, delay: int = 100, seed: int = 333):
+
+    def config(
+        self,
+        scenario: SumoLogicalScenario,
+        gui: bool = False,
+        num_clients: int = 1,
+        delay: int = 100,
+        seed: int = 333,
+    ):
         """
-        Configuration for a given logical scenario is assumed 
+        Configuration for a given logical scenario is assumed
         to have the following structure:
-        
+
         root_sim_folder/
             <map-folder-name>/
                 <network-file>
@@ -152,7 +165,7 @@ class Sumo(Simulator):
         """
         net_rel_path: str = "highway.net.xml"
         error_log_path: str = "map/error-log.txt"
-        
+
         return {
             "gui": gui,
             # Street network
@@ -169,11 +182,11 @@ class Sumo(Simulator):
             # RNG
             "--seed": 333,
         }
-    
-    @property 
+
+    @property
     def builders(self) -> dict[TargetSDL, "ScenarioBuilder"]:
         return self._builders
-      
+
     @property
     def priority(self) -> int:
         """
@@ -187,5 +200,3 @@ class Sumo(Simulator):
         SUMO arguments stored as a python dictionary.
         """
         return self._config
-            
-            

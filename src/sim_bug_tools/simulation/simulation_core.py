@@ -7,7 +7,12 @@ from dataclasses import dataclass
 from numpy import ndarray
 
 from sim_bug_tools.structs import Point, Domain, Grid
-from sim_bug_tools.decorators import copy_signature
+
+
+#   Scoreable
+#       Has the purpose of being a runable system that results in a score.
+#   Simulator
+#       A system that can create simulations of a logical scenario
 
 
 class Scorable:
@@ -49,42 +54,47 @@ class Graded(Scorable):
         raise NotImplementedError()
 
 
-@abstract
-@dataclass
 class ConcreteScenario(ABC):
-    name: str
-    desc: str
-    sdl: str
-    params: tuple
+    pass
 
 
-class LogicalScenario(ABC):
-    @abstract
-    def actualizeScenario(self, *params, **kwargs) -> ConcreteScenario:
-        pass
+class LogicalScenario(ABC, Scorable):
+    def __init__(self, input_domain: Domain, output_domain: Domain):
+        self.input_domain = input_domain
+        self.output_domain = output_domain
 
-    __call__ = actualizeScenario
+    def classify(self, p: Point) -> bool:
+        return self.classify_score(self.score(p))
 
+    def get_input_dims(self):
+        return len(self.input_domain)
+
+    def get_score_dims(self):
+        return len(self.output_domain)
+
+
+# class Simulation(ABC, Scorable):
+#     pass
 
 TargetSDL = NewType("TargetSDL", str)
 
 
 class Simulator(ABC):
-    def __init__(self, builders: dict[TargetSDL]):
+    def __init__(self, builders: dict):
         self._builders = builders
+        self._active_sim = None
 
-    @abstract
     @property
     def builders(self) -> dict[TargetSDL, "ScenarioBuilder"]:
         self._builders
 
-    def run(self, scenario: ConcreteScenario):
-        with self.builders[scenario.sdl].build(scenario, self) as executable:
-            executable()  # just thoughts
+    # def run(self, scenario: ConcreteScenario):
+    #     with self.builders[scenario.sdl].build(scenario, self) as executable:
+    #         executable()  # just thoughts
 
-    def setup_environment(self, scenario: LogicalScenario):
-        # the issue is that it would be nice to run
-        pass
+    # def setup_environment(self, scenario: LogicalScenario) -> Simulation:
+    #     # the issue is that it would be nice to run
+    #     pass
 
 
 S = TypeVar("S", bound=Simulator)

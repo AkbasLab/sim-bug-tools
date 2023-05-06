@@ -289,7 +289,7 @@ class Experiment(ABC, Generic[P, R]):
 
         return result
 
-    __call__ = run
+    __call__ = lazily_run
 
     __enter__ = setup
     __exit__ = teardown
