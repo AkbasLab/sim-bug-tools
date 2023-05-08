@@ -284,7 +284,7 @@ class Domain:
 
     @property
     def dimensions(self) -> ndarray:
-        "The dimensions of the Domain"
+        "The lengths of each dimension for the domain"
         f = lambda limits: limits[1] - limits[0]
         return np.array(tuple(map(f, self._arr)))
 
@@ -588,7 +588,7 @@ class Grid:
         corrected_domain = Domain.from_dimensions(domain.dimensions)
         _, b = corrected_domain.bounding_points
 
-        shape = self.calculate_point_index(b).array
+        shape = self.calculate_point_index(b)
         return np.zeros(shape)
 
     def calculate_index_domain(self, domain: Domain):
@@ -646,15 +646,19 @@ class Grid:
         """
         Determines the point's location within a len(res) X len(res) matrix
         which represents the grid's buckets as a matrix.
+        PROBLEM: This solution relies heavily on floating point arithmetic,
+        so A) don't use a grid that has a non-zero origin and ensure that
+        the grid align with the boundary of your domain. Might want to fix
+        this in the future, but whatever.
         """
+        def map_axis_to_grid(axis: float, step: float, o_axis: float):
+            err = round((axis - o_axis) % step)            
+            return int32(round((axis - err - o_axis) / step))      
+        
         return np.array(
             tuple(
                 map(
-                    lambda axis, step, o: int32(
-                        (axis - ((axis - o) % step) - o) / step
-                        if step is not None
-                        else axis
-                    ),
+                    map_axis_to_grid,
                     point,
                     self._res,
                     self._origin,
@@ -671,21 +675,13 @@ class Grid:
                 self._origin,
             )
         )
-
-
-# class Edge:
-
-#     def __init__(self, a : Point, b : Point):
-#         """
-#         An bidirectional edge between two points.
-
-#         -- parameters --
-#         a : Point
-#             First point
-#         b : Point
-#             Second point.
-#         """
-#         return
+        
+    @staticmethod
+    def from_matrix_dimensions(domain: Domain, shape: ndarray):
+        origin = domain.origin 
+        resolution = [d / step for d, step in zip(domain.dimensions, shape)] 
+        
+        return Grid(resolution, origin)
 
 
 class PolyLine:
