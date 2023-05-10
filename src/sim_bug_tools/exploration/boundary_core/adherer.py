@@ -1,12 +1,13 @@
 from abc import ABC
 from abc import abstractmethod as abstract
-from copy import copy
-from typing import Callable
+from typing import Callable, Generic, TypeVar, Type
 
 import numpy as np
 from numpy import ndarray
 
 from sim_bug_tools.structs import Domain, Point
+
+T_BNODE = tuple[Point, ndarray]
 
 
 class SampleOutOfBoundsException(Exception):
@@ -39,8 +40,7 @@ class _AdhererIterator:
     def __next__(self):
         # global _s, _g, _exp
         if self.ba.has_next():
-            x = self.ba.sample_next()
-            return x
+            return self.ba.sample_next()
         else:
             raise StopIteration
 
@@ -52,15 +52,71 @@ class Adherer(ABC):
     for the incremental stepping through the process and the collection
     of intermediate samples. A "classifier" function describes whether
     or not a sampled Point is within or outside of the target envelope.
+
+    Object Variables:
+        self._classifier (Callable[[Point], bool]): Classifying function that
+            determines if a set of parameters results in target performance.
+        self._pivot (Point): The boundary point to pivot from to find a
+            neighboring boundary point.
+        self._n (ndarray): The OSV of the boundary point self.pivot
+
     """
 
-    def __init__(self, classifier: Callable[[Point], bool], domain: Domain):
+    def __init__(
+        self,
+        classifier: Callable[[Point], bool],
+        bnode: T_BNODE,
+        direction: ndarray,
+        domain: Domain = None,
+        fail_out_of_bounds=True,
+    ):
+        """
+        Adherence Strategy interface. Describes the methods necessary
+        to implement a surface adherer, sampling in some direction
+        from a known boundary node to find a neighboring boundary node.
+
+        WARNING: __init__ is for setup only, do NOT sample yet. All sampling
+        should be done by "sample_next" exclusively to maintain interface
+        contracts.
+
+        Args:
+            classifier (Callable[[Point], bool]): Classifying function that
+                determines if a set of parameters results in target performance.
+            bnode (T_BNODE): The boundary point and osv to pivot from for finding
+                a neighboring boundary node.
+            domain (Domain): The domain to constrain sampling to (Defaults to None)
+        """
+        assert (
+            len(bnode[0]) == len(bnode[1])
+        ), "Node's location and OSV have mismatching number of dimensions?"
+        assert len(bnode[0]) == len(domain)
+
         self._classifier = classifier
         self._domain = domain
+
+        self._pivot, self._n = bnode
+        self._direction = direction
+
+        self._fail_out_of_bounds = fail_out_of_bounds
+
+        self._new_b = None
+        self._new_n = None
 
     @property
     def classifier(self):
         return self._classifier
+
+    @property
+    def domain(self):
+        return self._domain
+
+    @property
+    def direction(self):
+        return self._direction
+
+    @property
+    def parent_bnode(self):
+        return self._pivot, self._n
 
     @abstract
     def sample_next(self) -> tuple[Point, bool]:
@@ -72,6 +128,8 @@ class Adherer(ABC):
         Raises:
             BoundaryLostException: This exception is raised if the adherer
                 fails to acquire the boundary.
+            SampleOutOfBoundsException: Iff fail_out_of_bounds is true, this
+                exception is raised if the adherer attempts to sample outside
 
         Returns:
             Point, bool: The next sample and target class
@@ -79,43 +137,36 @@ class Adherer(ABC):
         """
         pass
 
-    @abstract
     def has_next(self) -> bool:
         """
         Returns:
             bool: True if the boundary has not been found and has remaining
                 samples.
         """
-        pass
-
-    @abstract
-    def find_boundary(self) -> tuple[Point, ndarray]:
-        """
-        Samples until the boundary point is found.
-
-        Returns:
-            Point: The estimated boundary point
-            ndarray: The orthonormal surface vector
-        """
-        pass
+        return self.bnode is None
 
     @property
-    def boundary(self) -> tuple[Point, ndarray]:
+    def bnode(self) -> T_BNODE:
         """
-        Boundary point and its surface vector, returns None
+        Boundary point and its orthonormal surface vector, returns None
         if the boundary hasn't been found yet.
         """
-        pass
+        return (self._new_b, self._new_n) if self._new_b is not None else None
 
-    @property
-    def sub_samples(self):
-        pass
+    def _classify(self, p: Point):
+        in_domain = self._domain is None or p in self._domain
+        if self._fail_out_of_bounds and not in_domain:
+            raise SampleOutOfBoundsException()
+        return in_domain and self._classifier(p)
 
     def __iter__(self):
         return _AdhererIterator(self)
 
 
-class AdherenceFactory(ABC):
+A = TypeVar("A", bound=Adherer)
+
+
+class AdherenceFactory(Generic[A]):
     """
     Different adherence strategies can require different initial parameters.
     Since the Explorer does not know what these parameters are, we must decouple
@@ -123,9 +174,27 @@ class AdherenceFactory(ABC):
     parameters to be defined prior to the execution of the exploration alg.
     """
 
-    def __init__(self, classifier: Callable[[Point], bool], domain: Domain):
+    def __init__(
+        self,
+        classifier: Callable[[Point], bool],
+        domain: Domain = None,
+        fail_out_of_bounds: bool = True,
+    ):
+        """
+        An abstract base clase for Adherer factories. This factory
+        constructs an Adherer of type A from class using a relative boundary
+        point and OSV to find a neighboring boundary node.
+
+        Args:
+            classifier (Callable[[Point], bool]): The target performance
+                classifying function.
+            domain (Domain): The domain to constrain the adherence to
+            fail_out_of_bounds (bool, optional): If set to True, the resulting
+                Adherer will fail if it samples out of bounds. Defaults to True.
+        """
         self._classifier = classifier
         self._domain = domain
+        self._fail_out_of_bounds = fail_out_of_bounds
 
     @property
     def classifier(self):
@@ -136,7 +205,7 @@ class AdherenceFactory(ABC):
         return self._domain
 
     @abstract
-    def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
+    def adhere_from(self, b: Point, n: ndarray, direction: ndarray) -> A:
         """
         Find a boundary point that neighbors the given point, p, in the
         provided direction, given the provided surface vector, n.

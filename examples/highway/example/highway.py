@@ -186,7 +186,7 @@ def main():
     brrt = BoundaryRRT(b0, n0, adherer_f)
     all_points: list[tuple[Point, bool]] = [(b0, True)]
     b_i = 0
-    while brrt.step_count < nsamples:
+    while brrt.boundary_ < nsamples:
         try:
             all_points.append(brrt.step())
 
@@ -196,8 +196,8 @@ def main():
         except SampleOutOfBoundsException as e:
             out_of_bounds_count += 1
 
-        if b_i != brrt.step_count:
-            b_i = brrt.step_count
+        if b_i != brrt.boundary_:
+            b_i = brrt.boundary_
             if backprop_enabled:
                 brrt.back_propegate_prev(bp_k)
 
@@ -227,8 +227,8 @@ def main():
             "errs": errs,
             "out-of-bounds": out_of_bounds_count,
             # Excludes samples that weren't classified / used by SUMO
-            "ratio": brrt.step_count / len(non_boundary_points),
-            "b-count": brrt.step_count,
+            "ratio": brrt.boundary_ / len(non_boundary_points),
+            "b-count": brrt.boundary_,
             "nonb-count": len(non_boundary_points),
             "total-samples": len(all_points),
         },

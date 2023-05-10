@@ -1,0 +1,34 @@
+feature,min,max,inc,uom,note
+speed_limit,30,80,1,kph,Road speed limit.
+dut_e_decel,1,50,1,kphps,Maximum breaking force of the DUT.
+dut_sosl,-20,20,1,kph,Dut Speed over Speed limit.
+npcl1_init_disp,5,100,1,m,Initial Distance NPCL1 is from DUT
+npcl1_sosl,-20,20,1,kph,NPCL1 Speed over Speed limit.
+npcl1_vtype,0,4,1,,NPCl1 Vehicle type
+npcl2_init_disp,5,100,1,m,
+npcl2_sosl,-20,20,1,kph,
+npcl2_vtype,0,4,1,,
+npcl3_init_disp,5,100,1,m,
+npcl3_sosl,-20,20,1,kph,
+npcl3_vtype,0,4,1,,
+npcl4_init_disp,5,100,1,m,
+npcl4_sosl,-20,20,1,kph,
+npcl4_vtype,0,4,1,,
+npcl5_init_disp,5,100,1,m,
+npcl5_sosl,-20,20,1,kph,
+npcl5_vtype,0,4,1,,
+npcr1_init_disp,5,100,1,m,
+npcr1_sosl,-20,20,1,kph,
+npcr1_vtype,0,4,1,,
+npcr2_init_disp,5,100,1,m,
+npcr2_sosl,-20,20,1,kph,
+npcr2_vtype,0,4,1,,
+npcr3_init_disp,5,100,1,m,
+npcr3_sosl,-20,20,1,kph,
+npcr3_vtype,0,4,1,,
+npcr4_init_disp,5,100,1,m,
+npcr4_sosl,-20,20,1,kph,
+npcr4_vtype,0,4,1,,
+npcr5_init_disp,5,100,1,m,
+npcr5_sosl,-20,20,1,kph,
+npcr5_vtype,0,4,1,,

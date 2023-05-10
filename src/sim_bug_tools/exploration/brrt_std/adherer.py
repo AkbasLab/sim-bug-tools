@@ -12,23 +12,32 @@ from sim_bug_tools.exploration.boundary_core.adherer import (
 )
 from sim_bug_tools.structs import Domain, Point, Scaler
 
+import matplotlib.pyplot as plt
+
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
 
 ANGLE_90 = np.pi / 2
+
+normalize = lambda v: v / np.linalg.norm(v)
+
+
+def angle_between(u, v):
+    u, v = normalize(u), normalize(v)
+    return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
 
 
 class ConstantAdherer(Adherer):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
-        domain: Domain,
-        p: Point,
+        b: Point,
         n: ndarray,
         direction: ndarray,
         scaler: Scaler,
         delta_theta: float,
-        fail_out_of_bounds: bool = False,
+        domain: Domain = None,
+        fail_out_of_bounds: bool = True,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
@@ -38,116 +47,121 @@ class ConstantAdherer(Adherer):
                 on whether or not the provided Point lies within or outside of the target envelope.
             p (Point): Parent boundary point - used as a starting point for finding the neighboring
                 boundary point.
-            n (ndarray): The parent boundary point's estimated orthogonal surface vector.
+            n (ndarray): The parent boundary point's estimated orthonormal surface vector.
             direction (ndarray): The general direction to travel in (MUST NOT BE PARALLEL WITH @n)
             d (float): How far to travel from @p
             theta (float): How far to rotate to find the boundary.
         """
-        super().__init__(classifier, domain)
+        super().__init__(
+            classifier,
+            (b, n),
+            direction,
+            domain,
+            fail_out_of_bounds,
+        )
         self._scaler = scaler
-        self._p = p
-
-        self._fail_out_of_bounds = fail_out_of_bounds
-        n = ConstantAdherer.normalize(n)
+        self._delta_theta = delta_theta
 
         self._rotater_function = self.generateRotationMatrix(n, direction)
         A = self._rotater_function(-ANGLE_90)
+
         # Get the direction we want to travel in
         self._v = copy(n.squeeze())
-        self._v = np.dot(A, self._v)
+        self._v: ndarray = np.dot(A, self._v)
+        if angle_between(self._v, n) * 180 / np.pi > 92:
+            raise Exception(
+                "[ConstantAdherer] Rotation matrix malformed: improperly rotated vector?"
+            )
 
         # Scale the vector to get our displacement vector
-        self._s: ndarray = self._v
+        self._s: ndarray = copy(self._v)
         self._s = self._scaler * self._s
 
         self._prev: Point = None
         self._prev_class: bool = None
 
-        self._cur: Point = p + Point(self._s)
+        self._cur: Point = b + Point(self._s)
         self._cur_class = None
-        # self._cur_class = classifier(self._cur)
-        self._classify_sample()
 
-        if self._cur_class:
-            self._rotate = self._rotater_function(delta_theta)
-        else:
-            self._rotate = self._rotater_function(-delta_theta)
-
-        self._b: Point = None
-        self._n: ndarray = None
-
-        self._sub_samples = []
+        self._initialized = False
 
         self._iteration = 0
-        self._max_iteration = (2 * np.pi) // delta_theta
+        self._max_iteration = int((np.pi) // delta_theta)
+
+        # from sim_bug_tools.graphics import Grapher
+
+        # self._g = Grapher(True, Domain.normalized(3))
+        # self._g.draw_sphere(Point([0.5] * 3), 0.4)
+        # self._tmp_b = b
+        # # self._tmp_n = n
+        # self._gb = self._g.plot_point(b, color="green")
+        # self._gn = self._g.add_arrow(b, n, color="green")
+        # self._gs = None
+        # # plt.pause(0.01)
 
     @property
-    def b(self) -> Point:
-        """The identified boundary point"""
-        return self._b
+    def delta_theta(self):
+        return self._delta_theta
 
-    @property
-    def n(self) -> Point:
-        """The identified boundary point's estimated orthogonal surface vector"""
-        return self._n
-
-    @property
-    def boundary(self) -> tuple[Point, ndarray]:
-        return (self._b, self._n)
-
-    @property
-    def sub_samples(self):
-        return self._sub_samples
-
-    def has_next(self) -> bool:
-        return self._b is None
-
-    def _classify_sample(self):
+    def _classify_cur(self):
         "Will only run the classifier IFF the sample is in domain"
         self._prev_class = self._cur_class
-        in_domain = self._cur in self._domain
-        if self._fail_out_of_bounds and not in_domain:
-            raise SampleOutOfBoundsException()
+        self._cur_class = self._classify(self._cur)
 
-        self._cur_class = in_domain and self._classifier(self._cur)
+    def _initialize_rotater(self):
+        # self._cur_class = classifier(self._cur)
+        self._classify_cur()
+
+        if self._cur_class:
+            self._rotate = self._rotater_function(self._delta_theta)
+        else:
+            self._rotate = self._rotater_function(-self._delta_theta)
+
+        self._initialized = True
+
+    def _rotate_displacement(self):
+        self._prev = self._cur
+        self._prev_v = self._v
+        self._v: ndarray = np.dot(self._rotate, self._v)
+        self._s = self._scaler * self._v
+        self._cur = self._pivot + Point(self._s)
 
     def sample_next(self) -> tuple[Point, bool]:
-        self._prev = self._cur
-        self._v = np.dot(self._rotate, self._v)
-        self._s = self._scaler * self._v
-        self._cur = self._p + Point(self._s)
+        if not self._initialized:
+            self._initialize_rotater()
+        else:
+            self._rotate_displacement()
+            self._classify_cur()
 
-        # self._cur_class = self._classifier(self._cur)
-        self._classify_sample()
+        # if self._gs != None:
+        #     self._gs.remove()
+        # self._gs = self._g.add_arrow(self._tmp_b, self._v * 0.10)
+        # plt.pause(0.01)
 
         if self._prev_class is not None and self._cur_class != self._prev_class:
-            self._b = self._cur if self._cur_class else self._prev
-            self._n = ConstantAdherer.normalize(
+            self._new_b = self._cur if self._cur_class else self._prev
+            self._new_n = self.normalize(
                 np.dot(self._rotater_function(ANGLE_90), self._s)
             )
+            # self._gb.remove()
+            # self._gn.remove()
+            # if self._gs is not None:
+            #     self._gs.remove()
+
             self.sample_next = lambda: None
 
         elif self._iteration > self._max_iteration:
             raise BoundaryLostException()
 
-        self._sub_samples.append(self._cur)
-
         self._iteration += 1
         return self._cur, self._cur_class
-
-    def find_boundary(self) -> tuple[Point, ndarray]:
-        all_points = []
-        while self.has_next():
-            all_points.append(self.sample_next())
-
-        return self._b, self._n
 
     @staticmethod
     def normalize(u: ndarray):
         return u / np.linalg.norm(u)
 
-    @staticmethod
-    def orthonormalize(u: ndarray, v: ndarray) -> tuple[ndarray, ndarray]:
+    @classmethod
+    def orthonormalize(cls, u: ndarray, v: ndarray) -> tuple[ndarray, ndarray]:
         """
         Generates orthonormal vectors given two vectors @u, @v which form a span.
 
@@ -166,17 +180,16 @@ class ConstantAdherer(Adherer):
         u = u[np.newaxis]
         v = v[np.newaxis]
 
-        un = ConstantAdherer.normalize(u)
+        un = cls.normalize(u)
+        vn = cls.normalize(v)
         vn = v - np.dot(un, v.T) * un
-        vn = ConstantAdherer.normalize(vn)
+        vn = cls.normalize(vn)
+        return (un.squeeze(), vn.squeeze())
 
-        if not (np.dot(un, vn.T) < 1e-4):
-            raise Exception("Vectors %s and %s are already orthogonal." % (un, vn))
-
-        return un, vn
-
-    @staticmethod
-    def generateRotationMatrix(u: ndarray, v: ndarray) -> Callable[[float], ndarray]:
+    @classmethod
+    def generateRotationMatrix(
+        cls, u: ndarray, v: ndarray
+    ) -> Callable[[float], ndarray]:
         """
         Creates a function that can construct a matrix that rotates by a given angle.
 
@@ -200,7 +213,13 @@ class ConstantAdherer(Adherer):
         elif len(u.shape) != 1:
             raise Exception("Arguments u and v must be vectors...")
 
-        u, v = ConstantAdherer.orthonormalize(u, v)
+        u, v = (
+            cls.orthonormalize(u, v)
+            if abs(np.dot(u, v[np.newaxis].T)) > 1e-4
+            else (u, v)
+        )
+        u = u[np.newaxis]
+        v = v[np.newaxis]
 
         I = np.identity(len(u.T))
 
@@ -210,60 +229,72 @@ class ConstantAdherer(Adherer):
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
 
 
-class ConstantAdherenceFactory(AdherenceFactory):
+class ConstantAdherenceFactory(AdherenceFactory[ConstantAdherer]):
     def __init__(
         self,
         classifier: Callable[[Point], bool],
-        domain: Domain,
         scaler: Scaler,
         delta_theta: float,
+        domain: Domain = None,
         fail_out_of_bounds: bool = False,
     ):
-        super().__init__(classifier, domain)
+        super().__init__(classifier, domain, fail_out_of_bounds)
         # self._d = d
         self._scaler = scaler
-        self._theta = delta_theta
-        self._fail_out_of_bounds = fail_out_of_bounds
+        self._delta_theta = delta_theta
 
-    def adhere_from(self, p: Point, n: ndarray, direction: ndarray) -> Adherer:
+    def adhere_from(self, b: Point, n: ndarray, direction: ndarray):
         return ConstantAdherer(
             self.classifier,
-            self.domain,
-            p,
+            b,
             n,
             direction,
             self._scaler,
-            self._theta,
+            self._delta_theta,
+            self.domain,
             self._fail_out_of_bounds,
         )
 
 
-if __name__ == "__main__":
+def test_rotation():
+    from sim_bug_tools.graphics import Grapher
     import matplotlib.pyplot as plt
-    from matplotlib.axes import Axes
 
-    angle = 30 * np.pi / 180
+    theta = np.pi * 10 / 180
 
-    fig = plt.figure()
-    ax: Axes = fig.add_subplot()
-    ax.set_xlim([0, 3])
-    ax.set_ylim([0, 3])
+    ndims = 3
+    domain = Domain.normalized(ndims)
+    g = Grapher(ndims == 3, domain)
 
-    vec = np.array([0, 1])
+    v1 = np.array([1, 0, 0])
+    v2 = np.array([1, 1, 1])
+    print(v1, v2)
+    _v1 = g.add_arrow(Point.zeros(ndims), v1, color="blue")
+    _v2 = g.add_arrow(Point.zeros(ndims), v2, color="red")
+    plt.pause(0.01)
 
-    u = np.array([0.5, 0.5])
-    v = np.array([0.1, 0.9])
-    # u, v = BoundaryAdherer.orthonormalize(u, v)
+    v1, v2 = ConstantAdherer.orthonormalize(v1, v2)
+    print(v1, v2)
+    _v1.remove()
+    _v2.remove()
+    _v1 = g.add_arrow(Point.zeros(ndims), v1, color="blue")
+    _v2 = g.add_arrow(Point.zeros(ndims), v2, color="red")
+    plt.pause(0.01)
 
-    ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
-    plt.pause(0.05)
+    rotater = ConstantAdherer.generateRotationMatrix(v1, v2)
+    s = copy(v2)
+    _s = g.add_arrow(Point.zeros(ndims), s, color="green")
+    plt.pause(0.01)
 
-    input("Waiting...")
-    rotate = ConstantAdherer.generateRotationMatrix(u, v)(angle)
+    for i in range(int(np.pi // theta)):
+        s = np.dot(rotater(theta), s)
+        _s.remove()
+        _s = g.add_arrow(Point.zeros(ndims), s, color="green")
+        _p = g.plot_point(Point(s), color="blue")
+        plt.pause(0.01)
+        print("next")
+    print("done")
 
-    while True:
-        ar_vec.remove()
-        vec = np.dot(rotate, vec)
-        ar_vec = ax.arrow(1.5, 1.5, vec[0], vec[1])
-        plt.pause(0.05)
-        input("Waiting...")
+
+if __name__ == "__main__":
+    test_rotation()

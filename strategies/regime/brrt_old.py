@@ -190,9 +190,9 @@ class BoundaryRRT(brrt_std.BoundaryRRT):
         for b in adherer:
             self._all_points.append(b)
 
-        self._add_child(*adherer.boundary)
-        self._prev = adherer.boundary
-        return adherer.boundary
+        self._add_child(*adherer.bnode)
+        self._prev = adherer.bnode
+        return adherer.bnode
 
 
 def round_to_limits(arr: np.ndarray, min: np.ndarray, max: np.ndarray) -> np.ndarray:

@@ -20,8 +20,10 @@ def project(a: float, b: float, n: float, inc: float = None) -> float:
     Project a normal val @n between @a and @b with an discretization
     increment @inc.
     """
-    assert n >= 0 and n <= 1
-    assert b >= a
+    assert (
+        n >= 0 and n <= 1
+    ), "projecting normalized value n between a and b must be between 0 and 1"
+    assert b >= a, "projecting between two values, a and b, a must be <= b"
 
     # If no increment is provided, return the projection
     if inc is None:
@@ -40,7 +42,7 @@ class HighwayTrafficParameterManager:
         The parameter manager class is helper class which projects a normal
         Point to a usable input for the Highway Pass Test class.
         """
-        self._params_df = pd.read_csv("%s/highway-traffic/params-ht.csv" % FILE_DIR)
+        self._params_df = pd.read_csv("%s\\highway-traffic\\params-ht.csv" % FILE_DIR)
         return
 
     @property
@@ -68,7 +70,7 @@ class HighwayTrafficParameterManager:
 
 
 class HighwayTrafficTest:
-    def __init__(self, params_s: pd.Series):
+    def __init__(self):
         """
         This class is a fully encapsulated black box scenario which performs a
         simple AV scenario in SUMO traffic simulator.
@@ -79,20 +81,20 @@ class HighwayTrafficTest:
         @param_s : pd.Series
             Concrete parameters for the black box scenario.
         """
-        self._params_s = params_s.copy()
-
         # SUMO configuration
-        self._map_dir = "%s/highway-traffic" % FILE_DIR
-        self._error_log_fn = "%s/error-log.txt" % self.map_dir
+        self._map_dir = "%s\\highway-traffic" % FILE_DIR
+        self._error_log_fn = "%s\\error-log.txt" % self.map_dir
         self._config = {
+            # "--no-warnings": "",
+            # "--no-step-log": "",
             "gui": False,
             # "gui": True,
             # Street network
-            "--net-file": "%s/highway-traffic.net.xml" % self.map_dir,
-            "-r": "%s/highway-traffic.rou.xml" % self.map_dir,
+            "--net-file": "%s\\highway-traffic.net.xml" % self.map_dir,
+            "-r": "%s\\highway-traffic.rou.xml" % self.map_dir,
             # Logging
             "--error-log": self.error_log_fn,
-            # "--log" : "%s/log.txt" % map_dir,
+            # "--log" : "%s\\log.txt" % map_dir,
             # Traci Connection
             "--num-clients": 1,
             "--remote-port": 5522,
@@ -101,8 +103,8 @@ class HighwayTrafficTest:
             # "--start" : "--quit-on-end",
             # RNG
             "--seed": 333,
-            # Lane Change Duration
-            "--lanechange.duration": self.params_s["lc_dur"],
+            ## Lane Change Duration
+            "--lanechange.duration": 1.1,
         }
 
         # Start Client
@@ -111,34 +113,37 @@ class HighwayTrafficTest:
         # Set speed limit
         # self._set_speed_limit()
 
+    def run(self, params_s: pd.Series) -> pd.Series:
+        self._params_s = params_s.copy()
+        if self.client.is_cached:
+            self.client.load_cached_state()
         # Add Vehicles
         try:
             self._add_all_vehicles()
         except Exception:
             traceback.print_exc()
-            print("Error Adding vehicles. Closing client.")
             self.client.close()
-            return
+            raise Exception("Error adding vehicles. Closed client.")
 
         # Run Simuations
         try:
-            # while traci.simulation.getMinExpectedNumber() > 0:
-            #     # self._verify()
-            #     traci.simulationStep()
-            #     continue
             self.client.run_to_end()
         except Exception:
             traceback.print_exc()
-            print("Error encountered when runnng simulation. Closing client.")
             self.client.close()
-            return
-
-        # Close the Client
-        self.client.close()
+            raise Exception("Error encountered when runnng simulation. Closed client.")
 
         # Scores
         self._scores_s = self._calc_scores()
-        return
+        return self._scores_s
+
+    def __enter__(self):
+        self.client.cache_state()
+        return self
+
+    def __exit__(self):
+        self.client.clear_cache()
+        self.client.close()
 
     def ___FEATURES___(self):
         return

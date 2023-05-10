@@ -12,7 +12,7 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from numpy import float64, int32, ndarray, sqrt
+from numpy import float32, float64, int32, int64, ndarray, sqrt
 
 
 class Point:
@@ -83,7 +83,7 @@ class Point:
         )
 
     def __add__(self, other):
-        if not isinstance(other, Point):
+        if not isinstance(other, Point) and not isinstance(other, ndarray):
             raise ValueError(
                 f"Can only add a point to another point! Got type {type(other)}"
             )
@@ -227,7 +227,7 @@ class Domain:
         domain = [(lower_i, upper_i) for each dimension]
     """
 
-    def __init__(self, arr: tuple, granularity: np.float64 = 0.01):
+    def __init__(self, arr: tuple, axes_names: list[str] = None):
         """
         Arguments:
             arr             (iterable):
@@ -250,18 +250,19 @@ class Domain:
                 f"Invalid array format for Domain!\nForm: [(low, high) for i in range(num_dimensions)]\nGot: {arr}"
             )
 
-        self._granularity = granularity
+        if axes_names is None:
+            self._axes_names = [f"x{i+1}" for i in range(len(self))]
 
-        a = np.array([arr[0] for arr in self.array])
-        b = np.array([arr[1] for arr in self.array])
-        self._n_buckets = np.ceil((b - a) / self.granularity).astype(np.int32) + 1
+        # a = np.array([arr[0] for arr in self.array])
+        # b = np.array([arr[1] for arr in self.array])
+        # self._n_buckets = np.ceil((b - a) / self.granularity).astype(np.int32) + 1
 
     def as_dict(self) -> dict[str, Point]:
         arr = self.bounding_points
         return {
             "lower_bounds": arr[0].array.tolist(),
             "upper_bounds": arr[1].array.tolist(),
-            "granularity": self.granularity,
+            # "granularity": self.granularity,
         }
 
     def as_json(self) -> str:
@@ -270,15 +271,12 @@ class Domain:
             {
                 "lower_bounds": arr[0].array.tolist(),
                 "upper_bounds": arr[1].array.tolist(),
-                "granularity": self.granularity,
+                # "granularity": self.granularity,
             }
         )
 
     @property
     def bounding_points(self) -> tuple[Point]:
-        pA: Point
-        pB: Point
-
         pA = Point([bounds[0] for bounds in self])
         pB = Point([bounds[1] for bounds in self])
 
@@ -286,7 +284,7 @@ class Domain:
 
     @property
     def dimensions(self) -> ndarray:
-        "The dimensions of the Domain"
+        "The lengths of each dimension for the domain"
         f = lambda limits: limits[1] - limits[0]
         return np.array(tuple(map(f, self._arr)))
 
@@ -298,6 +296,14 @@ class Domain:
     def array(self) -> ndarray:
         "The domain in array form."
         return self._arr
+
+    @property
+    def axes_names(self):
+        return self._axes_names
+
+    @axes_names.setter
+    def axes_names(self, axes_names: list[str]):
+        self._axes_names = axes_names
 
     @property
     def volume(self) -> float64:
@@ -339,10 +345,6 @@ class Domain:
         )
 
     @property
-    def granularity(self) -> np.float64:
-        return self._granularity
-
-    @property
     def n_buckets(self) -> np.ndarray:
         return self._n_buckets
 
@@ -369,7 +371,6 @@ class Domain:
         return self._arr[key]
 
     def __contains__(self, point: Point):
-
         if not isinstance(point, Point):
             print("Error happened due to point not being Point!")
             print(point)
@@ -471,9 +472,9 @@ class Domain:
         return result
 
     @classmethod
-    def normalized(cls, num_dimensions):
+    def normalized(cls, num_dimensions, axes_names: list[str] = None):
         "Returns a normalized domain with the given number of dimensions."
-        return Domain([(0, 1) for x in range(num_dimensions)])
+        return Domain([(0, 1) for x in range(num_dimensions)], axes_names)
 
     @staticmethod
     def from_json(string: str):
@@ -493,7 +494,7 @@ class Domain:
         the Domain type.
         """
 
-        NUMERIC = (int, float, int32, float64)
+        NUMERIC = (int, float, int32, int64, float32, float64)
 
         isValid = True
         i = 0
@@ -529,23 +530,23 @@ class Domain:
             + destination.origin
         )
 
-    def project(self, point: Point) -> Point:
-        """
-        Project a point in the domain's space,
-        to optimize a selection in the discretized space.
-        """
-        a = np.array([arr[0] for arr in self.array])
-        b = np.array([arr[1] for arr in self.array])
-        x = point.array
+    # def project(self, point: Point) -> Point:
+    #     """
+    #     Project a point in the domain's space,
+    #     to optimize a selection in the discretized space.
+    #     """
+    #     a = np.array([arr[0] for arr in self.array])
+    #     b = np.array([arr[1] for arr in self.array])
+    #     x = point.array
 
-        # Amount of buckets
-        n_buckets = np.ceil((b - a) / self.granularity)
-        # n_buckets = self.n_buckets
+    #     # Amount of buckets
+    #     n_buckets = np.ceil((b - a) / self.granularity)
+    #     # n_buckets = self.n_buckets
 
-        # Bucket index
-        i = (x * n_buckets).astype(int)
+    #     # Bucket index
+    #     i = (x * n_buckets).astype(int)
 
-        return Point(a + i * self.granularity)
+    #     return Point(a + i * self.granularity)
 
 
 class Grid:
@@ -575,8 +576,27 @@ class Grid:
     def __len__(self):
         return len(self._res)
 
-    def calculate_index_domain(self, continuous_domain: Domain):
-        pointA, pointB = continuous_domain.bounding_points
+    def construct_bucket_matrix(self, domain: Domain) -> ndarray:
+        """
+        Slices @domain into buckets using @self, returning a matrix to represent
+        the grid cells as buckets.
+
+        @domain must be aligned with the grid for this to work predictably. The
+        domain's origin will be translated to the global origin (0^N), so only
+        its dimensions matter.
+        """
+        corrected_domain = Domain.from_dimensions(domain.dimensions)
+        _, b = corrected_domain.bounding_points
+
+        shape = self.calculate_point_index(b)
+        return np.zeros(shape)
+
+    def calculate_index_domain(self, domain: Domain):
+        """
+        Legacy code: Creates a domain that represents the indices into the bucket matrix
+        representation of the grid.
+        """
+        pointA, pointB = domain.bounding_points
 
         pointA_index = self.calculate_point_index(pointA)
         pointB_index = self.calculate_point_index(pointB)
@@ -587,7 +607,7 @@ class Grid:
             (axis - self._origin[dim_index]) % self._res[dim_index], 0
         )
 
-        inc_upper_bounds = continuous_domain.get_inclusion_upper_bounds()
+        inc_upper_bounds = domain.get_inclusion_upper_bounds()
 
         lst = []
         for i in range(len(pointB_index)):
@@ -608,7 +628,7 @@ class Grid:
 
         return index_domain
 
-    def discretize_point(self, point: Point) -> Point:
+    def descretize_point(self, point: Point) -> Point:
         """
         Gets a point afixed to the grid. Rounds down to match grid coordinates.
 
@@ -617,21 +637,28 @@ class Grid:
         """
         return Point(
             [
-                (axis - (axis % self._res[i]) - self._origin[i])
-                for i, axis in enumerate(point)
-                if self._res[i] is not None
+                (axis - (axis % step) - o) if step is not None else axis
+                for axis, step, o in zip(point, self._res, self._origin)
             ]
         )
 
     def calculate_point_index(self, point: Point) -> ndarray:
+        """
+        Determines the point's location within a len(res) X len(res) matrix
+        which represents the grid's buckets as a matrix.
+        PROBLEM: This solution relies heavily on floating point arithmetic,
+        so A) don't use a grid that has a non-zero origin and ensure that
+        the grid align with the boundary of your domain. Might want to fix
+        this in the future, but whatever.
+        """
+        def map_axis_to_grid(axis: float, step: float, o_axis: float):
+            err = round((axis - o_axis) % step)            
+            return int32(round((axis - err - o_axis) / step))      
+        
         return np.array(
             tuple(
                 map(
-                    lambda axis, step, o: int32(
-                        (axis - ((axis - o) % step) - o) / step
-                        if step is not None
-                        else axis
-                    ),
+                    map_axis_to_grid,
                     point,
                     self._res,
                     self._origin,
@@ -639,7 +666,7 @@ class Grid:
             )
         )
 
-    def convert_index_to_point(self, index: list[int32]):
+    def convert_index_to_point(self, index: ndarray):
         return Point(
             map(
                 lambda i, step, o: i * step + o if step is not None else i,
@@ -648,21 +675,13 @@ class Grid:
                 self._origin,
             )
         )
-
-
-# class Edge:
-
-#     def __init__(self, a : Point, b : Point):
-#         """
-#         An bidirectional edge between two points.
-
-#         -- parameters --
-#         a : Point
-#             First point
-#         b : Point
-#             Second point.
-#         """
-#         return
+        
+    @staticmethod
+    def from_matrix_dimensions(domain: Domain, shape: ndarray):
+        origin = domain.origin 
+        resolution = [d / step for d, step in zip(domain.dimensions, shape)] 
+        
+        return Grid(resolution, origin)
 
 
 class PolyLine:
@@ -711,7 +730,6 @@ class PolyLine:
 
     @staticmethod
     def plot_many(polylines):
-
         # For now, only plot in 2 dimensions
         if not polylines[0].shape[1] == 2:
             raise NotImplementedError(
