@@ -22,6 +22,7 @@ from numpy import ndarray
 
 import sim_bug_tools.structs as structs
 import sim_bug_tools.utils as utils
+import sim_bug_tools.constants as constants
 from sim_bug_tools.structs import Domain, Point
 from treelib import Tree, Node
 from sim_bug_tools.exploration.brrt_std.brrt import DATA_LOCATION
@@ -30,9 +31,13 @@ from itertools import combinations, product
 
 class Grapher:
     def __init__(
-        self, is3d=False, domain: Domain = None, axes_titles: list[str] = None
+        self,
+        is3d=False,
+        domain: Domain = None,
+        axes_titles: list[str] = None,
+        style="standard",
     ):
-        self._fig = plt.figure()
+        self._fig = plt.figure(**constants.DEFAULT_FIG_CONFIG)
         self._ax: Axes = (
             self._fig.add_subplot(111, projection="3d")
             if is3d
@@ -52,6 +57,9 @@ class Grapher:
 
         print(self._ax)
         self._is3d = is3d
+
+        if style == "standard":
+            plt.subplots_adjust(**constants.DEFAULT_PLOT_CONFIG)
 
     @property
     def ax(self):
@@ -455,3 +463,10 @@ def plot_signal(time: list[float], is_bug: list[bool]) -> matplotlib.axes.Axes:
     is_bug = np.array(is_bug, dtype=int)
     ax.plot(time, is_bug, color="black")
     return ax
+
+
+if __name__ == "__main__":
+    g = Grapher(domain=Domain.normalized(2), axes_titles=["First", "Second"])
+    g.set_title("Test Title")
+
+    plt.show()

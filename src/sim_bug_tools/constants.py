@@ -1,20 +1,40 @@
 import numpy as np
 import pandas as pd
 
-sumo_default_vtypes = pd.DataFrame({
-    "vClass" : ["pedestrian","bicycle","moped","motorcycle","passenger","van","taxi","delivery","truck","trailer"],
-    "length" : [0.215,1.6,2.1,2.2,5,4.7,5,6.5,7.1,16.5],
-    "width" : [0.478,0.65,0.8,0.9,1.8,1.9,1.8,2.16,2.4,2.55],
-    "height" : [1.719,1.7,1.7,1.5,1.5,1.73,1.5,2.86,2.4,4],
-    "minGap" : [0.25,0.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5,2.5],
-    "accelMax" : [1.5,1.2,1.1,6,2.6,2.6,2.6,2.6,1.3,1.1],
-    "decel" : [2,3,7,10,4.5,4.5,4.5,4.5,4,4],
-    "decelEmergency" : [5.,7,10,10,9,9,9,9,7,7],
-    "speedMax" : [5.4,20,45,200,200,200,200,200,130,130],
-    "speedDeviation" : [0.1,0.1,0.1,0.1,0.1,0.1,0.05,0.05,0.05,0.05]
-})
+sumo_default_vtypes = pd.DataFrame(
+    {
+        "vClass": [
+            "pedestrian",
+            "bicycle",
+            "moped",
+            "motorcycle",
+            "passenger",
+            "van",
+            "taxi",
+            "delivery",
+            "truck",
+            "trailer",
+        ],
+        "length": [0.215, 1.6, 2.1, 2.2, 5, 4.7, 5, 6.5, 7.1, 16.5],
+        "width": [0.478, 0.65, 0.8, 0.9, 1.8, 1.9, 1.8, 2.16, 2.4, 2.55],
+        "height": [1.719, 1.7, 1.7, 1.5, 1.5, 1.73, 1.5, 2.86, 2.4, 4],
+        "minGap": [0.25, 0.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5, 2.5],
+        "accelMax": [1.5, 1.2, 1.1, 6, 2.6, 2.6, 2.6, 2.6, 1.3, 1.1],
+        "decel": [2, 3, 7, 10, 4.5, 4.5, 4.5, 4.5, 4, 4],
+        "decelEmergency": [5.0, 7, 10, 10, 9, 9, 9, 9, 7, 7],
+        "speedMax": [5.4, 20, 45, 200, 200, 200, 200, 200, 130, 130],
+        "speedDeviation": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.05],
+    }
+)
 
+DEFAULT_PLOT_CONFIG = {
+    "left": 0.09,
+    "right": 0.96,
+    "top": 0.94,
+    "bottom": 0.097,
+}
 
+DEFAULT_FIG_CONFIG = {"figsize": (8, 8)}
 
 
 PRIME_VECTOR = np.array(
