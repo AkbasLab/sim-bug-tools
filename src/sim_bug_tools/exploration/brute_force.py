@@ -1,8 +1,10 @@
 # Summer, put your stuff here
 
 import numpy as np
+from copy import copy
 
 from numpy import ndarray
+import random
 from typing import Callable
 from scipy.ndimage import label, generate_binary_structure
 
@@ -19,22 +21,19 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
             - `Domain` domain : the domain to search
             - `Grid` grid : the grid pattern that discretizes the domain
         - Outputs: 
-            - `list(ndarray)` : The score matrix for each grid cell and the classification matrix for each grid cell
+            - `list(ndarray)` : The score matrix for each grid cell
                 - Shape is determined by the dimensions of the domain when sliced up by the grid. E.g.
     """
     scored_matrix: ndarray
-    classification_matrix: ndarray
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
-    classification_matrix = scored_matrix
 
     # Iterating through the n-dimensional array and getting the score and classification
     for index, item in np.ndenumerate(scored_matrix):
         new_point = grid.convert_index_to_point(index)
         scored_matrix[index] = scorable.score(new_point)
-        classification_matrix[index] = scorable.classify(new_point)
         
-    return [scored_matrix, classification_matrix]
+    return scored_matrix
 
 # True-Envelope finding algorithm
 def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorable, include_diagonals: bool = True) -> ndarray:
@@ -48,34 +47,45 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
         - Outputs: `ndarray` : array of indices of cells within the contiguous, discretized envelope
     """
     discretized_envelopes: ndarray
-    discretized_envelopes = [0]
-    # Getting an ndarray of the index in classification_matrix where the classification is true
-    true_index = np.argwhere(classification_matrix)
 
     """
     In older versions of SciPy (before version 1.6.0), the generate_binary_structure and iterate_structure functions have a maximum dimension limit of 31. Attempting to generate structures with dimensions higher than this limit may result in an error.
     However, starting from SciPy version 1.6.0, these functions have been updated to support higher-dimensional structures.
     """
     # Generates a binary matrix to serve as the connectivity stucture for the label function. 
-    # structure=1 is a connectivity without the diagonals
-    # structure=2 is a connectivity including the diagonals
+    # connectivity=1 is a connectivity without the diagonals
+    # connectivity=2 is a connectivity including the diagonals
     if (include_diagonals):
-        connectivity_matrix = generate_binary_structure(classification_matrix.ndim, 2)
+        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=2)
     else:
-        connectivity_matrix = generate_binary_structure(classification_matrix.ndim, 1)
+        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=1)
     
     # num_clusters is the number of groups found
-    # labels is an ndarray where the clusters of true values are replaced with 1, 2, 3,... depending on what cluster its in
-    labels, num_clusters = label(classification_matrix, structure=connectivity_matrix)
-    print("************************* LABELS ************************")
-    print(labels)
+    # labeled_groups is an ndarray where the clusters of true values are replaced with 1, 2, 3,... depending on what cluster its in
+    labeled_groups, num_clusters = label(classification_matrix, structure=connectivity_matrix)
+    print("******** LABELED ARRAY ********")
+    print(labeled_groups)
 
     # Grouping all the indices of the matching clusters and putting them all in an array
-    unique_values = np.unique(labels)
-    print("\n\nVALUESSSSSSSS : ",unique_values,"\n\n")
-    #grouped_indices = [np.where(labels == value)[0] for value in unique_values]
-    #discretized_envelopes = np.array(grouped_indices, dtype=ndarray)
-    
+    unique_labels = np.unique(labeled_groups)
+    grouped_indices = []
+    print("\nUnique labels (aka groups) : ",unique_labels,"\n")
+    for ulabel in unique_labels:
+        # Skipping label 0 because its all the False values
+        if ulabel == 0:
+            continue
+        #else:
+        # Grouping all the index of the current label into a list
+        current_group = []
+        for index, item in np.ndenumerate(labeled_groups):
+            if ulabel == item:
+                current_group.append(index)
+        print(" ****** CURRENT GROUP", ulabel, "*******\n",current_group)
+        # Appending the current group of indices to the grouped indices array
+        grouped_indices.append(current_group)
+
+    discretized_envelopes = grouped_indices
+
     return discretized_envelopes
 
 # True-Boundary finding algorithm
@@ -158,10 +168,28 @@ if __name__ == "__main__":
     grid = Grid(resolution=[0.1]*ndims)
 
     ###### Testing functions ######
-    # Score and classification ndarray's where score = [score_matrix, classification_matrix]
     score_class = brute_force_grid_search(scorable, domain, grid)
-    print("\n**********************\nscore matrix:\n",score_class[0])
-    print("\n**********************\nclassificatio matrix:\n",score_class[1])
-    
-    e = true_envelope_finding_alg(score_class[1], scorable, include_diagonals=False) 
-    print(e)       
+    #print("\n**********************\nscore matrix:\n",score_class)
+    class_matrix: ndarray
+    class_matrix = copy(score_class)
+    for index, item in np.ndenumerate(score_class):
+        class_matrix[index] = scorable.classify_score(item)
+    #print("\n**********************\nclassificatio matrix:\n",class_matrix)
+    #e = true_envelope_finding_alg(class_matrix, scorable, include_diagonals=False) 
+
+    #boolean_array = np.zeros(shape=(8,8,8,8))
+    boolean_array = np.zeros(shape=(5,5))
+    for i, v, in np.ndenumerate(boolean_array):
+        boolean_array[i] = bool(random.getrandbits(1))
+    boolean_array = np.array(boolean_array)
+    print(boolean_array)
+    # With Diagonals:
+    print("\n************************* With Diagonals *****************************\n")
+    test_w_diagonal = true_envelope_finding_alg(boolean_array, scorable, True)
+    print("**** ENVELOPES ****\n",test_w_diagonal)
+    print("\n**********************************************************************\n")
+    # Without Diagonals:
+    print("\n************************* Without Diagonals *****************************\n")
+    test_wo_diagonal = true_envelope_finding_alg(boolean_array, scorable, False)
+    print("**** ENVELOPES ****\n",test_wo_diagonal)
+    print("\n*************************************************************************\n")      
