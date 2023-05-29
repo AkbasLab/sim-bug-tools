@@ -109,13 +109,15 @@ class HighwayTrafficTest:
 
         # Start Client
         self._client = TraCIClient(self.config)
-
+        with open(self.error_log_fn, "r") as f:
+            self._error_log_cache = f.readline()
         # Set speed limit
         # self._set_speed_limit()
 
     def run(self, params_s: pd.Series) -> pd.Series:
         self._params_s = params_s.copy()
         if self.client.is_cached:
+            self._refresh_error_log()
             self.client.load_cached_state()
         # Add Vehicles
         try:
@@ -290,6 +292,10 @@ class HighwayTrafficTest:
         traci.vehicle.moveTo("dut", "highway_0", dut_init_pos)
         traci.vehicle.setColor("dut", (0, 255, 255, 255))
         return
+    
+    def _refresh_error_log(self):
+        with open(self.error_log_fn, "w") as f:
+            f.writelines(self._error_log_cache)
 
     def _calc_scores(self):
         scores = pd.Series({"e_brake": 0, "collision": 0})
@@ -305,10 +311,12 @@ class HighwayTrafficTest:
             if "collision" in err:
                 scores["collision"] = 1
             elif ("emergency braking" in err) and (not "time=0.0" in err):
-                wished = float(re.findall(r"wished=-*\d*\.*\d*", err)[0].split("=")[-1])
-                observed = float(
-                    re.findall(r"decel=-*\d*\.*\d*", err)[0].split("=")[-1]
-                )
+                if len(wished := re.findall(r"wished=-*\d*\.*\d*", err)) == 0:
+                    continue
+                elif len(observed := re.findall(r"decel=-*\d*\.*\d*", err)) == 0:
+                    continue
+                wished = float(wished[0].split("=")[-1])
+                observed = float(observed[0].split("=")[-1])
                 scores["e_brake"] = min(abs(wished / observed) * 2, 1)
             continue
 

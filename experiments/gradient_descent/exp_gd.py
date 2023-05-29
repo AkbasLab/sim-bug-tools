@@ -723,7 +723,7 @@ def test_sim():
     # envelope = ProbilisticSphere(loc, radius, lmbd)
 
     print("Training ANN")
-    ann_name = _ann_param_name(training_size, ndims, "hw2.1")
+    ann_name = _ann_param_name(training_size, ndims, "hw2.1.1")
     ann_params = ANNParams(ann_name, envelope, seq, training_size)
     ann_results = ann_exp(ann_params)
 
@@ -758,26 +758,26 @@ def test_sim():
         envelope.classify, scaler, delta_theta, domain, True
     )
 
-    t0, nont0, count = find_init_boundary_pair(seq, envelope)
-    direction = (nont0 - t0).array
-    direction /= np.linalg.norm(direction)
-    (b0, n0), path, _ = find_surface(
-        envelope.classify, t0, d, domain, direction, fail_out_of_bounds=True
-    )
+    # t0, nont0, count = find_init_boundary_pair(seq, envelope)
+    # direction = (nont0 - t0).array
+    # direction /= np.linalg.norm(direction)
+    # (b0, n0), path, _ = find_surface(
+    #     envelope.classify, t0, d, domain, direction, fail_out_of_bounds=True
+    # )
 
-    count += len(path)
+    # count += len(path)
 
-    explorer = BoundaryRRT(b0, n0, adh_f)
+    # explorer = BoundaryRRT(b0, n0, adh_f)
 
-    expl_params = ExplorationParams(
-        _expl_param_name("psphere", "brrt", "const", ndims, bp_enabled),
-        explorer,
-        n_bpoints,
-        bp_enabled,
-    )
+    # expl_params = ExplorationParams(
+    #     _expl_param_name("psphere", "brrt", "const", ndims, bp_enabled),
+    #     explorer,
+    #     n_bpoints,
+    #     bp_enabled,
+    # )
 
-    print("Running Exploration")
-    expl_results = expl_exp(expl_params)
+    # print("Running Exploration")
+    # expl_results = expl_exp(expl_params)
 
     # osv_errs = [
     #     angle_between(osv, true_osv_at(b)) * 180 / np.pi for b, osv in expl_params.bpoints
@@ -811,15 +811,15 @@ def test_sim():
         # f"Avg err: {gd_results.avg_b_err}",
         sep="\n",
     )
-    print(
-        "BRRT",
-        f"BLEs: {expl_results.ble_count}",
-        f"OOBs: {expl_results.out_of_bounds_count}",
-        f"Pre-t0 Eff: {expl_results.eff}",
-        f"Post-t0 Eff: {len(expl_results.bpoints) / (count + len(expl_results.nonbpoints))}",
-        # f"Avg err: {avg_b_err}",
-        sep="\n",
-    )
+    # print(
+    #     "BRRT",
+    #     f"BLEs: {expl_results.ble_count}",
+    #     f"OOBs: {expl_results.out_of_bounds_count}",
+    #     f"Pre-t0 Eff: {expl_results.eff}",
+    #     f"Post-t0 Eff: {len(expl_results.bpoints) / (count + len(expl_results.nonbpoints))}",
+    #     # f"Avg err: {avg_b_err}",
+    #     sep="\n",
+    # )
 
 
 if __name__ == "__main__":

@@ -197,9 +197,28 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
             epochs=epochs,
             callbacks=[tensorboard_callback],
         )
+        
+    def _shotgun_sampling(self, params: ANNParams, center: Point, size: float, num: int, desired_cls = True):
+        ndims = len(center)
+        origin = center - Point([size]*ndims)
+        domain = Domain.normalized(ndims)
+        subdomain = Domain.from_dimensions([size]*ndims, origin).clip(domain)
+        
+        data: list[tuple[Point, ndarray]] = []
+        for i in range(num):
+            p = center #params.seq.get_sample(1).points[0]
+            # p = Domain.translate_point_domains(p, domain, subdomain)
+            
+            score = params.envelope.score(p)
+            
+            if params.envelope.classify_score(score) == desired_cls:
+                data.append((p, score))
+        
+        return data 
+        
 
     def generate_data_targetdistr(
-        self, params: ANNParams, target_percentage=0.1, min_score=None
+        self, params: ANNParams, target_percentage=0.5, min_score=None
     ):
         """
         Generate inputs labeled with the results from the envelope's scoring.
@@ -215,6 +234,8 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         #     (params.envelope.generate_random_nontarget(), False)
         #     for i in range(int(params.training_size * (1 - target_percentage)))
         # ]
+        n_true = params.training_size * target_percentage
+        n_false = params.training_size * (1 - target_percentage)
 
         data: list[tuple[Point, ndarray]] = []
         true_cnt = 0
@@ -225,15 +246,20 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
             for p in params.seq.get_sample(params.training_size).points:
                 score = params.envelope.score(p)
 
-                if params.envelope.classify_score(score) and true_cnt < (
-                    params.training_size * target_percentage
-                ):
+                if params.envelope.classify_score(score) and true_cnt < n_true:
                     true_cnt += 1
                     data.append((p, score))
+                    subdata = self._shotgun_sampling(params, p, 0.01, 50)
+                    if len(subdata) + true_cnt > n_true:
+                        data.extend(subdata[:n_true - true_cnt])
+                        true_cnt = n_true
+                    else:
+                        data.extend(subdata)
+                        true_cnt += len(subdata)
                 elif (
                     (min_score is None or score >= min_score)
                     and not params.envelope.classify_score(score)
-                    and false_cnt < params.training_size * (1 - target_percentage)
+                    and false_cnt < n_false
                 ):
                     false_cnt += 1
                     data.append((p, score))

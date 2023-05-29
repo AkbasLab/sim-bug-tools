@@ -60,7 +60,7 @@ def find_surface(
 
     if i == cut_off:
         raise Exception(f"Couldn't find boundary within {cut_off} samples...")
-
+    
     if prev is None:
         raise Exception("t0 must be a target sample!")
 
