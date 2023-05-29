@@ -197,25 +197,41 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
             epochs=epochs,
             callbacks=[tensorboard_callback],
         )
-        
-    def _shotgun_sampling(self, params: ANNParams, center: Point, size: float, num: int, desired_cls = True):
-        ndims = len(center)
-        origin = center - Point([size]*ndims)
+
+    def _shotgun_sampling(
+        self, params: ANNParams, subdomain: Domain, num: int, desired_cls=True
+    ):
+        ndims = params.envelope.get_input_dims()
         domain = Domain.normalized(ndims)
-        subdomain = Domain.from_dimensions([size]*ndims, origin).clip(domain)
-        
+
         data: list[tuple[Point, ndarray]] = []
         for i in range(num):
-            p = center #params.seq.get_sample(1).points[0]
-            # p = Domain.translate_point_domains(p, domain, subdomain)
-            
+            p = params.seq.get_sample(1).points[0]
+            p = Domain.translate_point_domains(p, domain, subdomain)
+
             score = params.envelope.score(p)
-            
+
             if params.envelope.classify_score(score) == desired_cls:
                 data.append((p, score))
-        
-        return data 
-        
+
+        return data
+
+    def _sample_nearby(
+        self, params: ANNParams, center: Point, size: float, num: int, desired_cls=True
+    ):
+        ndims = params.envelope.get_input_dims()
+        domain = Domain.normalized(ndims)
+        origin = center - Point([size / 2] * ndims)
+
+        subdomain = Domain.from_dimensions([size] * ndims, origin).clip(domain)
+
+        return self._shotgun_sampling(params, subdomain, num, desired_cls)
+
+    def _sample_within(
+        self, params: ANNParams, cluster: list[Point], num: int, desired_cls=True
+    ):
+        subdomain = Domain.from_point_cloud(cluster)
+        return self._shotgun_sampling(params, subdomain, num, desired_cls)
 
     def generate_data_targetdistr(
         self, params: ANNParams, target_percentage=0.5, min_score=None
@@ -237,7 +253,8 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         n_true = params.training_size * target_percentage
         n_false = params.training_size * (1 - target_percentage)
 
-        data: list[tuple[Point, ndarray]] = []
+        false_data: list[tuple[Point, ndarray]] = []
+        true_data: list[tuple[Point, ndarray]] = []
         true_cnt = 0
         false_cnt = 0
         while (
@@ -248,25 +265,38 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
 
                 if params.envelope.classify_score(score) and true_cnt < n_true:
                     true_cnt += 1
-                    data.append((p, score))
-                    subdata = self._shotgun_sampling(params, p, 0.01, 50)
-                    if len(subdata) + true_cnt > n_true:
-                        data.extend(subdata[:n_true - true_cnt])
-                        true_cnt = n_true
-                    else:
-                        data.extend(subdata)
-                        true_cnt += len(subdata)
+                    true_data.append((p, score))
+                    # subdata = self._shotgun_sampling(params, p, 0.01, 50)
+                    x = 10
+
+                    for i in range(50):
+                        rescore = params.envelope.score(p)
+                        reclass = params.envelope.classify_score(rescore)
+                        pass
+
+                    x = 10
+
+                    # if true_cnt % 10:
+                    #     subdata = self._sample_within(
+                    #         params, [d[0] for d in true_data], 50
+                    #     )
+                    #     if len(subdata) + true_cnt > n_true:
+                    #         true_data.extend(subdata[: n_true - true_cnt])
+                    #         true_cnt = n_true
+                    #     else:
+                    #         true_data.extend(subdata)
+                    #         true_cnt += len(subdata)
                 elif (
                     (min_score is None or score >= min_score)
                     and not params.envelope.classify_score(score)
                     and false_cnt < n_false
                 ):
                     false_cnt += 1
-                    data.append((p, score))
+                    false_data.append((p, score))
                 elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
                     break
 
-        return data  # ts + nonts
+        return true_data + false_data  # ts + nonts
 
     def generate_data_spatialuniform(self, params: ANNParams):
         """

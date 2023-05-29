@@ -87,7 +87,7 @@ class HighwayTrafficTest:
         self._config = {
             # "--no-warnings": "",
             # "--no-step-log": "",
-            "gui": False,
+            "gui": True,
             # "gui": True,
             # Street network
             "--net-file": "%s\\highway-traffic.net.xml" % self.map_dir,
@@ -292,7 +292,7 @@ class HighwayTrafficTest:
         traci.vehicle.moveTo("dut", "highway_0", dut_init_pos)
         traci.vehicle.setColor("dut", (0, 255, 255, 255))
         return
-    
+
     def _refresh_error_log(self):
         with open(self.error_log_fn, "w") as f:
             f.writelines(self._error_log_cache)

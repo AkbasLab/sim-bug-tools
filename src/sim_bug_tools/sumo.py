@@ -70,7 +70,6 @@ class TraCIClient:
         Closes the client.
         """
         traci.close()
-        os.remove("")
 
     # def connect(self):
     #     """

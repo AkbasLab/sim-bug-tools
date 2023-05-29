@@ -713,6 +713,49 @@ def test_sim():
     c0 = (3 / 4) ** 0.5
     training_size = 100
 
+    print("WE ARE TESTING THE ENVELOPE")
+    bad_p = Point(
+        0.62176977,
+        0.79807621,
+        0.69080198,
+        0.95908838,
+        0.58210506,
+        0.84604619,
+        0.45122231,
+        0.90024614,
+        0.27892955,
+        0.83730686,
+        0.49875073,
+        0.48540759,
+        0.15584215,
+        0.69974058,
+        0.00796088,
+        0.78311874,
+        0.8564819,
+        0.00520077,
+        0.01341527,
+        0.69868551,
+        0.9152171,
+        0.05161705,
+        0.37806457,
+        0.24978728,
+        0.95044272,
+        0.49241714,
+        0.68527027,
+        0.14342004,
+        0.001593,
+        0.50841134,
+        0.98518917,
+        0.00578973,
+        0.05684101,
+    )
+
+    while True:
+        p_score = envelope.score(bad_p)
+        p_cls = envelope.classify_score(p_score)
+        x = 10
+    print("DONE")
+
     domain = Domain.normalized(ndims)
     seq = RandomSequence(domain, [f"d{i}" for i in range(ndims)])
     # seq = SobolSequence(domain, [f"d{i}" for i in range(ndims)])
