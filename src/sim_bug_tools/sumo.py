@@ -61,6 +61,7 @@ class TraCIClient:
         """
         Runs the client until the end.
         """
+
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()
             # more traci commands

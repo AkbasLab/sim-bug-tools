@@ -3,8 +3,7 @@ import tensorflow as tf
 
 from datetime import datetime
 from numpy import ndarray
-from typing import Callable
-from abc import abstractmethod as abstract
+import random
 
 from sim_bug_tools.structs import Point, Domain
 from sim_bug_tools.experiment import Experiment, ExperimentParams, ExperimentResults
@@ -70,6 +69,174 @@ class ProbilisticSphere(Graded):
 
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
+
+
+class ProbilisticSphereCluster(Graded):
+    def __init__(
+        self,
+        num_points_per_point: int,
+        depth: int,
+        r0: float,
+        p0: Point,
+        lmbda: float = 0.25,
+        min_dist_b_perc: float = -0.1,
+        max_dist_b_perc: float = 0.1,
+        min_rad_perc: float = 1.25,
+        max_rad_perc: float = 0.25,
+        seed=333,
+    ):
+        """
+        dist_b perc:
+            Describes the percentage of the radius for one sphere
+            extending from another, how far it is from the boundary.
+        rad perc:
+            Bounds for new sphere's radius as a percentage of its
+            parent: r2 = r1 * rad_perc
+        """
+        assert (
+            min_dist_b_perc < max_dist_b_perc
+        ), "Minimum distance from boundary must be less than maximum distance from boundary!"
+        # assert (
+        #     min_rad_perc < max_rad_perc
+        # ), "Minimum radius percentage must be less than maximum radius percentage!"
+        assert (
+            min_rad_perc >= 0
+        ), "Minimum radius percentage must be positive! (this is just how it works.)"
+
+        random.seed(seed)
+        np.random.seed(seed)
+
+        self._ndims = len(p0)
+        self._lmbda = lmbda
+        self._min_dist_b_perc = min_dist_b_perc
+        self._max_dist_b_perc = max_dist_b_perc
+        self._min_rad_perc = min_rad_perc
+        self._max_rad_perc = max_rad_perc
+
+        self.construct_cluster(p0, r0, num_points_per_point, depth)
+
+    @property
+    def ndims(self):
+        return self._ndims
+
+    @property
+    def lmbda(self):
+        return self._lmbda
+
+    @property
+    def min_dist_b_perc(self):
+        return self._min_dist_b_perc
+
+    @property
+    def max_dist_b_perc(self):
+        return self._max_dist_b_perc
+
+    @property
+    def min_rad_perc(self):
+        return self._min_rad_perc
+
+    @property
+    def max_rad_perc(self):
+        return self._max_rad_perc
+
+    def construct_cluster(self, p0: Point, r0: float, n: int, k: int):
+        queue = [(p0, r0)]
+        self.spheres: list[ProbilisticSphere] = []
+
+        remaining = n**k
+        while len(queue) > 0 and remaining > 0:
+            p, r = queue.pop()
+
+            self.spheres.append(ProbilisticSphere(p, r, self.lmbda))
+            remaining -= 1
+
+            queue = [self.create_point_from(p, r) for i in range(n)] + queue
+
+    def create_point_from(self, p: Point, r: float) -> tuple[Point, float]:
+        ## dist
+        # r1 * (1 + min_dist_b_perc) < d < r1 * (1 + max_dist_b_perc)
+        # min = 0, d must be beyond the border
+        # min = -1, d must be beyond the r1's center
+        # max = 0, d must be before the border
+        # max = 1, d must be before twice the radius
+
+        # pick random direction and distance to find location
+        v = np.random.rand(self.ndims) * 2 - 1
+        v /= np.linalg.norm(v)
+        d = self._random_between(
+            r * (1 + self.min_dist_b_perc), r * (1 + self.max_dist_b_perc)
+        )
+        p2 = p + Point(v * d)
+
+        ## rad
+        # r1 * min_rad_perc < r2 < r1 * max_rad_perc
+        # d - r1 < r2 < r1 * max_rad_perc
+        # 0 < d < r1 + r2 :
+        # min = 0, radius must be greater than 0
+        # min = 1, radius must be greater than r1
+        # max : same as min
+
+        min_r = (1 + self.min_rad_perc) * (d - r)
+        max_r = (1 + self.max_rad_perc) * r
+        r2 = self._random_between(min_r, max_r)
+
+        return (p2, r2)
+
+    def score(self, p: Point) -> ndarray:
+        return np.array([sum(map(lambda sph: sph.score(p), self.spheres))])
+
+    def classify_score(self, score: ndarray) -> bool:
+        return np.linalg.norm(score) > self.lmbda
+
+    def get_input_dims(self):
+        return self.ndims
+
+    def get_score_dims(self):
+        return 1
+
+    def generate_random_target(self):
+        raise NotImplementedError()
+
+    def generate_random_nontarget(self):
+        raise NotImplementedError()
+
+    def _nearest_sphere(self, b: Point) -> ProbilisticSphere:
+        nearest_err = self.spheres[0].boundary_err(b)
+        nearest = self.spheres[0]
+
+        for sph in self.spheres[1:]:
+            if err := sph.boundary_err(b) < nearest_err:
+                nearest_err = err
+                nearest = sph
+
+        return nearest
+
+    def boundary_err(self, b: Point) -> float:
+        "distance from boundary"
+        return self._nearest_sphere(b).boundary_err(b)
+
+    def true_osv(self, b: Point) -> ndarray:
+        sph = self._nearest_sphere(b)
+        return self.normalize((b - sph.loc).array)
+
+    def osv_err(self, b: Point, n: ndarray) -> float:
+        return self.angle_between(self.true_osv(b), n)
+
+    def gradient(self, p: Point) -> ndarray:
+        return sum(map(lambda sph: sph.gradient(p), self.spheres))
+
+    @staticmethod
+    def _random_between(a, b) -> float:
+        return random.random() * (b - a) + a
+
+    @staticmethod
+    def normalize(v: ndarray) -> ndarray:
+        return v / np.linalg.norm(v)
+
+    @classmethod
+    def angle_between(cls, u, v):
+        u, v = cls.normalize(u), cls.normalize(v)
+        return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
 
 
 class ANNParams(ExperimentParams):
@@ -267,25 +434,17 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
                     true_cnt += 1
                     true_data.append((p, score))
                     # subdata = self._shotgun_sampling(params, p, 0.01, 50)
-                    x = 10
 
-                    for i in range(50):
-                        rescore = params.envelope.score(p)
-                        reclass = params.envelope.classify_score(rescore)
-                        pass
-
-                    x = 10
-
-                    # if true_cnt % 10:
-                    #     subdata = self._sample_within(
-                    #         params, [d[0] for d in true_data], 50
-                    #     )
-                    #     if len(subdata) + true_cnt > n_true:
-                    #         true_data.extend(subdata[: n_true - true_cnt])
-                    #         true_cnt = n_true
-                    #     else:
-                    #         true_data.extend(subdata)
-                    #         true_cnt += len(subdata)
+                    if true_cnt % 10:
+                        subdata = self._sample_within(
+                            params, [d[0] for d in true_data], 50
+                        )
+                        if len(subdata) + true_cnt > n_true:
+                            true_data.extend(subdata[: n_true - true_cnt])
+                            true_cnt = n_true
+                        else:
+                            true_data.extend(subdata)
+                            true_cnt += len(subdata)
                 elif (
                     (min_score is None or score >= min_score)
                     and not params.envelope.classify_score(score)
@@ -520,5 +679,48 @@ def test_previous_ann():
     )
 
 
+def test_cluster():
+    import matplotlib.pyplot as plt
+    from sim_bug_tools.graphics import Grapher
+
+    ndims = 3
+    domain = Domain.normalized(ndims)
+
+    p0 = Point([0.5] * ndims)
+    r0 = 0.15
+
+    k = 4
+
+    n = 5
+
+    print(len(p0))
+
+    clst = ProbilisticSphereCluster(
+        n, k, r0, p0, min_dist_b_perc=0, min_rad_perc=0, max_rad_perc=0.01, seed=1
+    )
+    g = Grapher(ndims == 3, domain)
+    for sph in clst.spheres:
+        g.draw_sphere(sph.loc, sph.radius)
+
+    # from sim_bug_tools.rng.lds.sequences import SobolSequence
+
+    # seq = SobolSequence(domain, [f"x{i}" for i in range(ndims)])
+    # ts = []
+    # nonts = []
+    # print("sampling")
+    # for p in seq.get_sample(1000).points:
+    #     if cls := clst.classify(p):
+    #         ts.append(p)
+    #     else:
+    #         nonts.append(p)
+
+    # print("displaying")
+    # g.plot_all_points(ts, color="red")
+    # g.plot_all_points(nonts, color="blue")
+
+    plt.show()
+    print("what")
+
+
 if __name__ == "__main__":
-    test_previous_ann()
+    test_cluster()

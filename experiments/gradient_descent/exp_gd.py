@@ -699,6 +699,9 @@ class HighwayScoreable(Scorable):
     def generate_random_nontarget(self):
         raise NotImplementedError()
 
+    def close(self):
+        self.test.client.close()
+
 
 def test_sim():
     print("initializing")
@@ -713,48 +716,48 @@ def test_sim():
     c0 = (3 / 4) ** 0.5
     training_size = 100
 
-    print("WE ARE TESTING THE ENVELOPE")
-    bad_p = Point(
-        0.62176977,
-        0.79807621,
-        0.69080198,
-        0.95908838,
-        0.58210506,
-        0.84604619,
-        0.45122231,
-        0.90024614,
-        0.27892955,
-        0.83730686,
-        0.49875073,
-        0.48540759,
-        0.15584215,
-        0.69974058,
-        0.00796088,
-        0.78311874,
-        0.8564819,
-        0.00520077,
-        0.01341527,
-        0.69868551,
-        0.9152171,
-        0.05161705,
-        0.37806457,
-        0.24978728,
-        0.95044272,
-        0.49241714,
-        0.68527027,
-        0.14342004,
-        0.001593,
-        0.50841134,
-        0.98518917,
-        0.00578973,
-        0.05684101,
-    )
+    # print("WE ARE TESTING THE ENVELOPE")
+    # bad_p = Point(
+    #     0.62176977,
+    #     0.79807621,
+    #     0.69080198,
+    #     0.95908838,
+    #     0.58210506,
+    #     0.84604619,
+    #     0.45122231,
+    #     0.90024614,
+    #     0.27892955,
+    #     0.83730686,
+    #     0.49875073,
+    #     0.48540759,
+    #     0.15584215,
+    #     0.69974058,
+    #     0.00796088,
+    #     0.78311874,
+    #     0.8564819,
+    #     0.00520077,
+    #     0.01341527,
+    #     0.69868551,
+    #     0.9152171,
+    #     0.05161705,
+    #     0.37806457,
+    #     0.24978728,
+    #     0.95044272,
+    #     0.49241714,
+    #     0.68527027,
+    #     0.14342004,
+    #     0.001593,
+    #     0.50841134,
+    #     0.98518917,
+    #     0.00578973,
+    #     0.05684101,
+    # )
 
-    while True:
-        p_score = envelope.score(bad_p)
-        p_cls = envelope.classify_score(p_score)
-        x = 10
-    print("DONE")
+    # while True:
+    #     p_score = envelope.score(bad_p)
+    #     p_cls = envelope.classify_score(p_score)
+    #     x = 10
+    # print("DONE")
 
     domain = Domain.normalized(ndims)
     seq = RandomSequence(domain, [f"d{i}" for i in range(ndims)])
@@ -802,25 +805,42 @@ def test_sim():
     )
 
     # t0, nont0, count = find_init_boundary_pair(seq, envelope)
-    # direction = (nont0 - t0).array
-    # direction /= np.linalg.norm(direction)
-    # (b0, n0), path, _ = find_surface(
-    #     envelope.classify, t0, d, domain, direction, fail_out_of_bounds=True
-    # )
 
-    # count += len(path)
+    t0s = filter(lambda pair: envelope.classify_score(pair[1]), ann_results.scored_data)
 
-    # explorer = BoundaryRRT(b0, n0, adh_f)
+    nont0s = filter(
+        lambda pair: not envelope.classify_score(pair[1]), ann_results.scored_data
+    )
 
-    # expl_params = ExplorationParams(
-    #     _expl_param_name("psphere", "brrt", "const", ndims, bp_enabled),
-    #     explorer,
-    #     n_bpoints,
-    #     bp_enabled,
-    # )
+    # t0 = Point(t0)
+    # nont0 = Point(nont0)
+    b0, n0 = None, None
+    done = False
+    for t0, nont0 in zip(t0s, nont0s):
+        direction = (nont0 - t0).array[None]
+        direction /= np.linalg.norm(direction)
+        try:
+            (b0, n0), path, _ = find_surface(
+                envelope.classify, t0, d, domain, direction, fail_out_of_bounds=True
+            )
+            done = True
+        except:
+            print("Failed, trying again (this is dumb)")
 
-    # print("Running Exploration")
-    # expl_results = expl_exp(expl_params)
+    if b0 is None:
+        raise ValueError("agh, didn't find a valid t0???")
+    count += len(path)
+
+    explorer = BoundaryRRT(b0, n0, adh_f)
+
+    expl_params = ExplorationParams(
+        _expl_param_name("psphere", "brrt", "const", ndims, bp_enabled),
+        explorer,
+        n_bpoints,
+        bp_enabled,
+    )
+
+    expl_results = expl_exp(expl_params)
 
     # osv_errs = [
     #     angle_between(osv, true_osv_at(b)) * 180 / np.pi for b, osv in expl_params.bpoints
@@ -830,11 +850,13 @@ def test_sim():
     # avg_osv_err = sum(osv_errs) / len(osv_errs)
     # avg_b_err = sum(b_errs) / len(b_errs)
 
-    # print("Saving")
-    # with open(".tmp-comp-brrt.json", "w") as f:
-    #     f.write(json.dumps(expl_results))
-    # with open(".tmp-comp-gd.json", "w") as f:
-    #     f.write(json.dumps(gd_results))
+    import json
+
+    print("Saving")
+    with open(".tmp-comp-brrt.json", "w") as f:
+        f.write(json.dumps(expl_results))
+    with open(".tmp-comp-gd.json", "w") as f:
+        f.write(json.dumps(gd_results))
 
     rounded_percentage_effs = list(
         map(
@@ -863,6 +885,8 @@ def test_sim():
     #     # f"Avg err: {avg_b_err}",
     #     sep="\n",
     # )
+
+    envelope.close()
 
 
 if __name__ == "__main__":

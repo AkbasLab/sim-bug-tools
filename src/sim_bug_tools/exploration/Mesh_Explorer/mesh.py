@@ -1,7 +1,7 @@
 import numpy as np
 
 from numpy import ndarray
-from itertools import permutations
+from treelib import Tree, Node
 from rtree.index import Index, Property
 from typing import Callable, NewType
 
@@ -18,6 +18,10 @@ ENUM_CARDINAL = NewType("cardinal", int)
 BID = NewType("id", int)
 PATH = NewType("path", tuple[BID, ndarray])
 
+DATA_LOCATION = "location"
+DATA_NORMAL = "normal"
+ROOT_ID = 0
+
 
 class MeshExplorer(Explorer):
     def __init__(
@@ -32,9 +36,14 @@ class MeshExplorer(Explorer):
         self._scaler = scaler
         self._margin = margin
 
+        # k-nearest using R-tree
         p = Property()
         p.set_dimension(self.ndims)
         self._index = Index(properties=p)
+
+        # a way to represent boundary points
+        self._tree = Tree()
+        self._prev_id = None
 
         # ENUM_CARDINAL = index of basis vector
         self._BASIS_VECTORS = tuple(np.identity(self.ndims))
@@ -42,10 +51,91 @@ class MeshExplorer(Explorer):
         self._next_paths: list[PATH] = []
         self._add_child(b0, n0)
 
+    @property
+    def tree(self):
+        return self._tree
+
+    def back_propegate_prev(self, k: int):
+        """
+        Propegates new information from leaf nodes to k parents.
+
+        Args:
+            k (int): How many nodes up the tree to propegate to
+        """
+        nodes = self._tree.leaves()
+
+        for i in range(k):
+            parents = [
+                self._tree.parent(node.identifier)
+                for node in nodes
+                if node.identifier != ROOT_ID
+            ]
+            for parent in parents:
+                osv = self._average_node_osv(parent, 1)
+                if osv is not None:
+                    parent.data[DATA_NORMAL] = osv
+                    self._boundary[parent.identifier] = (
+                        self._boundary[parent.identifier][0],
+                        osv,
+                    )
+
+            nodes = parents
+
+    def _average_node_osv(
+        self, node: Node, minimum_children: int = 2, node_weight: np.float64 = 0
+    ):
+        """
+        Averages a node's OSV with it's children and parent OSVs.
+
+        Returns None if min children not met
+
+        Args:
+            node_id (int): The id of the node to average
+            minimum_children (int, optional): Minimum children necessary to
+            average. Defaults to 2.
+            node_weight (float64, optional): Will account for the target node's OSV . Defaults to 0.
+
+        Returns:
+            ndarray: The new OSV or,
+            None: if one could not be created
+
+        Will fail if
+        """
+        neighbors = self._tree.children(node.identifier)
+        if len(neighbors) < minimum_children:
+            return None
+
+        new_osv = (
+            Point.zeros(self._ndims).array
+            if node_weight == 0
+            else node.data[DATA_NORMAL]
+        )
+
+        if node.identifier != ROOT_ID:
+            neighbors.append(self._tree.parent(node.identifier))
+
+        for osv in map(
+            lambda neighbor: self._tree.get_node(neighbor.identifier).data[DATA_NORMAL],
+            neighbors,
+        ):
+            new_osv += osv  # self._tree.get_node(node)[DATA_NORMAL]
+
+        if node_weight == 0:
+            new_osv /= len(neighbors)
+        else:
+            new_osv /= len(neighbors) + 1
+
+        return new_osv / np.linalg.norm(new_osv)
+
     def _add_child(self, bk: Point, nk: ndarray):
         next_id = len(self.boundary) - 1
         self._next_paths = self._get_next_paths_from(next_id) + self._next_paths
         self._index.insert(next_id, bk)
+
+        self._tree.add_node(
+            Node(identifier=next_id, data=self._create_data(bk, nk)),
+            parent=self._prev_id,
+        )
 
     def _select_parent(self) -> tuple[Point, ndarray]:
         finding_gap = True
@@ -55,6 +145,7 @@ class MeshExplorer(Explorer):
             bk, nk = self.boundary[bid]
             b_new = bk + self._scaler.scale(self._v)
             finding_gap = self._check_overlap(b_new)
+            self._prev_id = bid
 
         if finding_gap:
             raise ExplorationCompletedException()
@@ -195,6 +286,10 @@ class MeshExplorer(Explorer):
         coef_b = u * u.T + v * v.T
 
         return lambda theta: I + np.sin(theta) * coef_a + (np.cos(theta) - 1) * coef_b
+
+    @staticmethod
+    def _create_data(location, normal) -> dict:
+        return {DATA_LOCATION: location, DATA_NORMAL: normal}
 
 
 def test_mesh():

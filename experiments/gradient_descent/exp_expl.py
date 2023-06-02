@@ -12,7 +12,7 @@ from sim_bug_tools.exploration.boundary_core import (
 )
 from sim_bug_tools.exploration.brrt_std import BoundaryRRT, ConstantAdherenceFactory
 
-from exp_ann import ProbilisticSphere
+from exp_ann import ProbilisticSphere, ProbilisticSphereCluster
 
 
 # from sim_bug_tools.exploration.
@@ -146,5 +146,107 @@ def test():
     )
 
 
+def test_brrt_cluster():
+    import numpy as np
+
+    expl_exp = ExplorationExperiment()
+
+    ndims = 3
+    domain = Domain.normalized(ndims)
+    loc = Point([0.5] * ndims)
+    radius = 0.4
+
+    theta = np.pi * 10 / 180
+    d = 0.025
+    scaler = Spheroid(d)
+
+    # v = np.random.rand(ndims)
+    v = np.ones(ndims)
+    v /= np.linalg.norm(v)
+    # b0 = Point(loc.array + v * radius * (1 - (d * 0.1) / radius))
+    # n0 = v
+
+    normalize = lambda v: v / np.linalg.norm(v)
+
+    def angle_between(u, v):
+        u, v = normalize(u), normalize(v)
+        return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
+
+    true_osv_at = lambda b: normalize((b - loc).array)
+
+    p0 = Point([0.5] * ndims)
+    r0 = 0.15
+    k = 4
+    n = 5
+    envelope = ProbilisticSphereCluster(
+        n, k, r0, p0, min_dist_b_perc=0, min_rad_perc=0, max_rad_perc=0.01, seed=1
+    )
+
+    t0 = Point([0.5] * ndims)
+    print(envelope.classify(t0))
+
+    from sim_bug_tools.exploration.boundary_core.surfacer import find_surface
+    from sim_bug_tools.graphics import Grapher
+
+    g = Grapher(ndims == 3, Domain.normalized(ndims))
+
+    ((b0, n0), interm, was_in_domain) = find_surface(envelope.classify, t0, d, domain)
+
+    # g.draw_path(interm, color="red")
+    # g.plot_all_points(interm, color="red")
+
+    # envelope = ProbilisticSphere(loc, radius, 0.25)
+    adh_f = ConstantAdherenceFactory(
+        envelope.classify, scaler, theta, Domain.normalized(ndims), True
+    )
+
+    from sim_bug_tools.exploration.Mesh_Explorer.mesh import MeshExplorer
+
+    n_samples = 500
+    bp = True
+    etype = "mesh"
+
+    if etype == "mesh":
+        expl = MeshExplorer(b0, n0, adh_f, scaler)
+    elif etype == "brrt":
+        expl = BoundaryRRT(b0, n0, adh_f)
+
+    expl_params = ExplorationParams(
+        f"{etype}-const-{ndims}d-{n_samples}-" + "bp" if bp else "nobp",
+        expl,
+        n_samples,
+        bp,
+    )
+
+    results = expl_exp.experiment(expl_params)
+
+    import pandas as pd
+
+    err_df = pd.DataFrame(
+        {
+            "osv_errs": [envelope.osv_err(b, osv) for b, osv in results.bpoints],
+            "b_errs": [envelope.boundary_err(b) for b, osv in results.bpoints],
+        }
+    )
+    print(err_df.describe())
+    # avg_osv_err = sum(osv_errs) / len(osv_errs)
+    # avg_b_err = sum(b_errs) / len(b_errs)
+
+    # from sim_bug_tools.graphics import Grapher
+
+    # g.plot_all_points([p for p, n in results.bpoints])
+
+    g.draw_tree(expl.tree)
+
+    # g.plot_all_points([p for p, c in results.nonbpoints if c], color="red")
+    # g.plot_all_points([p for p, c in results.nonbpoints if not c], color="green")
+
+    print(
+        f"BLEs: {results.ble_count}, OOBs: {results.out_of_bounds_count}, eff: {results.eff}"
+        # f"osv err: {avg_osv_err}, b err: {avg_b_err}"
+    )
+    plt.show()
+
+
 if __name__ == "__main__":
-    test()
+    test_brrt_cluster()

@@ -87,7 +87,7 @@ class HighwayTrafficTest:
         self._config = {
             # "--no-warnings": "",
             # "--no-step-log": "",
-            "gui": True,
+            "gui": False,
             # "gui": True,
             # Street network
             "--net-file": "%s\\highway-traffic.net.xml" % self.map_dir,
@@ -120,6 +120,8 @@ class HighwayTrafficTest:
             self._refresh_error_log()
             self.client.load_cached_state()
         # Add Vehicles
+        traci.simulation.setParameter("", param="seed", value="333")
+
         try:
             self._add_all_vehicles()
         except Exception:
