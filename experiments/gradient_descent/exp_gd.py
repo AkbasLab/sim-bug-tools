@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-from exp_ann import ANNExperiment, ANNParams, ANNResults, Scorable, ProbilisticSphere
+from exp_ann import ANNExperiment, ANNParams, ANNResults, Scorable, ProbilisticSphere, ProbilisticSphereCluster
 from exp_expl import ExplorationExperiment, ExplorationParams, ExplorationResults
 
 from sim_bug_tools.structs import Point, Domain, Spheroid
@@ -270,14 +270,21 @@ def test_samplesXgd():
 
     gd_exp = GDExplorerExperiment()
     ann_exp = ANNExperiment()
-    envelope = ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
+    
+    p0 = Point([0.5] * ndims)
+    r0 = 0.15
+    k = 4
+    n = 5
+    envelope = ProbilisticSphereCluster(
+        n, k, r0, p0, min_dist_b_perc=0, min_rad_perc=0, max_rad_perc=0.01, seed=1
+    )#ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
     # g.draw_sphere(envelope.loc, envelope.radius, color="grey")
     seq = SobolSequence(domain, [str(i) for i in range(ndims)])
 
     meta_data: list[dict] = []
 
     for ann_samples in [50, 100, 200, 400, 800, 1600, 3200, 6400]:
-        ann_name = _ann_param_name(ann_samples, ndims)
+        ann_name = _ann_param_name(ann_samples, ndims, "clst")
         ann_params = ANNParams(
             ann_name, envelope, seq, ann_samples, ann_samples // 10, n_epochs=200
         )
@@ -285,7 +292,7 @@ def test_samplesXgd():
         ann_results = ann_exp.lazily_run(ann_params)
 
         gd_params = GDExplorerParams(
-            f"{ann_name}-{ndims}d-sd",
+            f"clst-{ann_name}-{ndims}d-sd",
             ann_results,
             ann_samples,
             GDExplorerExperiment.steepest_descent,
@@ -293,6 +300,7 @@ def test_samplesXgd():
 
         gd_result = gd_exp.run(gd_params)
 
+        ## Result processing
         boundary = [path[-2] for path in gd_result.boundary_paths]
         if len(boundary) > 0:
             boundary_err = list(
@@ -890,4 +898,4 @@ def test_sim():
 
 
 if __name__ == "__main__":
-    test_sim()
+    test_samplesXgd()

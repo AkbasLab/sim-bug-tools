@@ -417,16 +417,24 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         #     (params.envelope.generate_random_nontarget(), False)
         #     for i in range(int(params.training_size * (1 - target_percentage)))
         # ]
-        n_true = params.training_size * target_percentage
-        n_false = params.training_size * (1 - target_percentage)
+        n_true = int(params.training_size * target_percentage)
+        n_false = int(params.training_size * (1 - target_percentage))
 
         false_data: list[tuple[Point, ndarray]] = []
         true_data: list[tuple[Point, ndarray]] = []
         true_cnt = 0
         false_cnt = 0
+        
+        i = 0
+        
+        seq = params.seq
+        
         while (
             true_cnt + false_cnt < (params.training_size // 2) * 2
         ):  # round nearest even
+            if i >= 4:
+                seq = RandomSequence(seq.domain, seq.axes_names, seq.seed)
+                
             for p in params.seq.get_sample(params.training_size).points:
                 score = params.envelope.score(p)
 
@@ -454,6 +462,8 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
                     false_data.append((p, score))
                 elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
                     break
+                
+            i += 1
 
         return true_data + false_data  # ts + nonts
 
