@@ -89,7 +89,7 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
     return discretized_envelopes
 
 # True-Boundary finding algorithm
-def true_boundary_algorithm(score_matrix: ndarray, envelopes: ndarray) -> ndarray:
+def true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray) -> ndarray:
     """
     - True-Boundary finding algorithm
         - We have some N-D volume classified into two bodies: Target and Non-Target, this method identifies the cells that lie on the boundary.
@@ -99,6 +99,7 @@ def true_boundary_algorithm(score_matrix: ndarray, envelopes: ndarray) -> ndarra
         - Outputs:
             - `list<ndarray>` : The list of indices that fall on the boundary of the N-D envelope's surface.
     """
+    
     pass
 
 class ProbilisticSphere(Graded):
