@@ -1,7 +1,14 @@
 import tensorflow as tf
 import numpy as np
 
-from exp_ann import ANNExperiment, ANNParams, ANNResults, Scorable, ProbilisticSphere, ProbilisticSphereCluster
+from exp_ann import (
+    ANNExperiment,
+    ANNParams,
+    ANNResults,
+    Scorable,
+    ProbilisticSphere,
+    ProbilisticSphereCluster,
+)
 from exp_expl import ExplorationExperiment, ExplorationParams, ExplorationResults
 
 from sim_bug_tools.structs import Point, Domain, Spheroid
@@ -270,20 +277,27 @@ def test_samplesXgd():
 
     gd_exp = GDExplorerExperiment()
     ann_exp = ANNExperiment()
-    
+
     p0 = Point([0.5] * ndims)
     r0 = 0.15
     k = 4
     n = 5
-    envelope = ProbilisticSphereCluster(
-        n, k, r0, p0, min_dist_b_perc=0, min_rad_perc=0, max_rad_perc=0.01, seed=1
-    )#ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
-    # g.draw_sphere(envelope.loc, envelope.radius, color="grey")
-    seq = SobolSequence(domain, [str(i) for i in range(ndims)])
 
     meta_data: list[dict] = []
 
-    for ann_samples in [50, 100, 200, 400, 800, 1600, 3200, 6400]:
+    for ann_samples in [100, 200, 400, 800, 1600, 3200, 6400]:
+        envelope = ProbilisticSphereCluster(
+            n,
+            k,
+            r0 * (ndims**0.5),
+            p0,
+            min_dist_b_perc=0,
+            min_rad_perc=0,
+            max_rad_perc=0.01,
+            seed=1,
+        )  # ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
+        # g.draw_sphere(envelope.loc, envelope.radius, color="grey")
+        seq = SobolSequence(domain, [str(i) for i in range(ndims)])
         ann_name = _ann_param_name(ann_samples, ndims, "clst")
         ann_params = ANNParams(
             ann_name, envelope, seq, ann_samples, ann_samples // 10, n_epochs=200
@@ -294,14 +308,18 @@ def test_samplesXgd():
         gd_params = GDExplorerParams(
             f"clst-{ann_name}-{ndims}d-sd",
             ann_results,
-            ann_samples,
+            50,
             GDExplorerExperiment.steepest_descent,
+            max_steps=500,
         )
 
-        gd_result = gd_exp.run(gd_params)
+        gd_result = gd_exp(gd_params)
 
         ## Result processing
-        boundary = [path[-2] for path in gd_result.boundary_paths]
+        boundary = [
+            (path[-2] if path[-2].cls else path[-1])
+            for path in gd_result.boundary_paths
+        ]
         if len(boundary) > 0:
             boundary_err = list(
                 map(lambda pd: envelope.boundary_err(pd.point), boundary)
@@ -549,6 +567,12 @@ def test_comparison():
     # print(gd_results.__dict__)
 
 
+def rad(ndims: int, l5=0.3, l100=2.5):
+    a = (l100 - l5) / (10 - 5**0.5)
+    b = l5 - a * 5**0.5
+    return a * ndims**0.5 + b
+
+
 def test_across_dimensions():
     from sim_bug_tools.rng.lds.sequences import RandomSequence
 
@@ -559,7 +583,6 @@ def test_across_dimensions():
     ann_exp = ANNExperiment()
 
     exp_ndims = [5, 10, 15, 20, 25, 30, 50, 100]
-    c0 = (3 / 4) ** 0.5
     training_size = 5120
 
     envelope_type = "dsphere_scaled"
@@ -577,34 +600,49 @@ def test_across_dimensions():
     alpha = 0.1  # scales gradient descent step-size
     max_steps = 1000  # #steps prior to aborting gradient descent and trying again
 
+    meta_data = []
+
     for ndims in exp_ndims:
         c = (ndims / 4) ** 0.5
         domain = Domain.normalized(ndims)
         loc = Point([0.5] * ndims)
-        radius = (
-            c * 0.5 / c0 if envelope_type == "dsphere_scaled" else 0.5
-        )  # Will be larger as ndims grows
         lmbd = 0.25
-        envelope = ProbilisticSphere(loc, radius, lmbd)
+
+        p0 = Point([0.5] * ndims)
+        r0 = 0.25
+        k = 4
+        n = 5
+        envelope = ProbilisticSphereCluster(
+            n,
+            k,
+            rad(ndims),  # Why? BECAUSE
+            p0,
+            min_dist_b_perc=0,
+            min_rad_perc=0,
+            max_rad_perc=0.01,
+            seed=1,
+        )
+        # envelope = ProbilisticSphere(loc, radius, lmbd)
+
         seq = SobolSequence(domain, [f"d{i}" for i in range(ndims)])
-        test_data = [
-            (p, envelope.score(p))
-            for p in (
-                RandomSequence(domain, [f"x{i}" for i in range(ndims)])
-                .get_sample(5120)
-                .points
-            )
-        ]
+        # test_data = [
+        #     (p, envelope.score(p))
+        #     for p in (
+        #         RandomSequence(domain, [f"x{i}" for i in range(ndims)])
+        #         .get_sample(5120)
+        #         .points
+        #     )
+        # ]
 
         print("Training ANN")
-        ann_name = _ann_param_name(training_size, ndims, envelope_type)
+        ann_name = _ann_param_name(training_size, ndims, envelope_type + "v2")
         ann_params = ANNParams(ann_name, envelope, seq, training_size)
         ann_results = ann_exp(ann_params)
 
-        model = tf.keras.models.load_model(ann_results.model_path)
-        test_truth_table = ANNExperiment.class_acc(model, test_data, envelope)
-        model_acc.append(calc_acc(test_truth_table))
-        model_err.append(ANNExperiment.calc_err(model, test_data, envelope))
+        # model = tf.keras.models.load_model(ann_results.model_path)
+        # test_truth_table = ANNExperiment.class_acc(model, test_data, envelope)
+        # model_acc.append(calc_acc(test_truth_table))
+        # model_err.append(ANNExperiment.calc_err(model, test_data, envelope))
 
         if gd_type_name == "sd":
             gd_type = GDExplorerExperiment.steepest_descent
@@ -625,48 +663,66 @@ def test_across_dimensions():
         print("Running GD")
         gd_results = gd_exp(gd_params)
 
-        gd_err.append(gd_results.avg_b_err)
-        gd_eff.append(
+        # print(list(map(lambda path: len(path), zip(gd_results.boundary_paths))))
+
+        meta_data.append(
             {
+                "ndims": ndims,
+                "n-failures": gd_results.n_failures,
+                "n-bpoints": gd_results.n_successes,
+                "n-nonbpoints": sum([len(pd) for pd in gd_results.boundary_paths])
+                + sum([len(pd) for pd in gd_results.nonboundary_paths])
+                - gd_results.n_successes,
+                "avg-err": gd_results.avg_b_err,
                 "eff": gd_results.eff,
                 "eff-posttrain": gd_results.eff_posttrain,
                 "eff-posttrain_nofailure": gd_results.eff_posttrain_nofailure,
             }
         )
 
-    from sim_bug_tools.graphics import Grapher
-    import matplotlib.pyplot as plt
+    # from sim_bug_tools.graphics import Grapher
+    # import matplotlib.pyplot as plt
 
-    gModelAccuracy = Grapher()
-    gModelError = Grapher()
+    # gModelAccuracy = Grapher()
+    # gModelError = Grapher()
 
-    model_err = list(map(float, model_err))
+    # model_err = list(map(float, model_err))
 
-    gModelAccuracy.draw_path(list((map(Point, zip(exp_ndims, model_acc)))))
-    gModelAccuracy.set_title("Model Accuracy")
-    gModelAccuracy.plot_all_points(list((map(Point, zip(exp_ndims, model_acc)))))
+    # gModelAccuracy.draw_path(list((map(Point, zip(exp_ndims, model_acc)))))
+    # gModelAccuracy.set_title("Model Accuracy")
+    # gModelAccuracy.plot_all_points(list((map(Point, zip(exp_ndims, model_acc)))))
 
-    gModelError.set_title("Model Error")
-    gModelError.draw_path(list((map(Point, zip(exp_ndims, map(float, model_err))))))
-    gModelError.plot_all_points(list((map(Point, zip(exp_ndims, model_err)))))
+    # gModelError.set_title("Model Error")
+    # gModelError.draw_path(list((map(Point, zip(exp_ndims, map(float, model_err))))))
+    # gModelError.plot_all_points(list((map(Point, zip(exp_ndims, model_err)))))
 
-    gGdEff = Grapher()
-    gGdError = Grapher()
+    # gGdEff = Grapher()
+    # gGdError = Grapher()
 
-    eff, eff_pre, eff_pre_nofail = zip(
-        *map(lambda d: [x for name, x in d.items()], gd_eff)
-    )
-    gGdEff.set_title("GD Efficiency")
-    gGdEff.draw_path(list((map(Point, zip(exp_ndims, eff)))))
-    gGdEff.plot_all_points(list((map(Point, zip(exp_ndims, eff)))))
-    gGdError.set_title("GD Error")
-    gGdError.draw_path(list((map(Point, zip(exp_ndims, gd_err)))))
-    gGdError.plot_all_points(list((map(Point, zip(exp_ndims, gd_err)))))
+    # eff, eff_pre, eff_pre_nofail = zip(
+    #     *map(lambda d: [x for name, x in d.items()], gd_eff)
+    # )
+    # gGdEff.set_title("GD Efficiency")
+    # gGdEff.draw_path(list((map(Point, zip(exp_ndims, eff)))))
+    # gGdEff.plot_all_points(list((map(Point, zip(exp_ndims, eff)))))
+    # gGdError.set_title("GD Error")
+    # gGdError.draw_path(list((map(Point, zip(exp_ndims, gd_err)))))
+    # gGdError.plot_all_points(list((map(Point, zip(exp_ndims, gd_err)))))
+    # plt.show()
 
-    plt.show()
+    import json
+
+    with open("gd-dimension-test.json", "w") as f:
+        f.write(json.dumps(meta_data))
+
     print("Done")
 
 
+if __name__ == "__main__":
+    test_across_dimensions()
+
+
+"""
 from highway2.highway2 import HighwayTrafficParameterManager, HighwayTrafficTest
 
 
@@ -723,49 +779,6 @@ def test_sim():
     c = (ndims / 4) ** 0.5
     c0 = (3 / 4) ** 0.5
     training_size = 100
-
-    # print("WE ARE TESTING THE ENVELOPE")
-    # bad_p = Point(
-    #     0.62176977,
-    #     0.79807621,
-    #     0.69080198,
-    #     0.95908838,
-    #     0.58210506,
-    #     0.84604619,
-    #     0.45122231,
-    #     0.90024614,
-    #     0.27892955,
-    #     0.83730686,
-    #     0.49875073,
-    #     0.48540759,
-    #     0.15584215,
-    #     0.69974058,
-    #     0.00796088,
-    #     0.78311874,
-    #     0.8564819,
-    #     0.00520077,
-    #     0.01341527,
-    #     0.69868551,
-    #     0.9152171,
-    #     0.05161705,
-    #     0.37806457,
-    #     0.24978728,
-    #     0.95044272,
-    #     0.49241714,
-    #     0.68527027,
-    #     0.14342004,
-    #     0.001593,
-    #     0.50841134,
-    #     0.98518917,
-    #     0.00578973,
-    #     0.05684101,
-    # )
-
-    # while True:
-    #     p_score = envelope.score(bad_p)
-    #     p_cls = envelope.classify_score(p_score)
-    #     x = 10
-    # print("DONE")
 
     domain = Domain.normalized(ndims)
     seq = RandomSequence(domain, [f"d{i}" for i in range(ndims)])
@@ -896,6 +909,4 @@ def test_sim():
 
     envelope.close()
 
-
-if __name__ == "__main__":
-    test_samplesXgd()
+"""

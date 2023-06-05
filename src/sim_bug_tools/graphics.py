@@ -138,6 +138,10 @@ class Grapher:
 
         self._ax.plot(*np.array(vertices).T, typ, **kwargs)
 
+    def set_yformat(self, fmtstr: str):
+        current_yval = self.ax.get_yticks()
+        self.ax.set_yticklabels([fmtstr.format(x) for x in current_yval])
+
     def save(self, path: str):
         self._fig.savefig(path)
 

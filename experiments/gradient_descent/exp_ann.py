@@ -424,18 +424,15 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         true_data: list[tuple[Point, ndarray]] = []
         true_cnt = 0
         false_cnt = 0
-        
+
         i = 0
-        
-        seq = params.seq
-        
+
+        seq = RandomSequence(params.seq.domain, params.seq.axes_names, params.seq.seed)
+
         while (
             true_cnt + false_cnt < (params.training_size // 2) * 2
         ):  # round nearest even
-            if i >= 4:
-                seq = RandomSequence(seq.domain, seq.axes_names, seq.seed)
-                
-            for p in params.seq.get_sample(params.training_size).points:
+            for p in seq.get_sample(params.training_size).points:
                 score = params.envelope.score(p)
 
                 if params.envelope.classify_score(score) and true_cnt < n_true:
@@ -462,7 +459,7 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
                     false_data.append((p, score))
                 elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
                     break
-                
+
             i += 1
 
         return true_data + false_data  # ts + nonts
