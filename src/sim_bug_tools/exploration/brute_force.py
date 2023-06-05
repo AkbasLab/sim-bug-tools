@@ -6,7 +6,7 @@ from copy import copy
 from numpy import ndarray
 import random
 from typing import Callable
-from scipy.ndimage import label, generate_binary_structure
+from scipy.ndimage import label, generate_binary_structure, binary_erosion
 
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
@@ -70,11 +70,7 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
     unique_labels = np.unique(labeled_groups)
     grouped_indices = []
     print("\nUnique labels (aka groups) : ",unique_labels,"\n")
-    for ulabel in unique_labels:
-        # Skipping label 0 because its all the False values
-        if ulabel == 0:
-            continue
-        #else:
+    for ulabel in range(1, num_clusters+1):
         # Grouping all the index of the current label into a list
         current_group = []
         for index, item in np.ndenumerate(labeled_groups):
@@ -89,7 +85,7 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
     return discretized_envelopes
 
 # True-Boundary finding algorithm
-def true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray) -> ndarray:
+def true_boundary_algorithm(score_matrix: ndarray, envelope_indices: ndarray) -> ndarray:
     """
     - True-Boundary finding algorithm
         - We have some N-D volume classified into two bodies: Target and Non-Target, this method identifies the cells that lie on the boundary.
@@ -99,8 +95,28 @@ def true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray) -> ndarray
         - Outputs:
             - `list<ndarray>` : The list of indices that fall on the boundary of the N-D envelope's surface.
     """
+    classification_matrix: ndarray
+    classification_matrix = score_matrix
+    # Getting classification matrix from the score matrix:
+    # for index, item in np.ndenumerate(score_matrix):
+    #     classification_matrix[index] = scorable.classify_score(item)
+
+    # Apply binary erosion to identify the true values touching false values
+    eroded_array = binary_erosion(classification_matrix)
+    print("Erroded array:\n",eroded_array)
+
+    # Find the indices where the classification_matrix is True and eroded_array is False
+    all_bound_indices = np.argwhere(classification_matrix & ~eroded_array)
+    print("All bound indices:\n",all_bound_indices)
+
+    # Get the indices that are 
+    true_bound_indices = np.intersect1d(all_bound_indices, envelope_indices)
+    print("Envelope indices:\n",true_bound_indices)
+
+    return true_bound_indices
+
+
     
-    pass
 
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
@@ -161,29 +177,18 @@ class ProbilisticSphere(Graded):
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
 
-if __name__ == "__main__":
+
+def test_brute_force_grid_search():
     ######### Test values #########
     ndims = 3
     scorable = ProbilisticSphere(Point([0.5]*ndims), 0.5, 0.25)
     domain = Domain.normalized(3)
     grid = Grid(resolution=[0.1]*ndims)
-
     ###### Testing functions ######
     score_class = brute_force_grid_search(scorable, domain, grid)
     #print("\n**********************\nscore matrix:\n",score_class)
-    class_matrix: ndarray
-    class_matrix = copy(score_class)
-    for index, item in np.ndenumerate(score_class):
-        class_matrix[index] = scorable.classify_score(item)
-    #print("\n**********************\nclassificatio matrix:\n",class_matrix)
-    #e = true_envelope_finding_alg(class_matrix, scorable, include_diagonals=False) 
 
-    #boolean_array = np.zeros(shape=(8,8,8,8))
-    boolean_array = np.zeros(shape=(5,5))
-    for i, v, in np.ndenumerate(boolean_array):
-        boolean_array[i] = bool(random.getrandbits(1))
-    boolean_array = np.array(boolean_array)
-    print(boolean_array)
+def test_true_envelope_finding_alg(boolean_array: ndarray, scoreable: Scorable):
     # With Diagonals:
     print("\n************************* With Diagonals *****************************\n")
     test_w_diagonal = true_envelope_finding_alg(boolean_array, scorable, True)
@@ -193,4 +198,32 @@ if __name__ == "__main__":
     print("\n************************* Without Diagonals *****************************\n")
     test_wo_diagonal = true_envelope_finding_alg(boolean_array, scorable, False)
     print("**** ENVELOPES ****\n",test_wo_diagonal)
-    print("\n*************************************************************************\n")      
+    print("\n*************************************************************************\n")
+    return test_w_diagonal, test_wo_diagonal
+
+def test_true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray):
+    print("Classification matrix:\n",score_matrix)
+    print("Envelope indices\n", envelope)
+    indices = true_boundary_algorithm(score_matrix, envelope)
+    print("Boundary indices:\n", indices)
+
+if __name__ == "__main__":
+    ######### Test values #########
+    ndims = 3
+    scorable = ProbilisticSphere(Point([0.5]*ndims), 0.5, 0.25)
+    domain = Domain.normalized(3)
+    grid = Grid(resolution=[0.1]*ndims)
+    
+    boolean_array = np.zeros(shape=(5,5))
+    for i, v, in np.ndenumerate(boolean_array):
+        boolean_array[i] = bool(random.getrandbits(1))
+    boolean_array = np.array(boolean_array)
+
+    # calling test functions:
+    #test_brute_force_grid_search()
+    print("True envelope finding:\n")
+    indices_w_diagonal, indices_w_diagonal = test_true_envelope_finding_alg(boolean_array, scorable)
+    print("True boundary with diagonals:\n")
+    test_true_boundary_algorithm(boolean_array, indices_w_diagonal)
+    
+
