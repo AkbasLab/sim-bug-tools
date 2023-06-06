@@ -36,7 +36,7 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
     return scored_matrix
 
 # True-Envelope finding algorithm
-def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorable, include_diagonals: bool = True) -> ndarray:
+def true_envelope_finding_alg(classification_matrix: ndarray, include_diagonals: bool = True) -> ndarray:
     """
     - True-Envelope finding algorithm
         - Finds the set of points that fall within a contiguous envelope. 
@@ -80,43 +80,50 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
         # Appending the current group of indices to the grouped indices array
         grouped_indices.append(current_group)
 
-    discretized_envelopes = grouped_indices
+    discretized_envelopes = np.array(grouped_indices)
 
     return discretized_envelopes
 
 # True-Boundary finding algorithm
-def true_boundary_algorithm(score_matrix: ndarray, envelope_indices: ndarray) -> ndarray:
+def true_boundary_algorithm(classification_matrix: ndarray, envelope_indices: ndarray) -> ndarray:
     """
     - True-Boundary finding algorithm
         - We have some N-D volume classified into two bodies: Target and Non-Target, this method identifies the cells that lie on the boundary.
         - Inputs: 
-            - `ndarray` scoreMatrix : The score matrix for each grid cell
-            - `list<ndarray>` envelopeIndices : The list of indices of cells within the contiguous envelope
+            - `ndarray` classification_matrix : The classification matrix for each grid cell
+            - `ndarray` envelope_indices : The list of indices of cells within a single contiguous envelope
         - Outputs:
-            - `list<ndarray>` : The list of indices that fall on the boundary of the N-D envelope's surface.
+            - `ndarray` : The list of indices that fall on the boundary of the N-D envelope's surface.
     """
-    classification_matrix: ndarray
-    classification_matrix = score_matrix
-    # Getting classification matrix from the score matrix:
-    # for index, item in np.ndenumerate(score_matrix):
-    #     classification_matrix[index] = scorable.classify_score(item)
+    # print("Classification matrix:\n",classification_matrix)
+
+    # Changing classification matrix from 0's and 1's to True/False
+    class_as_bool = classification_matrix.astype(bool)
 
     # Apply binary erosion to identify the true values touching false values
-    eroded_array = binary_erosion(classification_matrix)
-    print("Erroded array:\n",eroded_array)
+    eroded_array = binary_erosion(class_as_bool)
+    # print("Erroded array:\n",eroded_array)
 
     # Find the indices where the classification_matrix is True and eroded_array is False
-    all_bound_indices = np.argwhere(classification_matrix & ~eroded_array)
-    print("All bound indices:\n",all_bound_indices)
+    all_bound_indices = np.argwhere(class_as_bool & ~eroded_array)
+    # print("All bound indices:\n",all_bound_indices)
 
-    # Get the indices that are 
-    true_bound_indices = np.intersect1d(all_bound_indices, envelope_indices)
-    print("Envelope indices:\n",true_bound_indices)
+    # Making array list into ndarray
+    envelope_indices = np.stack(envelope_indices)
+    # print("Envelope indices:\n", envelope_indices)
+
+    # Reshaping to 2D arrays to compare for the matching indices
+    array1_2d = all_bound_indices.reshape(-1, all_bound_indices.shape[-1])
+    array2_2d = envelope_indices.reshape(-1, envelope_indices.shape[-1])
+
+    # Getting the indices that are in the evelope and the boundaries arrays
+    matching_rows = np.where(np.all(array1_2d[:, None] == array2_2d, axis=-1))[0]
+
+    # Reshape back to all_bound_indices shape
+    true_bound_indices = all_bound_indices.reshape(-1, *all_bound_indices.shape[1:])[matching_rows]
+    # print("True boundary indices:\n",true_bound_indices)
 
     return true_bound_indices
-
-
-    
 
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
@@ -177,53 +184,99 @@ class ProbilisticSphere(Graded):
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
 
+class ProbilisticSphereCluster(Graded):
+    def __init__(self, spheres: list[ProbilisticSphere]):
+        """
+        Probability density is formed from the base function f(x) = e^-(x^2),
+        such that f(radius) = lmbda and is centered around the origin with a max
+        of 1.
 
-def test_brute_force_grid_search():
-    ######### Test values #########
+        Args:
+            loc (Point): Where the sphere is located
+            radius (float): The radius of the sphere
+            lmbda (float): The density of the sphere at its radius
+        """
+        self.spheres = spheres
+
+    def score(self, p: Point) -> ndarray:
+        "Returns between 0 (far away) and 1 (center of) envelope"
+        return sum(map(lambda s: s.score(p), self.spheres))
+
+    def classify_score(self, score: ndarray) -> bool:
+        return any(map(lambda s: s.classify_score(score), self.spheres))
+
+    def gradient(self, p: Point) -> np.ndarray:
+        raise NotImplementedError()
+
+    def get_input_dims(self):
+        return len(self.spheres[0].loc)
+
+    def get_score_dims(self):
+        return 1
+
+    def generate_random_target(self):
+        raise NotImplementedError()
+
+    def generate_random_nontarget(self):
+        raise NotImplementedError()
+
+    def boundary_err(self, b: Point) -> float:
+        raise NotImplementedError()
+
+def test_cluster():
+    from sim_bug_tools.graphics import Grapher
+    import matplotlib.pyplot as plt
+
     ndims = 3
-    scorable = ProbilisticSphere(Point([0.5]*ndims), 0.5, 0.25)
-    domain = Domain.normalized(3)
-    grid = Grid(resolution=[0.1]*ndims)
-    ###### Testing functions ######
-    score_class = brute_force_grid_search(scorable, domain, grid)
-    #print("\n**********************\nscore matrix:\n",score_class)
+    domain = Domain.normalized(ndims)
+    grid = Grid([0.1] * ndims)
 
-def test_true_envelope_finding_alg(boolean_array: ndarray, scoreable: Scorable):
-    # With Diagonals:
-    print("\n************************* With Diagonals *****************************\n")
-    test_w_diagonal = true_envelope_finding_alg(boolean_array, scorable, True)
-    print("**** ENVELOPES ****\n",test_w_diagonal)
-    print("\n**********************************************************************\n")
-    # Without Diagonals:
-    print("\n************************* Without Diagonals *****************************\n")
-    test_wo_diagonal = true_envelope_finding_alg(boolean_array, scorable, False)
-    print("**** ENVELOPES ****\n",test_wo_diagonal)
-    print("\n*************************************************************************\n")
-    return test_w_diagonal, test_wo_diagonal
+    sphere1 = ProbilisticSphere(Point(0, 0, 0), 0.2, 0.25)
+    sphere2 = ProbilisticSphere(Point([0.5] * ndims), 0.3, 0.25)
+    sphere3 = ProbilisticSphere(Point(0, 0, 0.8), 0.2, 0.25)
+    scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
+    score_class = brute_force_grid_search(scoreable, domain, grid)
 
-def test_true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray):
-    print("Classification matrix:\n",score_matrix)
-    print("Envelope indices\n", envelope)
-    indices = true_boundary_algorithm(score_matrix, envelope)
-    print("Boundary indices:\n", indices)
+    class_matrix = copy(score_class)
+    for index, item in np.ndenumerate(score_class):
+        class_matrix[index] = scoreable.classify_score(item)
+
+    envelopes_list = true_envelope_finding_alg(class_matrix, True)
+    envelopes = map(
+        lambda env: list(map(grid.convert_index_to_point, env)),
+        envelopes_list,
+    )
+
+    bound = []
+    bound1 = true_boundary_algorithm(class_matrix, envelopes_list[0])
+    bound.append(np.split(bound1, bound1.shape[0]))
+    bound2 = true_boundary_algorithm(class_matrix, envelopes_list[1])
+    bound.append(np.split(bound2, bound2.shape[0]))
+    bound3 = true_boundary_algorithm(class_matrix, envelopes_list[2])
+    bound.append(np.split(bound3, bound3.shape[0]))
+    
+    boundaries = map(
+        lambda env2: list(map(grid.convert_index_to_point, env2)),
+        bound,
+    )
+
+    # print(f"There were {len(envelopes)} envelopes in the space.")
+
+    colors = ["red", "green", "blue", "yellow", "cyan"]
+
+    g = Grapher(ndims == 3, domain)
+
+    # Plot for envelopes
+    # for env, color in zip(envelopes, colors):
+    #     g.plot_all_points(env, color=color)
+    # plt.show()
+
+    # plot for boundary points
+    for env2 in boundaries:
+        g.plot_all_points(env2, color="black")
+
+    plt.show()
 
 if __name__ == "__main__":
-    ######### Test values #########
-    ndims = 3
-    scorable = ProbilisticSphere(Point([0.5]*ndims), 0.5, 0.25)
-    domain = Domain.normalized(3)
-    grid = Grid(resolution=[0.1]*ndims)
-    
-    boolean_array = np.zeros(shape=(5,5))
-    for i, v, in np.ndenumerate(boolean_array):
-        boolean_array[i] = bool(random.getrandbits(1))
-    boolean_array = np.array(boolean_array)
-
-    # calling test functions:
-    #test_brute_force_grid_search()
-    print("True envelope finding:\n")
-    indices_w_diagonal, indices_w_diagonal = test_true_envelope_finding_alg(boolean_array, scorable)
-    print("True boundary with diagonals:\n")
-    test_true_boundary_algorithm(boolean_array, indices_w_diagonal)
-    
+    test_cluster()
 
