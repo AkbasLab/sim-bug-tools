@@ -11,20 +11,20 @@ from scipy.ndimage import label, generate_binary_structure, binary_erosion
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 
+
 # Brute Force Grid Search
 def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> ndarray:
     """
     - Brute Force Grid Search
         - Samples all cells of an N-D grid, scoring each.
-        - Inputs: 
+        - Inputs:
             - `Scoreable` scoreable : the scoreable object that is being explored
             - `Domain` domain : the domain to search
             - `Grid` grid : the grid pattern that discretizes the domain
-        - Outputs: 
+        - Outputs:
             - `list(ndarray)` : The score matrix for each grid cell
                 - Shape is determined by the dimensions of the domain when sliced up by the grid. E.g.
     """
-    scored_matrix: ndarray
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
 
@@ -32,51 +32,51 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
     for index, item in np.ndenumerate(scored_matrix):
         new_point = grid.convert_index_to_point(index)
         scored_matrix[index] = scorable.score(new_point)
-        
+
     return scored_matrix
 
+
 # True-Envelope finding algorithm
-def true_envelope_finding_alg(classification_matrix: ndarray, include_diagonals: bool = True) -> ndarray:
+def true_envelope_finding_alg(
+    classification_matrix: ndarray, connectivity: int = 2
+) -> ndarray:
     """
     - True-Envelope finding algorithm
-        - Finds the set of points that fall within a contiguous envelope. 
-        - Inputs: 
+        - Finds the set of points that fall within a contiguous envelope.
+        - Inputs:
             - `ndarray` classification_matrix : The classification matrix for each grid cell
             - `scoreable` Scorable : The score classifying function
             - `ndarray | tuple` start_index : The starting index to the score matrix, start_index: ndarray'''
-        - Outputs: `ndarray` : array of indices of cells within the contiguous, discretized envelope
-    """
-    discretized_envelopes: ndarray
+        - Outputs: `list[list[ndarray]]` : A list of groups of the indices of
+            the envelopes. There will be one group for each envelope.
 
-    """
     In older versions of SciPy (before version 1.6.0), the generate_binary_structure and iterate_structure functions have a maximum dimension limit of 31. Attempting to generate structures with dimensions higher than this limit may result in an error.
     However, starting from SciPy version 1.6.0, these functions have been updated to support higher-dimensional structures.
     """
-    # Generates a binary matrix to serve as the connectivity stucture for the label function. 
-    # connectivity=1 is a connectivity without the diagonals
-    # connectivity=2 is a connectivity including the diagonals
-    if (include_diagonals):
-        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=2)
-    else:
-        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=1)
-    
+    # Generates a binary matrix to serve as the connectivity stucture for the label function.
+    connectivity_matrix = generate_binary_structure(
+        rank=classification_matrix.ndim, connectivity=connectivity
+    )
+
     # num_clusters is the number of groups found
     # labeled_groups is an ndarray where the clusters of true values are replaced with 1, 2, 3,... depending on what cluster its in
-    labeled_groups, num_clusters = label(classification_matrix, structure=connectivity_matrix)
+    labeled_groups, num_clusters = label(
+        classification_matrix, structure=connectivity_matrix
+    )
     print("******** LABELED ARRAY ********")
     print(labeled_groups)
 
     # Grouping all the indices of the matching clusters and putting them all in an array
     unique_labels = np.unique(labeled_groups)
     grouped_indices = []
-    print("\nUnique labels (aka groups) : ",unique_labels,"\n")
-    for ulabel in range(1, num_clusters+1):
+    print("\nUnique labels (aka groups) : ", unique_labels, "\n")
+    for ulabel in range(1, num_clusters + 1):
         # Grouping all the index of the current label into a list
         current_group = []
         for index, item in np.ndenumerate(labeled_groups):
             if ulabel == item:
                 current_group.append(index)
-        print(" ****** CURRENT GROUP", ulabel, "*******\n",current_group)
+        print(" ****** CURRENT GROUP", ulabel, "*******\n", current_group)
         # Appending the current group of indices to the grouped indices array
         grouped_indices.append(current_group)
 
@@ -84,12 +84,15 @@ def true_envelope_finding_alg(classification_matrix: ndarray, include_diagonals:
 
     return discretized_envelopes
 
+
 # True-Boundary finding algorithm
-def true_boundary_algorithm(classification_matrix: ndarray, envelope_indices: ndarray) -> ndarray:
+def true_boundary_algorithm(
+    classification_matrix: ndarray, envelope_indices: ndarray
+) -> ndarray:
     """
     - True-Boundary finding algorithm
         - We have some N-D volume classified into two bodies: Target and Non-Target, this method identifies the cells that lie on the boundary.
-        - Inputs: 
+        - Inputs:
             - `ndarray` classification_matrix : The classification matrix for each grid cell
             - `ndarray` envelope_indices : The list of indices of cells within a single contiguous envelope
         - Outputs:
@@ -120,10 +123,13 @@ def true_boundary_algorithm(classification_matrix: ndarray, envelope_indices: nd
     matching_rows = np.where(np.all(array1_2d[:, None] == array2_2d, axis=-1))[0]
 
     # Reshape back to all_bound_indices shape
-    true_bound_indices = all_bound_indices.reshape(-1, *all_bound_indices.shape[1:])[matching_rows]
+    true_bound_indices = all_bound_indices.reshape(-1, *all_bound_indices.shape[1:])[
+        matching_rows
+    ]
     # print("True boundary indices:\n",true_bound_indices)
 
     return true_bound_indices
+
 
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
@@ -184,6 +190,7 @@ class ProbilisticSphere(Graded):
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
 
+
 class ProbilisticSphereCluster(Graded):
     def __init__(self, spheres: list[ProbilisticSphere]):
         """
@@ -223,6 +230,7 @@ class ProbilisticSphereCluster(Graded):
     def boundary_err(self, b: Point) -> float:
         raise NotImplementedError()
 
+
 def test_cluster():
     from sim_bug_tools.graphics import Grapher
     import matplotlib.pyplot as plt
@@ -254,7 +262,7 @@ def test_cluster():
     bound.append(np.split(bound2, bound2.shape[0]))
     bound3 = true_boundary_algorithm(class_matrix, envelopes_list[2])
     bound.append(np.split(bound3, bound3.shape[0]))
-    
+
     boundaries = map(
         lambda env2: list(map(grid.convert_index_to_point, env2)),
         bound,
@@ -277,6 +285,6 @@ def test_cluster():
 
     plt.show()
 
+
 if __name__ == "__main__":
     test_cluster()
-
