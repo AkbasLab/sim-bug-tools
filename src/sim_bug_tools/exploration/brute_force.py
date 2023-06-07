@@ -266,14 +266,14 @@ def test_cluster():
 
     g = Grapher(ndims == 3, domain)
 
-    # Plot for envelopes
+    # # Plot for envelopes
     # for env, color in zip(envelopes, colors):
     #     g.plot_all_points(env, color=color)
     # plt.show()
 
     # plot for boundary points
-    for env2 in boundaries:
-        g.plot_all_points(env2, color="black")
+    for env2, color in zip(boundaries, colors):
+        g.plot_all_points(env2, color=color)
 
     plt.show()
 
