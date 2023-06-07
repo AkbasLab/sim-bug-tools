@@ -11,20 +11,20 @@ from scipy.ndimage import label, generate_binary_structure
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 
+
 # Brute Force Grid Search
 def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> ndarray:
     """
     - Brute Force Grid Search
         - Samples all cells of an N-D grid, scoring each.
-        - Inputs: 
+        - Inputs:
             - `Scoreable` scoreable : the scoreable object that is being explored
             - `Domain` domain : the domain to search
             - `Grid` grid : the grid pattern that discretizes the domain
-        - Outputs: 
+        - Outputs:
             - `list(ndarray)` : The score matrix for each grid cell
                 - Shape is determined by the dimensions of the domain when sliced up by the grid. E.g.
     """
-    scored_matrix: ndarray
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
 
@@ -32,55 +32,55 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
     for index, item in np.ndenumerate(scored_matrix):
         new_point = grid.convert_index_to_point(index)
         scored_matrix[index] = scorable.score(new_point)
-        
+
     return scored_matrix
 
+
 # True-Envelope finding algorithm
-def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorable, include_diagonals: bool = True) -> ndarray:
+def true_envelope_finding_alg(
+    classification_matrix: ndarray, connectivity: int = 2
+) -> list[list[ndarray]]:
     """
     - True-Envelope finding algorithm
-        - Finds the set of points that fall within a contiguous envelope. 
-        - Inputs: 
+        - Finds the set of points that fall within a contiguous envelope.
+        - Inputs:
             - `ndarray` classification_matrix : The classification matrix for each grid cell
             - `scoreable` Scorable : The score classifying function
             - `ndarray | tuple` start_index : The starting index to the score matrix, start_index: ndarray'''
-        - Outputs: `ndarray` : array of indices of cells within the contiguous, discretized envelope
-    """
-    discretized_envelopes: ndarray
+        - Outputs: `list[list[ndarray]]` : A list of groups of the indices of
+            the envelopes. There will be one group for each envelope.
 
-    """
     In older versions of SciPy (before version 1.6.0), the generate_binary_structure and iterate_structure functions have a maximum dimension limit of 31. Attempting to generate structures with dimensions higher than this limit may result in an error.
     However, starting from SciPy version 1.6.0, these functions have been updated to support higher-dimensional structures.
     """
-    # Generates a binary matrix to serve as the connectivity stucture for the label function. 
-    # connectivity=1 is a connectivity without the diagonals
-    # connectivity=2 is a connectivity including the diagonals
-    if (include_diagonals):
-        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=2)
-    else:
-        connectivity_matrix = generate_binary_structure(rank=classification_matrix.ndim, connectivity=1)
-    
+    # Generates a binary matrix to serve as the connectivity stucture for the label function.
+    connectivity_matrix = generate_binary_structure(
+        rank=classification_matrix.ndim, connectivity=connectivity
+    )
+
     # num_clusters is the number of groups found
     # labeled_groups is an ndarray where the clusters of true values are replaced with 1, 2, 3,... depending on what cluster its in
-    labeled_groups, num_clusters = label(classification_matrix, structure=connectivity_matrix)
+    labeled_groups, num_clusters = label(
+        classification_matrix, structure=connectivity_matrix
+    )
     print("******** LABELED ARRAY ********")
     print(labeled_groups)
 
     # Grouping all the indices of the matching clusters and putting them all in an array
     unique_labels = np.unique(labeled_groups)
     grouped_indices = []
-    print("\nUnique labels (aka groups) : ",unique_labels,"\n")
+    print("\nUnique labels (aka groups) : ", unique_labels, "\n")
     for ulabel in unique_labels:
         # Skipping label 0 because its all the False values
         if ulabel == 0:
             continue
-        #else:
+        # else:
         # Grouping all the index of the current label into a list
         current_group = []
         for index, item in np.ndenumerate(labeled_groups):
             if ulabel == item:
                 current_group.append(index)
-        print(" ****** CURRENT GROUP", ulabel, "*******\n",current_group)
+        print(" ****** CURRENT GROUP", ulabel, "*******\n", current_group)
         # Appending the current group of indices to the grouped indices array
         grouped_indices.append(current_group)
 
@@ -88,19 +88,21 @@ def true_envelope_finding_alg(classification_matrix: ndarray, scoreable: Scorabl
 
     return discretized_envelopes
 
+
 # True-Boundary finding algorithm
 def true_boundary_algorithm(score_matrix: ndarray, envelope: ndarray) -> ndarray:
     """
     - True-Boundary finding algorithm
         - We have some N-D volume classified into two bodies: Target and Non-Target, this method identifies the cells that lie on the boundary.
-        - Inputs: 
+        - Inputs:
             - `ndarray` scoreMatrix : The score matrix for each grid cell
             - `list<ndarray>` envelopeIndices : The list of indices of cells within the contiguous envelope
         - Outputs:
             - `list<ndarray>` : The list of indices that fall on the boundary of the N-D envelope's surface.
     """
-    
+
     pass
+
 
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
@@ -161,36 +163,122 @@ class ProbilisticSphere(Graded):
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
 
-if __name__ == "__main__":
+
+class ProbilisticSphereCluster(Graded):
+    def __init__(self, spheres: list[ProbilisticSphere]):
+        """
+        Probability density is formed from the base function f(x) = e^-(x^2),
+        such that f(radius) = lmbda and is centered around the origin with a max
+        of 1.
+
+        Args:
+            loc (Point): Where the sphere is located
+            radius (float): The radius of the sphere
+            lmbda (float): The density of the sphere at its radius
+        """
+        self.spheres = spheres
+
+    def score(self, p: Point) -> ndarray:
+        "Returns between 0 (far away) and 1 (center of) envelope"
+        return sum(map(lambda s: s.score(p), self.spheres))
+
+    def classify_score(self, score: ndarray) -> bool:
+        return any(map(lambda s: s.classify_score(score), self.spheres))
+
+    def gradient(self, p: Point) -> np.ndarray:
+        raise NotImplementedError()
+
+    def get_input_dims(self):
+        return len(self.spheres[0].loc)
+
+    def get_score_dims(self):
+        return 1
+
+    def generate_random_target(self):
+        raise NotImplementedError()
+
+    def generate_random_nontarget(self):
+        raise NotImplementedError()
+
+    def boundary_err(self, b: Point) -> float:
+        raise NotImplementedError()
+
+
+def initial_test():
     ######### Test values #########
     ndims = 3
-    scorable = ProbilisticSphere(Point([0.5]*ndims), 0.5, 0.25)
+    scorable = ProbilisticSphere(Point([0.5] * ndims), 0.5, 0.25)
     domain = Domain.normalized(3)
-    grid = Grid(resolution=[0.1]*ndims)
+    grid = Grid(resolution=[0.1] * ndims)
 
     ###### Testing functions ######
     score_class = brute_force_grid_search(scorable, domain, grid)
-    #print("\n**********************\nscore matrix:\n",score_class)
-    class_matrix: ndarray
+    # print("\n**********************\nscore matrix:\n",score_class)
     class_matrix = copy(score_class)
     for index, item in np.ndenumerate(score_class):
         class_matrix[index] = scorable.classify_score(item)
-    #print("\n**********************\nclassificatio matrix:\n",class_matrix)
-    #e = true_envelope_finding_alg(class_matrix, scorable, include_diagonals=False) 
+    # print("\n**********************\nclassificatio matrix:\n",class_matrix)
+    # e = true_envelope_finding_alg(class_matrix, scorable, include_diagonals=False)
 
-    #boolean_array = np.zeros(shape=(8,8,8,8))
-    boolean_array = np.zeros(shape=(5,5))
-    for i, v, in np.ndenumerate(boolean_array):
+    # boolean_array = np.zeros(shape=(8,8,8,8))
+    boolean_array = np.zeros(shape=(5, 5))
+    for (
+        i,
+        v,
+    ) in np.ndenumerate(boolean_array):
         boolean_array[i] = bool(random.getrandbits(1))
     boolean_array = np.array(boolean_array)
     print(boolean_array)
     # With Diagonals:
     print("\n************************* With Diagonals *****************************\n")
     test_w_diagonal = true_envelope_finding_alg(boolean_array, scorable, True)
-    print("**** ENVELOPES ****\n",test_w_diagonal)
+    print("**** ENVELOPES ****\n", test_w_diagonal)
     print("\n**********************************************************************\n")
     # Without Diagonals:
-    print("\n************************* Without Diagonals *****************************\n")
+    print(
+        "\n************************* Without Diagonals *****************************\n"
+    )
     test_wo_diagonal = true_envelope_finding_alg(boolean_array, scorable, False)
-    print("**** ENVELOPES ****\n",test_wo_diagonal)
-    print("\n*************************************************************************\n")      
+    print("**** ENVELOPES ****\n", test_wo_diagonal)
+    print(
+        "\n*************************************************************************\n"
+    )
+
+
+def test_cluster():
+    from sim_bug_tools.graphics import Grapher
+    import matplotlib.pyplot as plt
+
+    ndims = 3
+    domain = Domain.normalized(ndims)
+    grid = Grid([0.1] * ndims)
+
+    sphere1 = ProbilisticSphere(Point(0, 0, 0), 0.2, 0.25)
+    sphere2 = ProbilisticSphere(Point([0.5] * ndims), 0.1, 0.25)
+    sphere3 = ProbilisticSphere(Point(0, 0, 0.8), 0.2, 0.25)
+    scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
+    score_class = brute_force_grid_search(scoreable, domain, grid)
+
+    class_matrix = copy(score_class)
+    for index, item in np.ndenumerate(score_class):
+        class_matrix[index] = scoreable.classify_score(item)
+
+    envelopes = map(
+        lambda env: list(map(grid.convert_index_to_point, env)),
+        true_envelope_finding_alg(class_matrix, 2),
+    )
+
+    # print(f"There were {len(envelopes)} envelopes in the space.")
+
+    colors = ["red", "green", "blue", "yellow", "cyan"]
+
+    g = Grapher(ndims == 3, domain)
+
+    for env, color in zip(envelopes, colors):
+        g.plot_all_points(env, color=color)
+
+    plt.show()
+
+
+if __name__ == "__main__":
+    test_cluster()
