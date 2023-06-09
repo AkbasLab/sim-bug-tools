@@ -1,82 +1,12 @@
 [
   {
-    "ndims": 5,
-    "n-failures": 158,
-    "n-bpoints": 100,
-    "n-nonbpoints": 836,
-    "avg-err": 0.29293195216027035,
-    "eff": 0.0167897918065816,
-    "eff-posttrain": 0.11961722488038277,
-    "eff-posttrain_nofailure": 0.22075055187637968
-  },
-  {
-    "ndims": 10,
-    "n-failures": 36,
-    "n-bpoints": 100,
-    "n-nonbpoints": 329,
-    "avg-err": 0.23393467813925944,
-    "eff": 0.018351991191044227,
-    "eff-posttrain": 0.303951367781155,
-    "eff-posttrain_nofailure": 0.33112582781456956
-  },
-  {
-    "ndims": 15,
-    "n-failures": 18,
-    "n-bpoints": 100,
-    "n-nonbpoints": 388,
-    "avg-err": 0.1853964233742949,
-    "eff": 0.01815541031227306,
-    "eff-posttrain": 0.25773195876288657,
-    "eff-posttrain_nofailure": 0.2724795640326976
-  },
-  {
-    "ndims": 20,
-    "n-failures": 16,
-    "n-bpoints": 100,
-    "n-nonbpoints": 461,
-    "avg-err": 0.09795383023549471,
-    "eff": 0.017917935853789643,
-    "eff-posttrain": 0.21691973969631237,
-    "eff-posttrain_nofailure": 0.22573363431151242
-  },
-  {
-    "ndims": 25,
-    "n-failures": 22,
-    "n-bpoints": 100,
-    "n-nonbpoints": 545,
-    "avg-err": 0.08656733937981986,
-    "eff": 0.0176522506619594,
-    "eff-posttrain": 0.1834862385321101,
-    "eff-posttrain_nofailure": 0.1968503937007874
-  },
-  {
     "ndims": 30,
-    "n-failures": 22,
+    "n-failures": 0,
     "n-bpoints": 100,
-    "n-nonbpoints": 637,
-    "avg-err": 0.08714871727835417,
-    "eff": 0.01737015806843842,
-    "eff-posttrain": 0.15698587127158556,
-    "eff-posttrain_nofailure": 0.17482517482517482
-  },
-  {
-    "ndims": 50,
-    "n-failures": 78,
-    "n-bpoints": 100,
-    "n-nonbpoints": 1152,
-    "avg-err": 0.10317227606681346,
-    "eff": 0.01594387755102041,
-    "eff-posttrain": 0.08680555555555555,
-    "eff-posttrain_nofailure": 0.15748031496062992
-  },
-  {
-    "ndims": 100,
-    "n-failures": 438,
-    "n-bpoints": 100,
-    "n-nonbpoints": 2720,
-    "avg-err": 0.13449565438616629,
-    "eff": 0.012755102040816327,
-    "eff-posttrain": 0.03676470588235294,
-    "eff-posttrain_nofailure": 0.21367521367521367
+    "n-nonbpoints": 183,
+    "avg-err": 0.33358734287082664,
+    "eff": 0.018857250612860643,
+    "eff-posttrain": 0.546448087431694,
+    "eff-posttrain_nofailure": 0.546448087431694
   }
 ]

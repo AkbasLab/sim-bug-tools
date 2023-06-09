@@ -83,6 +83,7 @@ class ProbilisticSphereCluster(Graded):
         max_dist_b_perc: float = 0.1,
         min_rad_perc: float = 1.25,
         max_rad_perc: float = 0.25,
+        domain: Domain = None,
         seed=333,
     ):
         """
@@ -112,6 +113,8 @@ class ProbilisticSphereCluster(Graded):
         self._max_dist_b_perc = max_dist_b_perc
         self._min_rad_perc = min_rad_perc
         self._max_rad_perc = max_rad_perc
+
+        self._domain = domain
 
         self.construct_cluster(p0, r0, num_points_per_point, depth)
 
@@ -160,25 +163,38 @@ class ProbilisticSphereCluster(Graded):
         # max = 0, d must be before the border
         # max = 1, d must be before twice the radius
 
-        # pick random direction and distance to find location
-        v = np.random.rand(self.ndims) * 2 - 1
-        v /= np.linalg.norm(v)
-        d = self._random_between(
-            r * (1 + self.min_dist_b_perc), r * (1 + self.max_dist_b_perc)
-        )
-        p2 = p + Point(v * d)
+        i = 0
+        valid = False
+        while not valid:
+            if i > 100:
+                raise Exception(
+                    "100 failed attempts for generating a sphere in bounds of domain."
+                )
 
-        ## rad
-        # r1 * min_rad_perc < r2 < r1 * max_rad_perc
-        # d - r1 < r2 < r1 * max_rad_perc
-        # 0 < d < r1 + r2 :
-        # min = 0, radius must be greater than 0
-        # min = 1, radius must be greater than r1
-        # max : same as min
+            # pick random direction and distance to find location
+            v = np.random.rand(self.ndims)
+            v /= np.linalg.norm(v)
+            v = v * 2 - 1
+            d = self._random_between(
+                r * (1 + self.min_dist_b_perc), r * (1 + self.max_dist_b_perc)
+            )
+            p2 = p + Point(v * d)
 
-        min_r = (1 + self.min_rad_perc) * (d - r)
-        max_r = (1 + self.max_rad_perc) * r
-        r2 = self._random_between(min_r, max_r)
+            # pick a radius that touches the parent sphere
+            min_r = (1 + self.min_rad_perc) * (d - r)
+            max_r = (1 + self.max_rad_perc) * r
+            r2 = self._random_between(min_r, max_r)
+
+            c = np.ones(p.array.shape)
+            c = c / np.linalg.norm(c) * r2
+
+            # if domain specified, do not leave domain.
+            valid = (
+                self._domain is None
+                or (p2 + c) in self._domain
+                and (p2 - c) in self._domain
+            )
+            i += 1
 
         return (p2, r2)
 
@@ -195,7 +211,8 @@ class ProbilisticSphereCluster(Graded):
         return 1
 
     def generate_random_target(self):
-        raise NotImplementedError()
+        sph_index = random.randint(0, len(self.spheres) - 1)
+        return self.spheres[sph_index].generate_random_target()
 
     def generate_random_nontarget(self):
         raise NotImplementedError()
@@ -420,47 +437,28 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         n_true = int(params.training_size * target_percentage)
         n_false = int(params.training_size * (1 - target_percentage))
 
-        false_data: list[tuple[Point, ndarray]] = []
-        true_data: list[tuple[Point, ndarray]] = []
-        true_cnt = 0
         false_cnt = 0
 
-        i = 0
+        false_data: list[tuple[Point, ndarray]] = []
+        true_data: list[tuple[Point, ndarray]] = []
 
-        seq = RandomSequence(params.seq.domain, params.seq.axes_names, params.seq.seed)
+        seq = SobolSequence(params.seq.domain, params.seq.axes_names, params.seq.seed)
 
-        while (
-            true_cnt + false_cnt < (params.training_size // 2) * 2
-        ):  # round nearest even
-            for p in seq.get_sample(params.training_size).points:
-                score = params.envelope.score(p)
+        while false_cnt < n_false:
+            p = seq.get_sample(1).points[0]
+            score = params.envelope.score(p)
 
-                if params.envelope.classify_score(score) and true_cnt < n_true:
-                    true_cnt += 1
-                    true_data.append((p, score))
-                    # subdata = self._shotgun_sampling(params, p, 0.01, 50)
+            if not params.envelope.classify_score(score):
+                false_data.append((p, score))
+                false_cnt += 1
 
-                    if true_cnt % 10:
-                        subdata = self._sample_within(
-                            params, [d[0] for d in true_data], 50
-                        )
-                        if len(subdata) + true_cnt > n_true:
-                            true_data.extend(subdata[: n_true - true_cnt])
-                            true_cnt = n_true
-                        else:
-                            true_data.extend(subdata)
-                            true_cnt += len(subdata)
-                elif (
-                    (min_score is None or score >= min_score)
-                    and not params.envelope.classify_score(score)
-                    and false_cnt < n_false
-                ):
-                    false_cnt += 1
-                    false_data.append((p, score))
-                elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
-                    break
-
-            i += 1
+        for i in range(n_true):
+            p = params.envelope.generate_random_target()
+            score = params.envelope.score(p)
+            true_data.append((p, score))
+            assert params.envelope.classify_score(
+                score
+            ), "Generate random target failed, got non-target instead?"
 
         return true_data + false_data  # ts + nonts
 
@@ -731,3 +729,39 @@ def test_cluster():
 
 if __name__ == "__main__":
     test_cluster()
+
+
+"""
+while (
+            true_cnt + false_cnt < (params.training_size // 2) * 2
+        ):  # round nearest even
+            for p in seq.get_sample(params.training_size).points:
+                score = params.envelope.score(p)
+
+                if params.envelope.classify_score(score) and true_cnt < n_true:
+                    true_cnt += 1
+                    true_data.append((p, score))
+                    # subdata = self._shotgun_sampling(params, p, 0.01, 50)
+
+                    if true_cnt % 10:
+                        subdata = self._sample_within(
+                            params, [d[0] for d in true_data], 50
+                        )
+                        if len(subdata) + true_cnt > n_true:
+                            true_data.extend(subdata[: n_true - true_cnt])
+                            true_cnt = n_true
+                        else:
+                            true_data.extend(subdata)
+                            true_cnt += len(subdata)
+                elif (
+                    (min_score is None or score >= min_score)
+                    and not params.envelope.classify_score(score)
+                    and false_cnt < n_false
+                ):
+                    false_cnt += 1
+                    false_data.append((p, score))
+                elif true_cnt + false_cnt >= (params.training_size // 2) * 2:
+                    break
+
+            i += 1
+"""

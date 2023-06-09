@@ -18,11 +18,11 @@ convert = lambda lst: [Point(x, y) for x, y in zip(ndims, lst)]
 
 
 def plot_eff():
-    domain = Domain.from_bounding_points(Point(0, 0), Point(101, 1))
+    domain = Domain.from_bounding_points(Point(0, 0), Point(101, 0.03))
     g = Grapher(False, domain, ["dimensions", "efficiency"])
     g.set_yformat("{:,.0%}")
-    g.plot_all_points(convert(map(lambda val: val, df["eff-posttrain"])))
-    g.draw_path(convert(map(lambda val: val, df["eff-posttrain"])))
+    g.plot_all_points(convert(map(lambda val: val, df["eff"])))
+    g.draw_path(convert(map(lambda val: val, df["eff"])))
 
 
 def plot_err():

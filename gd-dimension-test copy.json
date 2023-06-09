@@ -1,0 +1,82 @@
+[
+  {
+    "ndims": 5,
+    "n-failures": 103,
+    "n-bpoints": 100,
+    "n-nonbpoints": 10560,
+    "avg-err": 0.30115341336689405,
+    "eff": 0.006377551020408163,
+    "eff-posttrain": 0.00946969696969697,
+    "eff-posttrain_nofailure": 0.010849517196484757
+  },
+  {
+    "ndims": 10,
+    "n-failures": 143,
+    "n-bpoints": 100,
+    "n-nonbpoints": 3132,
+    "avg-err": 0.46500520336005835,
+    "eff": 0.012118274357731459,
+    "eff-posttrain": 0.031928480204342274,
+    "eff-posttrain_nofailure": 1.0
+  },
+  {
+    "ndims": 15,
+    "n-failures": 110,
+    "n-bpoints": 100,
+    "n-nonbpoints": 6937,
+    "avg-err": 0.39234514231164047,
+    "eff": 0.008293937131956539,
+    "eff-posttrain": 0.01441545336600836,
+    "eff-posttrain_nofailure": 1.0
+  },
+  {
+    "ndims": 20,
+    "n-failures": 102,
+    "n-bpoints": 100,
+    "n-nonbpoints": 4644,
+    "avg-err": 0.37844570673078765,
+    "eff": 0.010241704219582138,
+    "eff-posttrain": 0.02153316106804479,
+    "eff-posttrain_nofailure": 1.0
+  },
+  {
+    "ndims": 25,
+    "n-failures": 104,
+    "n-bpoints": 100,
+    "n-nonbpoints": 7377,
+    "avg-err": 0.3892553422769967,
+    "eff": 0.008001920460910618,
+    "eff-posttrain": 0.013555645926528399,
+    "eff-posttrain_nofailure": 0.09099181073703366
+  },
+  {
+    "ndims": 30,
+    "n-failures": 102,
+    "n-bpoints": 100,
+    "n-nonbpoints": 1665,
+    "avg-err": 0.40162518306911205,
+    "eff": 0.014738393515106854,
+    "eff-posttrain": 0.06006006006006006,
+    "eff-posttrain_nofailure": 1.0
+  },
+  {
+    "ndims": 50,
+    "n-failures": 104,
+    "n-bpoints": 100,
+    "n-nonbpoints": 1137,
+    "avg-err": 0.5110676992494134,
+    "eff": 0.0159821000479463,
+    "eff-posttrain": 0.08795074758135445,
+    "eff-posttrain_nofailure": 0.9803921568627451
+  },
+  {
+    "ndims": 100,
+    "n-failures": 102,
+    "n-bpoints": 100,
+    "n-nonbpoints": 791,
+    "avg-err": 0.5793865830412288,
+    "eff": 0.01691761123329386,
+    "eff-posttrain": 0.1264222503160556,
+    "eff-posttrain_nofailure": 0.9174311926605505
+  }
+]

@@ -149,7 +149,11 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
         self._previous_result: tuple[Point, list[PointData]] = None
 
     def experiment(self, params: GDExplorerParams) -> GDExplorerResults:
-        scored_data = params.ann_results.scored_data
+        scored_data = [
+            (p, score)
+            for p, score in params.ann_results.scored_data
+            if params.ann_results.params.envelope.classify_score(score)
+        ]
         shuffle(scored_data)
         model = tf.keras.models.load_model(params.ann_results.model_path)
         envelope = params.ann_results.params.envelope
@@ -587,62 +591,40 @@ def test_across_dimensions():
 
     envelope_type = "dsphere_scaled"
 
-    model_acc = []
-    model_err = []
-
-    # Order: eff_posttrain_nofailure, eff_posttrain, eff_pretrain,
-    gd_eff: list[dict[str, float]] = []
-    gd_err: list[float] = []
-
     # GD params
     gd_type_name = "sd"
     n_bpoints = 100  # must be < training_size for our purposes
-    alpha = 0.1  # scales gradient descent step-size
+    alpha = 0.005  # scales gradient descent step-size
     max_steps = 1000  # #steps prior to aborting gradient descent and trying again
+
+    r0 = 0.15
+    k = 4
+    n = 5
 
     meta_data = []
 
-    for ndims in exp_ndims:
-        c = (ndims / 4) ** 0.5
+    for ndims in exp_ndims[-3:-2]:
         domain = Domain.normalized(ndims)
-        loc = Point([0.5] * ndims)
-        lmbd = 0.25
 
         p0 = Point([0.5] * ndims)
-        r0 = 0.25
-        k = 4
-        n = 5
         envelope = ProbilisticSphereCluster(
             n,
             k,
-            rad(ndims),  # Why? BECAUSE
+            r0,
             p0,
             min_dist_b_perc=0,
             min_rad_perc=0,
             max_rad_perc=0.01,
             seed=1,
+            domain=domain,
         )
-        # envelope = ProbilisticSphere(loc, radius, lmbd)
 
         seq = SobolSequence(domain, [f"d{i}" for i in range(ndims)])
-        # test_data = [
-        #     (p, envelope.score(p))
-        #     for p in (
-        #         RandomSequence(domain, [f"x{i}" for i in range(ndims)])
-        #         .get_sample(5120)
-        #         .points
-        #     )
-        # ]
 
         print("Training ANN")
-        ann_name = _ann_param_name(training_size, ndims, envelope_type + "v2")
+        ann_name = _ann_param_name(training_size, ndims, envelope_type + "v3")
         ann_params = ANNParams(ann_name, envelope, seq, training_size)
         ann_results = ann_exp(ann_params)
-
-        # model = tf.keras.models.load_model(ann_results.model_path)
-        # test_truth_table = ANNExperiment.class_acc(model, test_data, envelope)
-        # model_acc.append(calc_acc(test_truth_table))
-        # model_err.append(ANNExperiment.calc_err(model, test_data, envelope))
 
         if gd_type_name == "sd":
             gd_type = GDExplorerExperiment.steepest_descent
@@ -652,7 +634,7 @@ def test_across_dimensions():
             gd_type = None  # err
 
         gd_params = GDExplorerParams(
-            _gd_param_name(ann_name, gd_type_name, alpha),
+            _gd_param_name(ann_name, gd_type_name, alpha) + "-tonly",
             ann_results,
             n_bpoints,
             gd_type,

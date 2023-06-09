@@ -75,22 +75,50 @@ class Point:
         return Point(new_vector)
 
     def __sub__(self, other):
-        if not isinstance(other, Point):
-            raise ValueError("Can only subtract a point from another point!")
+        # if not isinstance(other, (Point, ndarray)):
+        #     raise ValueError("Can only subtract a point from another Point or
+        #     ndarray!")
 
-        return Point(
-            list(map(lambda axis_self, axis_other: axis_self - axis_other, self, other))
-        )
+        if type(other) is Point:
+            return Point(self.array - other.array)
+        elif type(other) is ndarray:
+            return Point(self.array - other)
+        else:
+            try:
+                return Point(
+                    list(
+                        map(
+                            lambda axis_self, axis_other: axis_self - axis_other,
+                            self,
+                            other,
+                        )
+                    )
+                )
+            except:
+                raise ValueError(
+                    f"Invalid type {type(other)} for Point.__sub__, expected iterable?"
+                )
 
     def __add__(self, other):
-        if not isinstance(other, Point) and not isinstance(other, ndarray):
-            raise ValueError(
-                f"Can only add a point to another point! Got type {type(other)}"
-            )
-
-        return Point(
-            list(map(lambda axis_self, axis_other: axis_self + axis_other, self, other))
-        )
+        if type(other) is Point:
+            return Point(self.array + other.array)
+        elif type(other) is ndarray:
+            return Point(self.array + other)
+        else:
+            try:
+                return Point(
+                    list(
+                        map(
+                            lambda axis_self, axis_other: axis_self + axis_other,
+                            self,
+                            other,
+                        )
+                    )
+                )
+            except:
+                raise ValueError(
+                    f"Invalid type {type(other)} for Point.__add__, expected iterable?"
+                )
 
     def __getitem__(self, key: int) -> float64:
         return self._vector[key]
@@ -651,10 +679,11 @@ class Grid:
         the grid align with the boundary of your domain. Might want to fix
         this in the future, but whatever.
         """
+
         def map_axis_to_grid(axis: float, step: float, o_axis: float):
-            err = round((axis - o_axis) % step)            
-            return int32(round((axis - err - o_axis) / step))      
-        
+            err = round((axis - o_axis) % step)
+            return int32(round((axis - err - o_axis) / step))
+
         return np.array(
             tuple(
                 map(
@@ -675,12 +704,12 @@ class Grid:
                 self._origin,
             )
         )
-        
+
     @staticmethod
     def from_matrix_dimensions(domain: Domain, shape: ndarray):
-        origin = domain.origin 
-        resolution = [d / step for d, step in zip(domain.dimensions, shape)] 
-        
+        origin = domain.origin
+        resolution = [d / step for d, step in zip(domain.dimensions, shape)]
+
         return Grid(resolution, origin)
 
 
