@@ -329,6 +329,20 @@ class ProbilisticSphereCluster(Graded):
     def boundary_err(self, b: Point) -> float:
         raise NotImplementedError()
 
+def test_function(func, score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int = 10):
+    print("Function: ", func)
+    start_time = time.perf_counter()
+    g_pos = func(score_array, num_agents, agentC, globalC, w, v_max, max_iter)
+    end_time = time.perf_counter()
+    print("Closest position: ", g_pos)
+    g_val = score_matrix[tuple(g_pos)]
+    print("Value:", g_val)
+    runtime = end_time - start_time
+    print("Runtime =", runtime, "seconds")
+    max_score = np.max(score_matrix)
+    error_percentage = abs((max_score - g_val) / max_score) * 100
+    print("Error percentage: " + str(error_percentage) + "%")
+
 if __name__ == "__main__":
     ndims = 3
     domain = Domain.normalized(ndims)
@@ -347,31 +361,24 @@ if __name__ == "__main__":
             max_score_positions.append(i)
     print("Max score:", max_score)
     print("Max score positions:", max_score_positions)
-
-    start_time = time.perf_counter()
-    g_pos = particle_swarm_single_function(score_matrix, 10, 0, 2, 0.8, 0.5, 100)
-    end_time = time.perf_counter()
-    print("\nClosest position: ", g_pos)
-    print("Value:", score_matrix[tuple(g_pos)])
-    runtime = end_time - start_time
-    print("Runtime =", runtime, "seconds")
+    print()
+    test_function(particle_swarm_single_function, score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
+    print()
+    test_function(particle_swarm_split_functions, score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
+    print()
 
     start_time2 = time.perf_counter()
-    swarm = ParticleSwarmOptimization(score_matrix, 10, 0, 2, 0.8, 0.5, 100)
+    swarm = ParticleSwarmOptimization(score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
     g_pos2 = swarm.run_swarm()
     end_time2 = time.perf_counter()
-    print("\nClosest position:", g_pos2)
+    print("Closest position:", g_pos2)
     print("Value:", score_matrix[tuple(g_pos2)])
     runtime2 = end_time2 - start_time2
     print("Runtime =", runtime2, "seconds")
-
-    start_time3 = time.perf_counter()
-    g_pos3 = particle_swarm_split_functions(score_matrix, 10, 0, 2, 0.8, 0.5, 100)
-    end_time3 = time.perf_counter()
-    print("\nClosest position: ", g_pos3)
-    print("Value:", score_matrix[tuple(g_pos3)])
-    runtime3 = end_time3 - start_time3
-    print("Runtime =", runtime3, "seconds")
+    error_percentage = abs((max_score - score_matrix[tuple(g_pos2)]) / max_score) * 100
+    print("Error percentage: " + str(error_percentage) + "%")
+    absolute_error = abs(max_score - score_matrix[tuple(g_pos2)])
+    print(absolute_error)
 
 
 
