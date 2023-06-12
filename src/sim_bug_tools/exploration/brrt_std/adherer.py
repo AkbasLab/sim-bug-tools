@@ -38,6 +38,7 @@ class ConstantAdherer(Adherer):
         delta_theta: float,
         domain: Domain = None,
         fail_out_of_bounds: bool = True,
+        max_samples: int = None,
     ):
         """
         Boundary error, e, is within the range: 0 <= e <= d * theta. Average error is d * theta / 2
@@ -86,7 +87,7 @@ class ConstantAdherer(Adherer):
         self._initialized = False
 
         self._iteration = 0
-        self._max_iteration = int((np.pi) // delta_theta)
+        self._max_iteration = max_samples or int((np.pi) // delta_theta)
 
         # from sim_bug_tools.graphics import Grapher
 
