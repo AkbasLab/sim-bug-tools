@@ -9,6 +9,7 @@ from numpy import ndarray
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 from sim_bug_tools.exploration.brute_force import brute_force_grid_search
+import matplotlib.pyplot as plt
 
 class Agent():
     def __init__(self, initial_point):
@@ -28,7 +29,7 @@ class Agent():
 
 class ParticleSwarmOptimization():
     """
-    - Partical Swarm Optimization
+    - Particle Swarm Optimization
         Creates num_agent number of agents for the swam starting them at random points in the given score array.
         - Inputs:
             - `score_array: ndarray` - The score matrix
@@ -182,9 +183,9 @@ def particle_swarm_single_function(score_array: ndarray, num_agents: int, agentC
             - `num_agents: int` - the number of agents to add to the swarm
             - `agentC: float` - The constant value to multiply with the distance to personal best
                     Note: agentC > globalC results in high exploration, low exploitation.
-            - `globalC: float` - The constant value to multiply with the distance to gloabal best
+            - `globalC: float` - The constant value to multiply with the distance to global best
                     Note: globalC > agentC results in low exploration, high exploitation.
-            - `w: float` - The interia weight to multiply the velocity by
+            - `w: float` - The interia to multiply the velocity by
             - `max_iter: int` - The maximum number of iterations to run
         - Outputs:
             - `ndarray` - The best global estimation
@@ -228,8 +229,6 @@ def particle_swarm_single_function(score_array: ndarray, num_agents: int, agentC
                     global_best_position = agent.best_position
 
     return global_best_position
-
-
 
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
@@ -329,6 +328,21 @@ class ProbilisticSphereCluster(Graded):
     def boundary_err(self, b: Point) -> float:
         raise NotImplementedError()
 
+def graph_function(error_percent, runtime, max_score):
+    data = {"Error %": error_percent, "Runtime": runtime, "Max score reached": max_score}
+    labels = list(data.keys())
+    values = list(data.values())
+    fig = plt.figure(figsize=(10, 5))
+    # creating the bar plot
+    plt.bar(labels, values, color ='maroon',
+            width = 0.4)
+    
+    plt.xlabel("Courses offered")
+    plt.ylabel("No. of students enrolled")
+    plt.title("Students enrolled in different courses")
+    plt.show()
+
+
 def test_function(func, score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int = 10):
     print("Function: ", func)
     start_time = time.perf_counter()
@@ -362,7 +376,7 @@ if __name__ == "__main__":
     print("Max score:", max_score)
     print("Max score positions:", max_score_positions)
     print()
-    test_function(particle_swarm_single_function, score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
+    test_function(particle_swarm_single_function, score_matrix, 20, 2.01, 2.01, 0.8, 0.5, 1000)
     print()
     test_function(particle_swarm_split_functions, score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
     print()
@@ -375,10 +389,11 @@ if __name__ == "__main__":
     print("Value:", score_matrix[tuple(g_pos2)])
     runtime2 = end_time2 - start_time2
     print("Runtime =", runtime2, "seconds")
-    error_percentage = abs((max_score - score_matrix[tuple(g_pos2)]) / max_score) * 100
+    error_percentage = abs((max_score - score_matrix[tuple(g_pos2)]) / max_score) 
     print("Error percentage: " + str(error_percentage) + "%")
     absolute_error = abs(max_score - score_matrix[tuple(g_pos2)])
     print(absolute_error)
+    graph_function(error_percentage, runtime2, score_matrix[tuple(g_pos2)])
 
 
 
