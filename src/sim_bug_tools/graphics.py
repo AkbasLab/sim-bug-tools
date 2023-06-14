@@ -128,7 +128,7 @@ class Grapher:
 
         # self._ax.add_patch(patch)
 
-        self._ax.plot(*np.array(vertices).T, typ, **kwargs)
+        return self._ax.plot(*np.array(vertices).T, typ, **kwargs)
 
     def save(self, path: str):
         self._fig.savefig(path)
