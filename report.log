@@ -1,0 +1,1 @@
+2023-07-06 12:52:08,826 - pyswarms.single.local_best - INFO - Optimize for 100 iters with {'c1': 0.5, 'c2': 0.3, 'w': 0.9, 'k': 2, 'p': 2}

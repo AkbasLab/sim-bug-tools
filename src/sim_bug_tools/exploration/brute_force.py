@@ -38,14 +38,14 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
 
 # True-Envelope finding algorithm
 def true_envelope_finding_alg(
-    classification_matrix: ndarray, connectivity: int = 2
+    classification_matrix: ndarray, connectivity=2
 ) -> ndarray:
     """
     - True-Envelope finding algorithm
         - Finds the set of points that fall within a contiguous envelope.
         - Inputs:
             - `ndarray` classification_matrix : The classification matrix for each grid cell
-            - `scoreable` Scorable : The score classifying function
+            - `connectivity` 1,2,rank : Default is 2. 1 excludes diagonals. 2 includes diagonals. 'rank' includes all neighbors.
             - `ndarray | tuple` start_index : The starting index to the score matrix, start_index: ndarray'''
         - Outputs: `list[list[ndarray]]` : A list of groups of the indices of
             the envelopes. There will be one group for each envelope.
@@ -262,7 +262,7 @@ def test_cluster():
     bound.append(np.split(bound2, bound2.shape[0]))
     bound3 = true_boundary_algorithm(class_matrix, envelopes_list[2])
     bound.append(np.split(bound3, bound3.shape[0]))
-
+    print(bound)
     boundaries = map(
         lambda env2: list(map(grid.convert_index_to_point, env2)),
         bound,
@@ -275,16 +275,16 @@ def test_cluster():
     g = Grapher(ndims == 3, domain)
 
     # # Plot for envelopes
-    # for env, color in zip(envelopes, colors):
-    #     g.plot_all_points(env, color=color)
-    # plt.show()
-
-    # plot for boundary points
-    for env2, color in zip(boundaries, colors):
-        g.plot_all_points(env2, color=color)
-
+    for env, color in zip(envelopes, colors):
+        g.plot_all_points(env, color=color)
     plt.show()
 
+    # plot for boundary points
+    # for env2, color in zip(boundaries, colors):
+    #     g.plot_all_points(env2, color=color)
+    # plt.show()
 
 if __name__ == "__main__":
     test_cluster()
+
+    

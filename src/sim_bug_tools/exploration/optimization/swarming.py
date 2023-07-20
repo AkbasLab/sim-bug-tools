@@ -1,22 +1,74 @@
-# Have manager create agents, define optional agent start point
-# using scorable, domain
-# look for optimizing swarm
-# Goal is to maximize the score 
+"""
+Particle Swarm Optimization
+"""
 
 import numpy as np
 import time
+import random
 from numpy import ndarray
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
-from sim_bug_tools.exploration.brute_force import brute_force_grid_search
+from sim_bug_tools.exploration.brute_force import brute_force_grid_search, true_envelope_finding_alg
 import matplotlib.pyplot as plt
+from sim_bug_tools.graphics import Grapher
 
-class Agent():
-    def __init__(self, initial_point):
+
+
+class ParticleSwarmAgent():
+    """
+    - ParticleSwarmAgent
+        Creates a single agent for partical swarm optimization
+        - Inputs:
+            - `intial_point: ndarray` - The initial position for the agent
+            - `swarm_constants: dict` - Dictionary containing the swarm constant values:
+                - `agentC: float` - aka c1, The constant value to multiply with the distance to personal best
+                        Note: agentC > globalC results in high exploration, low exploitation.
+                - `globalC: float` - aka c2, The constant value to multiply with the distance to gloabal best
+                        Note: globalC > agentC results in low exploration, high exploitation.
+                - `w: float` - The interia weight to multiply the velocity by
+    """
+
+    def __init__(self, initial_point: ndarray, swarm_constants: dict):
         self.position = np.array(initial_point)
         self.velocity = np.zeros_like(initial_point)
         self.best_position = np.array(initial_point)
+        self.best_score: float
         self.best_fitness = float('inf')
+        self.num_of_steps = 0
+        self.ndims = len(initial_point)
+        self.swarm_constants = {"agentC": 0.0, "globalC": 0.0, "w": 0.0}
+        self.swarm_constants = swarm_constants
+        self.move_towards_score = []
+        self.still_moving = True
+        self.prev_position = self.position
+
+    def update_agent(self, global_best_position, max_v):
+        # Caluclating distances:
+        dist_to_agent_best = (self.best_position - self.position)
+        dist_to_global_best = (global_best_position - self.position)
+        # Caluclating Inertia: 
+        inertia = self.swarm_constants["w"] * self.velocity
+        # Calculating the personal_best vector:
+        personal_best = (self.swarm_constants["agentC"] * random.uniform(0,1)) * dist_to_agent_best
+        # Calculating the global best vector:
+        global_best = (self.swarm_constants["globalC"] * random.uniform(0,1) * dist_to_global_best)
+        # New velocity:
+        new_v = (inertia + personal_best + global_best)
+        # Limiting the velocity:
+        if max_v is not None:
+            new_v[new_v > max_v] = max_v
+
+        # Rounding the values and changing the array to an integer array
+        new_v_int = np.rint(new_v).astype(int)
+        # print("non rounded",new_v,"--rounded--",new_v_int,"--non-zero--",np.count_nonzero(new_v_int))
+
+        if np.count_nonzero(new_v) == 0:
+            self.still_moving = False
+            return
+        self.still_moving = True
+        self.position += new_v_int
+        self.velocity = new_v
+        self.num_of_steps += 1
 
     def index_in_bounds(self, shape):
         index = self.position
@@ -32,204 +84,238 @@ class ParticleSwarmOptimization():
     - Particle Swarm Optimization
         Creates num_agent number of agents for the swam starting them at random points in the given score array.
         - Inputs:
+            - `scorable: Scorable` - Scorable object
             - `score_array: ndarray` - The score matrix
             - `num_agents: int` - the number of agents to add to the swarm
-            - `agentC: float` - The constant value to multiply with the distance to personal best
-                    Note: agentC > globalC results in high exploration, low exploitation.
-            - `globalC: float` - The constant value to multiply with the distance to gloabal best
-                    Note: globalC > agentC results in low exploration, high exploitation.
-            - `w: float` - The interia weight to multiply the velocity by
+            - `swarm_constants: dict` - Dictionary containing constants for swarm with the following values:
+                - `agentC: float` - aka c1, The constant value to multiply with the distance to personal best
+                        Note: agentC > globalC results in high exploration, low exploitation.
+                - `globalC: float` - aka c2, The constant value to multiply with the distance to gloabal best
+                        Note: globalC > agentC results in low exploration, high exploitation.
+                - `w: float` - The interia weight to multiply the velocity by
             - `max_iter: int` - The maximum number of iterations to run
         - Outputs:
             - `ndarray` - The best global estimation
     """
-    def __init__(self, score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int):
+    def __init__(self, scorable: Scorable, score_array: ndarray, num_agents: int, swarm_constants: dict, max_iter: int, v_max: float=None):
+        self.scorable = scorable
         self.score_array = score_array
         self.num_agents = num_agents
-        self.agentC = agentC
-        self.globalC = globalC
-        self.w = w
+        self.swarm_constants = swarm_constants
         self.v_max = v_max
         self.max_iter = max_iter
+        self.agent_positions = []
+        self.agent_velocities = []
         self.create_swarm()
+        self.initialize_agents()
 
     def create_swarm(self):
         self.dimensions = self.score_array.ndim
         start_index = [np.random.randint(0, size) for size in np.shape(self.score_array)]
         self.global_best_position = start_index
-        self.global_best_fitness = float('inf')
         self.max_score = np.max(self.score_array)
-        self.initialize_agents()
+        self.global_best_fitness = float('inf')
         return
 
     def initialize_agents(self):
         self.agents = []
-        for _ in range(self.num_agents):
+        start_positions = []
+        for i in range(self.num_agents):
             # Generating a random start index
-            r = [np.random.randint(0, size) for size in np.shape(self.score_array)]
-            a = Agent(r)
-            self.agents.append(a)
+            r = []
+            for i in np.shape(self.score_array):
+                r.append(random.randint(0, i))
 
+            # r = [random.randint(0, size) for size in np.shape(self.score_array)]
+            a = ParticleSwarmAgent(r, self.swarm_constants)
+            self.agents.append(a)
+            start_positions.append(tuple(r))
             # Setting global best fitness and position to agents if agents best is better
             if a.best_fitness < self.global_best_fitness:
                 self.global_best_fitness = a.best_fitness
                 self.global_best_position = a.best_position
+        self.agent_positions.append([start_positions])
         return
-    
-    def update_agent(self, agent: Agent) -> Agent:
-        dist_to_agent_best = (agent.best_position - agent.position)
-        dist_to_global_best = (self.global_best_position - agent.position)
-        agent.velocity = ((self.w * agent.velocity) +
-                        (self.agentC * np.random.rand(self.dimensions) * dist_to_agent_best) + 
-                        (self.globalC * np.random.rand(self.dimensions) * dist_to_global_best))
-        agent.position += agent.velocity.astype(int)
-        agent.index_in_bounds(np.shape(self.score_array))
+        
+    def check_fitness(self, agent) -> ParticleSwarmAgent:
+        max_score = np.max(self.score_array)
+        new_score = self.score_array[tuple(agent.position)]
+        new_fitness = max_score - new_score
+
+        if new_fitness < agent.best_fitness:
+            agent.best_position = agent.position
+            agent.best_fitness = new_fitness
+            agent.move_towards_score.append(True)
+        elif agent.still_moving:
+            agent.move_towards_score.append(False)
+
+        if new_fitness < self.global_best_fitness:
+            self.global_best_fitness = new_fitness
+            self.global_best_position = agent.best_position
         return agent
 
-    
-    def single_iteration(self):
+    def single_iteration(self) -> bool:
+        iteration_positions = []
+        iteration_velocities = []
+        
         for agent in self.agents:
-            agent = self.update_agent(agent)
-            new_score = self.score_array[tuple(agent.position)]
-            new_fitness = self.max_score - new_score
-
-            if new_fitness < agent.best_fitness:
-                agent.best_position = agent.position
-                agent.best_fitness = new_fitness
-
-            if new_fitness < self.global_best_fitness:
-                self.global_best_fitness = new_fitness
-                self.global_best_position = agent.best_position
-        return
-    
+            agent.update_agent(self.global_best_position, self.v_max)
+            agent.index_in_bounds(np.shape(self.score_array))
+            self.check_fitness(agent)
+            iteration_positions.append(tuple(agent.position))
+            iteration_velocities.append(tuple(agent.velocity))
+            agent.prev_position = agent.position
+        
+        self.agent_positions.append([iteration_positions])
+        self.agent_velocities.append([iteration_velocities])
+        if len(set(iteration_velocities)) == 1:
+            # All Agents at same position
+            return True
+        else:
+            # Agents in different positions
+            return False
+        
     def run_swarm(self, max_iter: int = None):
         if max_iter is None:
             max_iter = self.max_iter
+        start_time = time.perf_counter()
         # For given max number of iterations...
-        for i in range(max_iter):
-            # Updating each agenst velocity and position
-            self.single_iteration()
+        
+        for i in range(0, max_iter):
+            # Updating each agents velocity and position
+            agent_vel_0 = self.single_iteration()
+            if agent_vel_0:
+                print("All positions same")
+                # Take out this line
+                break
+        
+        end_time = time.perf_counter()
+        self.swarm_runtime = end_time - start_time
+        self.iterations = i
+        self.set_final_stats()    
         return self.global_best_position
+    
+    def graph_swarm_3D(self, g: Grapher, grid: Grid, colors=["red"]):
+        
+        for row, vel, color in zip(self.agent_positions, self.agent_velocities, colors):
+            iter_points = map(
+                lambda ipts: list(map(grid.convert_index_to_point, ipts)),
+                row,
+            )
 
-def particle_swarm_split_functions(score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int = 10) -> ndarray:
-    """
-    - Partical Swarm Optimization split functions
-        Creates num_agent number of agents for the swam starting them at random points in the given score array.
-        - Inputs:
-            - `score_array: ndarray` - The score matrix
-            - `num_agents: int` - the number of agents to add to the swarm
-            - `agentC: float` - The constant value to multiply with the distance to personal best
-                    Note: agentC > globalC results in high exploration, low exploitation.
-            - `globalC: float` - The constant value to multiply with the distance to gloabal best
-                    Note: globalC > agentC results in low exploration, high exploitation.
-            - `w: float` - The interia weight to multiply the velocity by
-            - `max_iter: int` - The maximum number of iterations to run
-        - Outputs:
-            - `ndarray` - The best global estimation
-    """
-    dimensions = score_array.ndim
-    start_index = [np.random.randint(0, size) for size in np.shape(score_array)]
-    global_best_position = start_index
-    global_best_fitness = float('inf')
-    max_score = np.max(score_array)
-    agents = []
-    for _ in range(num_agents):
-        a = create_agent(score_array)
-        agents.append(a)
-        # Setting global best fitness and position to agents if agents best is better
-        if a.best_fitness < global_best_fitness:
-            global_best_fitness = a.best_fitness
-            global_best_position = a.best_position
-    # For given max number of iterations...
-    for i in range(max_iter):
-        # Updating each agenst velocity and position
-        for agent in agents:
-            updated_agent = update_agent(agent, global_best_position, w, agentC, globalC, dimensions)
-            agent = updated_agent
-            agent.index_in_bounds(np.shape(score_array))
-            new_score = score_array[tuple(agent.position)]
-            new_fitness = max_score - new_score
+            for point, velocity in zip(iter_points, vel):
+                _element = g.plot_all_points(point, color=color)
+                _arrows = g.add_all_arrows(locs=point, directions=velocity, color=color, length=0.05)
+                plt.pause(1)
+                _element.remove()
+                _arrows.remove()
 
-            if new_fitness < agent.best_fitness:
-                agent.best_position = agent.position
-                agent.best_fitness = new_fitness
+        g.plot_point(grid.convert_index_to_point(self.global_best_position), color=colors[0])
+        plt.show()
 
-            if new_fitness < global_best_fitness:
-                global_best_fitness = new_fitness
-                global_best_position = agent.best_position
-    return global_best_position
+    def set_final_stats(self):
+        self.total_steps = 0
+        all_move = 0
+        self.final_score = self.score_array[tuple(self.global_best_position)]
+        self.final_class = self.scorable.classify_score(self.final_score)
+        for agent in self.agents:
+            self.total_steps += agent.num_of_steps
+            agent_true_move = agent.move_towards_score.count(True)
+            agent_false_move = agent.move_towards_score.count(False)
+            if agent_true_move > agent_false_move:
+                all_move += 1
+            else:
+                all_move -= 1
+        self.avg_dir_to_score = (all_move >= 0)
+        self.average_steps = self.total_steps / self.num_agents
+        self.absolute_error = abs(self.max_score - self.final_score)
 
-def create_agent(score_array: ndarray) -> ndarray:
-    # Generating a random start index
-    r = [np.random.randint(0, size) for size in np.shape(score_array)]
-    agent = Agent(r)
-    return agent
+    def print_swarm_stats(self):
+        print("Swarm final stats:")
+        print("- Constants:", self.swarm_constants)
+        print("- Number of iterations:", self.iterations)
+        print("- Number of agents:", self.num_agents)
+        print("- Best swarm position:", self.global_best_position)
+        print("- Best swarm score:", self.final_score)
+        print("- Best score classification:", self.final_class)
+        print("- Average number of agent steps:", self.average_steps)
+        print("- Total number of agent steps:", self.total_steps)
+        print("- Average direction towards score:", self.avg_dir_to_score)
+        print("- Swarm runtime:", self.swarm_runtime)
+        print("- Absolute Error:", self.absolute_error)
+        return
 
-def update_agent(agent: Agent, global_best_position, w, agentC, globalC, dimensions) -> Agent:
-    dist_to_agent_best = (agent.best_position - agent.position)
-    dist_to_global_best = (global_best_position - agent.position)
-    agent.velocity = ((w * agent.velocity) +
-                        (agentC * np.random.rand(dimensions) * dist_to_agent_best) + 
-                        (globalC * np.random.rand(dimensions) * dist_to_global_best))
-    agent.position += agent.velocity.astype(int)
-    return agent
+    def store_to_file(self, filename="PSO-Test", mode='w'):
+        # Creating and writing to a new file
+        file = open(filename, mode=mode)
+        file.write("Swarm final stats:")
+        file.write("\n- Constants: " + str(self.swarm_constants))
+        file.write("\n- Number of iterations: " + str(self.iterations))
+        file.write("\n- Number of agents: " + str(self.num_agents))
+        file.write("\n- Best swarm position: " + str(self.global_best_position))
+        file.write("\n- Best swarm score: " + str(self.final_score))
+        file.write("\n- Best score classification: " + str(self.final_class))
+        file.write("\n- Average number of agent steps: " + str(self.average_steps))
+        file.write("\n- Total number of agent steps: " + str(self.total_steps))
+        file.write("\n- Average direction towards score: " + str(self.avg_dir_to_score))
+        file.write("\n- Swarm runtime: " + str(self.swarm_runtime))
+        file.write("\n- Absolute Error: " + str(self.absolute_error))
+        file.close()
+        return
+    
+def set_spheres_scorable(g: Grapher) -> Scorable:
+    ndims = 3
+    pt1 = Point(0, 5, 2)
+    pt2 = Point([0.5] * ndims)
+    pt3 = Point(0, 2, 0.8)
+    sphere1 = ProbilisticSphere(pt1, 0.5, 0.3)
+    sphere2 = ProbilisticSphere(pt2, 0.4, 0.25)
+    sphere3 = ProbilisticSphere(pt3, 0.7, 0.80)
+    g._draw_3d_sphere(pt1, 0.2)
+    g._draw_3d_sphere(pt2, 0.4)
+    g._draw_3d_sphere(pt3, 0.7)
+    scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
+    return scoreable
 
-def particle_swarm_single_function(score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int = 10) -> ndarray:
-    """
-    - Partical Swarm Optimization in a single function
-        Creates num_agent number of agents for the swam starting them at random points in the given score array.
-        - Inputs:
-            - `score_array: ndarray` - The score matrix
-            - `num_agents: int` - the number of agents to add to the swarm
-            - `agentC: float` - The constant value to multiply with the distance to personal best
-                    Note: agentC > globalC results in high exploration, low exploitation.
-            - `globalC: float` - The constant value to multiply with the distance to global best
-                    Note: globalC > agentC results in low exploration, high exploitation.
-            - `w: float` - The interia to multiply the velocity by
-            - `max_iter: int` - The maximum number of iterations to run
-        - Outputs:
-            - `ndarray` - The best global estimation
-    """
-    dimensions = score_array.ndim
-    start_index = [np.random.randint(0, size) for size in np.shape(score_array)]
-    global_best_position = start_index
-    global_best_fitness = float('inf')
-    max_score = np.max(score_array)
-    agents = []
-    for _ in range(num_agents):
-        # Generating a random start index
-        r = [np.random.randint(0, size) for size in np.shape(score_array)]
-        a = Agent(r)
-        agents.append(a)
-        # Setting global best fitness and position to agents if agents best is better
-        if a.best_fitness < global_best_fitness:
-            global_best_fitness = a.best_fitness
-            global_best_position = a.best_position
+def random_sphere_scorable(g: Grapher, num_of_spheres=3) -> Scorable:
+    spheres = []
+    for i in range(num_of_spheres):
+        pt = Point(random.random(),random.random(),random.random())
+        radius = random.random()
+        sphere = ProbilisticSphere(pt, radius, random.random())
+        g._draw_3d_sphere(pt, radius)
+        spheres.append(sphere)
+    scoreable = ProbilisticSphereCluster(spheres)
+    return scoreable
 
-    # For given max number of iterations...
-    for i in range(max_iter):
-        # Updating each agenst velocity and position
-        for agent in agents:
-            dist_to_agent_best = (agent.best_position - agent.position)
-            dist_to_global_best = (global_best_position - agent.position)
-            agent.velocity = ((w * agent.velocity) +
-                              (agentC * np.random.rand(dimensions) * dist_to_agent_best) + 
-                              (globalC * np.random.rand(dimensions) * dist_to_global_best))
-            agent.position += agent.velocity.astype(int)
-            agent.index_in_bounds(np.shape(score_array))
-            new_score = score_array[tuple(agent.position)]
-            new_fitness = max_score - new_score
+def test_particle_swarm():
+    # scoreable: Scorable, domain: Domain, score_matrix: ndarray
+    ndims = 3
+    domain = Domain.normalized(ndims)
+    grid = Grid([0.5]*ndims)
+    g = Grapher(True, domain)
 
-            if new_fitness < agent.best_fitness:
-                agent.best_position = agent.position
-                agent.best_fitness = new_fitness
+    scoreable = random_sphere_scorable(g, num_of_spheres=2)
+    # scoreable = set_spheres_scorable(g)
 
-                if new_fitness < global_best_fitness:
-                    global_best_fitness = new_fitness
-                    global_best_position = agent.best_position
+    score_matrix = brute_force_grid_search(scoreable, domain, grid)
+        
+    max_score = np.max(score_matrix)
+    max_score_positions = []
+    for i, v in np.ndenumerate(score_matrix):
+        if v == max_score or v >= 1:
+            max_score_positions.append(i)
+    print("Max score possible:", max_score)
+    print("Positions with score >= 1:", max_score_positions)
 
-    return global_best_position
-
+    swarm_constants = {"agentC": 2.05, "globalC": 2.05, "w": 0.72984}
+    swarm = ParticleSwarmOptimization(scoreable, score_matrix, 50, swarm_constants, v_max=2, max_iter=100)
+    swarm.run_swarm()
+    # swarm.store_to_file()
+    swarm.print_swarm_stats()
+    colors = ["black", "green", "red", "blue", "pink", "brown"]
+    swarm.graph_swarm_3D(g, grid, colors=colors)
+    
 class ProbilisticSphere(Graded):
     def __init__(self, loc: Point, radius: float, lmbda: float):
         """
@@ -328,72 +414,26 @@ class ProbilisticSphereCluster(Graded):
     def boundary_err(self, b: Point) -> float:
         raise NotImplementedError()
 
-def graph_function(error_percent, runtime, max_score):
-    data = {"Error %": error_percent, "Runtime": runtime, "Max score reached": max_score}
-    labels = list(data.keys())
-    values = list(data.values())
-    fig = plt.figure(figsize=(10, 5))
-    # creating the bar plot
-    plt.bar(labels, values, color ='maroon',
-            width = 0.4)
-    
-    plt.xlabel("Courses offered")
-    plt.ylabel("No. of students enrolled")
-    plt.title("Students enrolled in different courses")
-    plt.show()
-
-
-def test_function(func, score_array: ndarray, num_agents: int, agentC: float, globalC: float, w: float, v_max: float, max_iter: int = 10):
-    print("Function: ", func)
-    start_time = time.perf_counter()
-    g_pos = func(score_array, num_agents, agentC, globalC, w, v_max, max_iter)
-    end_time = time.perf_counter()
-    print("Closest position: ", g_pos)
-    g_val = score_matrix[tuple(g_pos)]
-    print("Value:", g_val)
-    runtime = end_time - start_time
-    print("Runtime =", runtime, "seconds")
-    max_score = np.max(score_matrix)
-    error_percentage = abs((max_score - g_val) / max_score) * 100
-    print("Error percentage: " + str(error_percentage) + "%")
-
 if __name__ == "__main__":
-    ndims = 3
-    domain = Domain.normalized(ndims)
-    grid = Grid([0.1] * ndims)
+    # Maximize the local max for spheres, not just global
+    # If the score is increasing, keep going, if its decreasing, try different direction
+    # Group agents to find different local maximums
+    # Don't go to one max that youve already found
+    # How many envelopes that have been found to te4st for higher definitions, check if an agent is in that envelope
+    # ant colony algorithms, sebastian log - this is seperate algorithm
+    # prof Akbas out of town, only meet with John for 2 weeks
+    test_particle_swarm()
+    
 
-    sphere1 = ProbilisticSphere(Point(0, 0, 0), 0.2, 0.25)
-    sphere2 = ProbilisticSphere(Point([0.5] * ndims), 0.3, 0.25)
-    sphere3 = ProbilisticSphere(Point(0, 0, 0.8), 0.2, 0.25)
-    scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
-    score_matrix = brute_force_grid_search(scoreable, domain, grid)
+    
+    
+    
+    
 
-    max_score = np.max(score_matrix)
-    max_score_positions = []
-    for i, v in np.ndenumerate(score_matrix):
-        if v == max_score:
-            max_score_positions.append(i)
-    print("Max score:", max_score)
-    print("Max score positions:", max_score_positions)
-    print()
-    test_function(particle_swarm_single_function, score_matrix, 20, 2.01, 2.01, 0.8, 0.5, 1000)
-    print()
-    test_function(particle_swarm_split_functions, score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
-    print()
 
-    start_time2 = time.perf_counter()
-    swarm = ParticleSwarmOptimization(score_matrix, 10, 0, 2, 0.8, 0.5, 1000)
-    g_pos2 = swarm.run_swarm()
-    end_time2 = time.perf_counter()
-    print("Closest position:", g_pos2)
-    print("Value:", score_matrix[tuple(g_pos2)])
-    runtime2 = end_time2 - start_time2
-    print("Runtime =", runtime2, "seconds")
-    error_percentage = abs((max_score - score_matrix[tuple(g_pos2)]) / max_score) 
-    print("Error percentage: " + str(error_percentage) + "%")
-    absolute_error = abs(max_score - score_matrix[tuple(g_pos2)])
-    print(absolute_error)
-    graph_function(error_percentage, runtime2, score_matrix[tuple(g_pos2)])
+
+    
+    
 
 
 
