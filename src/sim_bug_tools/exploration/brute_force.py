@@ -39,7 +39,7 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
 # True-Envelope finding algorithm
 def true_envelope_finding_alg(
     classification_matrix: ndarray, connectivity=2
-) -> ndarray:
+) -> list:
     """
     - True-Envelope finding algorithm
         - Finds the set of points that fall within a contiguous envelope.
@@ -80,7 +80,7 @@ def true_envelope_finding_alg(
         # Appending the current group of indices to the grouped indices array
         grouped_indices.append(current_group)
 
-    discretized_envelopes = np.array(grouped_indices)
+    discretized_envelopes = grouped_indices
 
     return discretized_envelopes
 
