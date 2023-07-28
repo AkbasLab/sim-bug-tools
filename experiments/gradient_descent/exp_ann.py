@@ -12,7 +12,7 @@ from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 
 
 class ProbilisticSphere(Graded):
-    def __init__(self, loc: Point, radius: float, lmbda: float):
+    def __init__(self, loc: Point, radius: float, lmbda: float, height: float = 1):
         """
         Probability density is formed from the base function f(x) = e^-(x^2),
         such that f(radius) = lmbda and is centered around the origin with a max
@@ -27,14 +27,19 @@ class ProbilisticSphere(Graded):
         self.radius = radius
         self.lmda = lmbda
         self.ndims = len(loc)
+        self.height = height
 
-        self._c = 1 / radius**2 * np.log(1 / lmbda)
+        self._c = 1 / radius**2 * np.log(height / lmbda)
+
+    @property
+    def const(self) -> float:
+        return self._c
 
     def score(self, p: Point) -> ndarray:
         "Returns between 0 (far away) and 1 (center of) envelope"
         dist = self.loc.distance_to(p)
 
-        return np.array(1 / np.e ** (self._c * dist**2))
+        return self.height * np.array(1 / np.e ** (self._c * dist**2))
 
     def classify_score(self, score: ndarray) -> bool:
         return np.linalg.norm(score) > self.lmda
@@ -65,7 +70,7 @@ class ProbilisticSphere(Graded):
 
     def boundary_err(self, b: Point) -> float:
         "Negative error is inside the boundary, positive is outside"
-        return self.loc.distance_to(b) - self.radius
+        return abs(self.loc.distance_to(b) - self.radius)
 
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
@@ -79,12 +84,14 @@ class ProbilisticSphereCluster(Graded):
         r0: float,
         p0: Point,
         lmbda: float = 0.25,
+        height: float = 100,
         min_dist_b_perc: float = -0.1,
         max_dist_b_perc: float = 0.1,
         min_rad_perc: float = 1.25,
         max_rad_perc: float = 0.25,
         domain: Domain = None,
         seed=333,
+        harsh_boundary=False,
     ):
         """
         dist_b perc:
@@ -115,8 +122,29 @@ class ProbilisticSphereCluster(Graded):
         self._max_rad_perc = max_rad_perc
 
         self._domain = domain
+        self._height = height
 
         self.construct_cluster(p0, r0, num_points_per_point, depth)
+
+        self._sph_radii = np.array([sph.radius for sph in self.spheres])
+        self._sph_lmbda = (
+            np.ones(self._sph_radii.shape) * lmbda
+        )  # np.array([sph.lmda for sph in self.spheres])
+
+        self._gradient_coef = -2 / self._sph_radii**2 * np.log(1 / lmbda)
+
+        # self._base = np.array(
+        #     [
+        #         1 / np.e ** (1 / r**2 * np.log(1 / l))
+        #         for r, l in zip(self._sph_radii, self._sph_lmbda)
+        #     ]
+        # )  # np.array([1 / np.e**sph.const for sph in self.spheres])
+        # print(self._base)
+        self._base = np.e ** (
+            -self._sph_radii ** (-2) * np.log(height / self._sph_lmbda)
+        )
+        self._exp = -self._sph_radii ** (-2) * np.log(height / self._sph_lmbda)
+        self._sph_locs = np.array([sph.loc.array for sph in self.spheres])
 
     @property
     def ndims(self):
@@ -150,7 +178,7 @@ class ProbilisticSphereCluster(Graded):
         while len(queue) > 0 and remaining > 0:
             p, r = queue.pop()
 
-            self.spheres.append(ProbilisticSphere(p, r, self.lmbda))
+            self.spheres.append(ProbilisticSphere(p, r, self.lmbda, self._height))
             remaining -= 1
 
             queue = [self.create_point_from(p, r) for i in range(n)] + queue
@@ -173,8 +201,8 @@ class ProbilisticSphereCluster(Graded):
 
             # pick random direction and distance to find location
             v = np.random.rand(self.ndims)
-            v /= np.linalg.norm(v)
             v = v * 2 - 1
+            v /= np.linalg.norm(v)
             d = self._random_between(
                 r * (1 + self.min_dist_b_perc), r * (1 + self.max_dist_b_perc)
             )
@@ -199,7 +227,16 @@ class ProbilisticSphereCluster(Graded):
         return (p2, r2)
 
     def score(self, p: Point) -> ndarray:
-        return np.array([sum(map(lambda sph: sph.score(p), self.spheres))])
+        dif2 = np.linalg.norm(p.array - self._sph_locs, axis=1) ** 2
+        # return sum(self._base**dif2)
+        # closest_index = min(
+        #     enumerate(
+        #         abs(np.linalg.norm(p - self._sph_locs, axis=1) - self._sph_radii).T
+        #     ),
+        #     key=lambda pair: pair[1],
+        # )[0]
+        return sum(self._height * np.e ** (self._exp * dif2))  # sum(self._base**dif2)
+        # return np.array([sum(map(lambda sph: sph.score(p), self.spheres))])
 
     def classify_score(self, score: ndarray) -> bool:
         return np.linalg.norm(score) > self.lmbda
@@ -230,7 +267,16 @@ class ProbilisticSphereCluster(Graded):
 
     def boundary_err(self, b: Point) -> float:
         "distance from boundary"
-        return self._nearest_sphere(b).boundary_err(b)
+        # return min(abs(np.linalg.norm(b - self._sph_locs, axis=1) - self._sph_radii))
+
+        # return self._nearest_sphere(b).boundary_err(b)
+        # return min(self.spheres, key=lambda sph:
+        # sph.boundary_err(b)).boundary_err(b)
+
+        # linearization approach - led to high-error :(
+
+        # err_v[err_v > 1] = 0  # get rid of inf due to axis alignment
+        return (self.score(b) - self.lmbda) / np.linalg.norm(self.gradient(b))
 
     def true_osv(self, b: Point) -> ndarray:
         sph = self._nearest_sphere(b)
@@ -240,7 +286,8 @@ class ProbilisticSphereCluster(Graded):
         return self.angle_between(self.true_osv(b), n)
 
     def gradient(self, p: Point) -> ndarray:
-        return sum(map(lambda sph: sph.gradient(p), self.spheres))
+        # return sum(self.spheres, key=lambda sph: sph.gradient(p))
+        return self._gradient_coef[None].T * (p.array - self._sph_locs) * self.score(p)
 
     @staticmethod
     def _random_between(a, b) -> float:
@@ -267,6 +314,7 @@ class ANNParams(ExperimentParams):
         n_epochs=500,
         optimizer="adam",
         desc: str = None,
+        training_data_injection: list[tuple[Point, ndarray]] = None,
     ):
         """
         Args:
@@ -289,6 +337,7 @@ class ANNParams(ExperimentParams):
         self.n_epochs = n_epochs
         self.optimizer = optimizer
         self.model_name = name
+        self.training_data_injection = training_data_injection
 
 
 class ANNResults(ExperimentResults[ANNParams]):
@@ -417,8 +466,9 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         subdomain = Domain.from_point_cloud(cluster)
         return self._shotgun_sampling(params, subdomain, num, desired_cls)
 
+    @staticmethod
     def generate_data_targetdistr(
-        self, params: ANNParams, target_percentage=0.5, min_score=None
+        params: ANNParams, target_percentage=0.5, min_score=None
     ):
         """
         Generate inputs labeled with the results from the envelope's scoring.
@@ -442,7 +492,7 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
         false_data: list[tuple[Point, ndarray]] = []
         true_data: list[tuple[Point, ndarray]] = []
 
-        seq = SobolSequence(params.seq.domain, params.seq.axes_names, params.seq.seed)
+        seq = RandomSequence(params.seq.domain, params.seq.axes_names, params.seq.seed)
 
         while false_cnt < n_false:
             p = seq.get_sample(1).points[0]
@@ -479,7 +529,11 @@ class ANNExperiment(Experiment[ANNParams, ANNResults]):
             params.envelope.get_input_dims(), params.envelope.get_score_dims()
         )
 
-        data = self.generate_data_targetdistr(params)
+        data = (
+            params.training_data_injection
+            if params.training_data_injection
+            else self.generate_data_targetdistr(params)
+        )
 
         self.train_model(model, data, params.batch_size, params.n_epochs)
 

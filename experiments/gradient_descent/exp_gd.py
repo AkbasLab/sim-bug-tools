@@ -1,5 +1,7 @@
 import tensorflow as tf
 import numpy as np
+import random
+import json
 
 from exp_ann import (
     ANNExperiment,
@@ -44,6 +46,7 @@ class GDExplorerParams(ExperimentParams):
         alpha=0.01,
         max_steps=1000,
         desc: str = None,
+        starting_points: list[tuple[Point, ndarray]] = None,
     ):
         """
         ann_exp_name: if None, will default to previously cached experiment
@@ -59,6 +62,7 @@ class GDExplorerParams(ExperimentParams):
         self.alpha = alpha
         self.max_steps = max_steps
         self.ann_results = ann_results
+        self.starting_points = starting_points
 
 
 class GDExplorerResults(ExperimentResults[GDExplorerParams]):
@@ -67,6 +71,7 @@ class GDExplorerResults(ExperimentResults[GDExplorerParams]):
         params: GDExplorerParams,
         boundary_paths: list[list[PointData]],
         nonboundary_paths: list[list[PointData]],
+        oobs: int,
     ):
         """
         paths: Each path represents a sequence of points, starting from where
@@ -81,6 +86,7 @@ class GDExplorerResults(ExperimentResults[GDExplorerParams]):
         super().__init__(params)
         self.boundary_paths = boundary_paths
         self.nonboundary_paths = nonboundary_paths
+        self.oobs = oobs
 
     @property
     def n_failures(self):
@@ -147,14 +153,12 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
     def __init__(self):
         super().__init__()
         self._previous_result: tuple[Point, list[PointData]] = None
+        self._previous_was_bpath = False
 
     def experiment(self, params: GDExplorerParams) -> GDExplorerResults:
-        scored_data = [
-            (p, score)
-            for p, score in params.ann_results.scored_data
-            if params.ann_results.params.envelope.classify_score(score)
-        ]
+        scored_data = params.starting_points or params.ann_results.scored_data
         shuffle(scored_data)
+
         model = tf.keras.models.load_model(params.ann_results.model_path)
         envelope = params.ann_results.params.envelope
 
@@ -162,6 +166,7 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
 
         b_paths: list[list[PointData]] = []
         nonb_paths: list[list[PointData]] = []
+        oobs = 0
 
         num_bpoints = 0
         i = 0
@@ -177,17 +182,18 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
                 ):
                     path.append(pd)
 
+            except SampleOutOfBoundsException as e:
+                oobs += 1
+
+            if self._previous_was_bpath:
                 b_paths.append(path)
                 num_bpoints += 1
-            except SampleOutOfBoundsException as e:
+            else:
                 nonb_paths.append(path)
-
-            # if self._previous_was_bpath:
-            # else:
 
             i += 1
 
-        return GDExplorerResults(params, b_paths, nonb_paths)
+        return GDExplorerResults(params, b_paths, nonb_paths, oobs)
 
     def predict_gradient(self, p: Point, model: tf.keras.Sequential):
         inp = tf.Variable(np.array([p]), dtype=tf.float32)
@@ -226,6 +232,7 @@ class GDExplorerExperiment(Experiment[GDExplorerParams, GDExplorerResults]):
             cur += params.alpha * (-s if prev_cls else s)
 
             if cur not in self._domain:
+                self._previous_was_bpath = False
                 raise SampleOutOfBoundsException()
 
             cur_score = envelope.score(cur)
@@ -258,8 +265,8 @@ def _gd_param_name(ann_name: str, gd_type: str, alpha: float) -> str:
     return f"{ann_name}-{gd_type}-{alpha}"
 
 
-def _ann_param_name(n_samples: int, ndims: int, envelope_name: str):
-    return f"psphere-{envelope_name}-{ndims}d-{n_samples}"
+def _ann_param_name(e_type: str, n_samples: int, ndims: int, seed: int):
+    return f"{e_type}-{ndims}d-{n_samples}-{seed}"
 
 
 def _expl_param_name(
@@ -269,28 +276,15 @@ def _expl_param_name(
     return f"{envelope_type}-{expl_type}-{adh_type}-{ndims}d" + suffix
 
 
-def test_samplesXgd():
-    import matplotlib.pyplot as plt
-    from sim_bug_tools.graphics import Grapher
-
-    ndims = 10
-    num_bpoints = 100
-    domain = Domain.normalized(ndims)
-
-    # g = Grapher(ndims == 3, domain)
-
-    gd_exp = GDExplorerExperiment()
-    ann_exp = ANNExperiment()
-
-    p0 = Point([0.5] * ndims)
-    r0 = 0.15
-    k = 4
-    n = 5
-
-    meta_data: list[dict] = []
-
-    for ann_samples in [100, 200, 400, 800, 1600, 3200, 6400]:
-        envelope = ProbilisticSphereCluster(
+def create_envelope(e_type: str, ndims):
+    if e_type == "sphere":
+        return ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
+    elif e_type == "sphere-cluster":
+        p0 = Point([0.5] * ndims)
+        r0 = 0.15
+        k = 4
+        n = 5
+        return ProbilisticSphereCluster(
             n,
             k,
             r0 * (ndims**0.5),
@@ -299,82 +293,123 @@ def test_samplesXgd():
             min_rad_perc=0,
             max_rad_perc=0.01,
             seed=1,
-        )  # ProbilisticSphere(Point([0.5 for i in range(ndims)]), 0.4, 0.25)
-        # g.draw_sphere(envelope.loc, envelope.radius, color="grey")
-        seq = SobolSequence(domain, [str(i) for i in range(ndims)])
-        ann_name = _ann_param_name(ann_samples, ndims, "clst")
-        ann_params = ANNParams(
-            ann_name, envelope, seq, ann_samples, ann_samples // 10, n_epochs=200
         )
+    # cube?
 
-        ann_results = ann_exp.lazily_run(ann_params)
 
-        gd_params = GDExplorerParams(
-            f"clst-{ann_name}-{ndims}d-sd",
-            ann_results,
-            50,
-            GDExplorerExperiment.steepest_descent,
-            max_steps=500,
-        )
+def generate_all_test_data(num_points: int, scorable: Scorable, seq: RandomSequence):
+    return ANNExperiment.generate_data_targetdistr(
+        ANNParams("", scorable, seq, num_points)
+    )
 
-        gd_result = gd_exp(gd_params)
 
-        ## Result processing
-        boundary = [
-            (path[-2] if path[-2].cls else path[-1])
-            for path in gd_result.boundary_paths
-        ]
-        if len(boundary) > 0:
-            boundary_err = list(
-                map(lambda pd: envelope.boundary_err(pd.point), boundary)
+def test_samplesXgd():
+    import matplotlib.pyplot as plt
+    from sim_bug_tools.graphics import Grapher
+
+    num_bpoints = 1000
+
+    # g = Grapher(ndims == 3, domain)
+    dim_tests = [3, 5, 10, 15, 20, 25, 30, 50, 75, 100]
+    # ndims = 30
+    # size_tests = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600]
+    ann_samples = 200
+
+    gd_exp = GDExplorerExperiment()
+    ann_exp = ANNExperiment()
+
+    e_type = "sphere"
+
+    for ndims in dim_tests:
+        domain = Domain.normalized(ndims)
+        seq = RandomSequence(domain, [str(i) for i in range(ndims)])
+        meta_data: list[dict] = []
+
+        seed = 0
+        num_runs = 20
+        i = 0
+        while seed < num_runs + i:
+            seed += 1
+            random.seed(seed)
+            np.random.seed(seed)
+
+            envelope = create_envelope(e_type, ndims)
+
+            ann_name = _ann_param_name(e_type, ann_samples, ndims, seed)
+            ann_params = ANNParams(
+                ann_name, envelope, seq, ann_samples, 32, n_epochs=200
             )
-        else:
-            boundary_err = [-1]
 
-        avg = lambda lst: sum(lst) / len(lst)
-        nonb_count = (
-            len(sum(gd_result.boundary_paths, []))
-            - len(boundary)
-            + len(sum(gd_result.nonboundary_paths, []))
-        )
-        post_eff = len(boundary) / nonb_count
-        full_eff = len(boundary) / (nonb_count + ann_samples)
+            ann_results = ann_exp.lazily_run(ann_params)
 
-        md = {
-            "name": gd_params.name,
-            "failure-count": len(gd_result.nonboundary_paths),
-            "b-count": len(gd_result.boundary_paths),
-            "nonb-cound": nonb_count,
-            "avg-err": avg(boundary_err),
-            "min-err": min(boundary_err),
-            "max-err": max(boundary_err),
-            "post-train-eff%": post_eff * 100
-            if len(boundary) > 0
-            else 0,  # bp/non-bp * 100
-            "full-eff%": full_eff * 100,
-            "train-size": len(ann_results.scored_data),
-        }
+            test_data = generate_all_test_data(2000, envelope, seq)
+            gd_params = GDExplorerParams(
+                f"{ann_name}-1000bp-sd-2",
+                ann_results,
+                num_bpoints,
+                GDExplorerExperiment.steepest_descent,
+                max_steps=500,
+                starting_points=test_data,
+            )
 
-        meta_data.append(md)
+            gd_result = gd_exp(gd_params)
 
-        # to_path = lambda pds: [pd.point for pd in pds]
-        # for b_path, nonb_path in zip(
-        #     gd_result.boundary_paths, gd_result.nonboundary_paths
-        # ):
-        #     print(len(b_path), len(nonb_path))
-        #     b_path = to_path(b_path)
-        #     nonb_path = to_path(nonb_path)
-        #     g.draw_path(b_path, markersize=1, color="green")
-        #     g.plot_all_points(b_path, markersize=1, color="green")
-        #     g.draw_path(nonb_path, markersize=1, color="red")
-        #     g.plot_all_points(nonb_path, markersize=1, color="red")
-        #     plt.pause(0.01)
+            ## Result processing
+            boundary = [
+                (path[-2] if path[-2].cls else path[-1])
+                for path in gd_result.boundary_paths
+            ]
+            if len(boundary) > 0:
+                boundary_err = list(
+                    map(lambda pd: envelope.boundary_err(pd.point), boundary)
+                )
+            else:
+                boundary_err = [-1]
 
-    print(meta_data)
-    import json
+            avg = lambda lst: sum(lst) / len(lst)
+            nonb_count = (
+                len(sum(gd_result.boundary_paths, []))
+                - len(boundary)
+                + len(sum(gd_result.nonboundary_paths, []))
+            )
+            # post_eff = len(boundary) / nonb_count
+            # full_eff = len(boundary) / (nonb_count + ann_samples)
 
-    with open("tmp-sd.json", "w") as f:
-        f.write(json.dumps(meta_data, indent=4))
+            md = {
+                "name": gd_params.name,
+                "seed": seed,
+                "ndims": ndims,
+                "failure-count": len(gd_result.nonboundary_paths),
+                "b-count": len(gd_result.boundary_paths),
+                "nonb-count": nonb_count,
+                "avg-err": avg(boundary_err),
+                "min-err": min(boundary_err),
+                "max-err": max(boundary_err),
+                "post-train-nofailure-eff": gd_result.eff_posttrain_nofailure,
+                "post-train-eff": gd_result.eff_posttrain,  # post_eff * 100
+                "full-eff": gd_result.eff,  # full_eff * 100,
+                "train-size": len(ann_results.scored_data),
+                "bpoints": [tuple(pd.point) for pd in boundary],
+                "OOBs": gd_result.oobs,
+            }
+
+            meta_data.append(md)
+
+            # to_path = lambda pds: [pd.point for pd in pds]
+            # for b_path, nonb_path in zip(
+            #     gd_result.boundary_paths, gd_result.nonboundary_paths
+            # ):
+            #     print(len(b_path), len(nonb_path))
+            #     b_path = to_path(b_path)
+            #     nonb_path = to_path(nonb_path)
+            #     g.draw_path(b_path, markersize=1, color="green")
+            #     g.plot_all_points(b_path, markersize=1, color="green")
+            #     g.draw_path(nonb_path, markersize=1, color="red")
+            #     g.plot_all_points(nonb_path, markersize=1, color="red")
+            #     plt.pause(0.01)
+
+        with open(f".gd_exp/gd_exp-{ndims}.json", "w") as f:
+            f.write(json.dumps(meta_data, indent=4))
 
 
 def test_oddones():
@@ -694,14 +729,14 @@ def test_across_dimensions():
 
     import json
 
-    with open("gd-dimension-test.json", "w") as f:
+    with open(".tmp/results/gd-dimension-test.json", "w") as f:
         f.write(json.dumps(meta_data))
 
     print("Done")
 
 
 if __name__ == "__main__":
-    test_across_dimensions()
+    test_samplesXgd()
 
 
 """

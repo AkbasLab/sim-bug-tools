@@ -89,7 +89,6 @@ class Explorer(ABC):
         # Continue to look for boundary
         try:
             p, cls = self._adherer.sample_next()
-            self._s = self._adherer._s
 
         except BoundaryLostException as e:
             # If boundary lost, we need to reset adherer and rethrow exception

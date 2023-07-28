@@ -1,8 +1,9 @@
-from copy import copy
-from typing import Callable
-
 import numpy as np
+import matplotlib.pyplot as plt
+
+from copy import copy
 from numpy import ndarray
+from typing import Callable
 
 from sim_bug_tools.exploration.boundary_core.adherer import (
     AdherenceFactory,
@@ -12,7 +13,6 @@ from sim_bug_tools.exploration.boundary_core.adherer import (
 )
 from sim_bug_tools.structs import Domain, Point, Scaler
 
-import matplotlib.pyplot as plt
 
 DATA_LOCATION = "location"
 DATA_NORMAL = "normal"
@@ -53,6 +53,7 @@ class ConstantAdherer(Adherer):
             d (float): How far to travel from @p
             theta (float): How far to rotate to find the boundary.
         """
+        n /= np.linalg.norm(n)
         super().__init__(
             classifier,
             (b, n),
@@ -69,7 +70,7 @@ class ConstantAdherer(Adherer):
         # Get the direction we want to travel in
         self._v = copy(n.squeeze())
         self._v: ndarray = np.dot(A, self._v)
-        if angle_between(self._v, n) * 180 / np.pi > 92:
+        if angle_between(self._v, n) * 180 / np.pi > 93:
             raise Exception(
                 "[ConstantAdherer] Rotation matrix malformed: improperly rotated vector?"
             )
@@ -238,11 +239,13 @@ class ConstantAdherenceFactory(AdherenceFactory[ConstantAdherer]):
         delta_theta: float,
         domain: Domain = None,
         fail_out_of_bounds: bool = False,
+        max_samples: int = None,
     ):
         super().__init__(classifier, domain, fail_out_of_bounds)
         # self._d = d
         self._scaler = scaler
         self._delta_theta = delta_theta
+        self._max_samples = max_samples
 
     def adhere_from(self, b: Point, n: ndarray, direction: ndarray):
         return ConstantAdherer(
@@ -254,6 +257,7 @@ class ConstantAdherenceFactory(AdherenceFactory[ConstantAdherer]):
             self._delta_theta,
             self.domain,
             self._fail_out_of_bounds,
+            self._max_samples,
         )
 
 

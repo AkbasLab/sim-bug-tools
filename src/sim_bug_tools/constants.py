@@ -28,13 +28,13 @@ sumo_default_vtypes = pd.DataFrame(
 )
 
 DEFAULT_PLOT_CONFIG = {
-    "left": 0.09,
-    "right": 0.96,
+    "left": 0.2,
+    "right": 0.955,
     "top": 0.94,
-    "bottom": 0.097,
+    "bottom": 0.112,
 }
 
-DEFAULT_FIG_CONFIG = {"figsize": (8, 8)}
+DEFAULT_FIG_CONFIG = {"figsize": (4, 4)}
 
 
 PRIME_VECTOR = np.array(

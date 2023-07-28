@@ -128,6 +128,7 @@ class MeshExplorer(Explorer):
         return new_osv / np.linalg.norm(new_osv)
 
     def _add_child(self, bk: Point, nk: ndarray):
+        nk = nk / np.linalg.norm(nk)
         next_id = len(self.boundary) - 1
         self._next_paths = self._get_next_paths_from(next_id) + self._next_paths
         self._index.insert(next_id, bk)
