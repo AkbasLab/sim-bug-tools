@@ -1,5 +1,3 @@
-from arepl_dump import dump
-
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -11,7 +9,7 @@ from sim_bug_tools.graphics import Grapher
 with open("../../gd-dimension-test.json", "r") as f:
     df = pd.DataFrame(json.loads(f.read()))
 
-ndims = [5, 10, 15, 20, 25, 30, 50, 100]
+ndims = [3, 5, 10, 15, 20, 25, 30, 50, 75, 100]
 
 
 convert = lambda lst: [Point(x, y) for x, y in zip(ndims, lst)]
