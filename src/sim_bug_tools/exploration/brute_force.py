@@ -6,7 +6,7 @@ from copy import copy
 from numpy import ndarray
 import random
 from typing import Callable
-from scipy.ndimage import label, generate_binary_structure, binary_erosion
+from scipy.ndimage import label, generate_binary_structure, binary_erosion, iterate_structure
 
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
@@ -38,7 +38,7 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
 
 # True-Envelope finding algorithm
 def true_envelope_finding_alg(
-    classification_matrix: ndarray, connectivity=2
+        scorable: Scorable, score_matrix: ndarray, connectivity=2
 ) -> list:
     """
     - True-Envelope finding algorithm
@@ -53,15 +53,18 @@ def true_envelope_finding_alg(
     In older versions of SciPy (before version 1.6.0), the generate_binary_structure and iterate_structure functions have a maximum dimension limit of 31. Attempting to generate structures with dimensions higher than this limit may result in an error.
     However, starting from SciPy version 1.6.0, these functions have been updated to support higher-dimensional structures.
     """
+    class_matrix = copy(score_matrix)
+    for index, item in np.ndenumerate(score_matrix):
+        class_matrix[index] = scorable.classify_score(item)
     # Generates a binary matrix to serve as the connectivity stucture for the label function.
     connectivity_matrix = generate_binary_structure(
-        rank=classification_matrix.ndim, connectivity=connectivity
+        rank=class_matrix.ndim, connectivity=connectivity
     )
 
     # num_clusters is the number of groups found
     # labeled_groups is an ndarray where the clusters of true values are replaced with 1, 2, 3,... depending on what cluster its in
     labeled_groups, num_clusters = label(
-        classification_matrix, structure=connectivity_matrix
+        class_matrix, structure=connectivity_matrix
     )
     print("******** LABELED ARRAY ********")
     print(labeled_groups)
@@ -87,7 +90,7 @@ def true_envelope_finding_alg(
 
 # True-Boundary finding algorithm
 def true_boundary_algorithm(
-    classification_matrix: ndarray, envelope_indices: ndarray
+    scorable: Scorable, score_matrix: ndarray, envelope_indices: ndarray
 ) -> ndarray:
     """
     - True-Boundary finding algorithm
@@ -99,7 +102,9 @@ def true_boundary_algorithm(
             - `ndarray` : The list of indices that fall on the boundary of the N-D envelope's surface.
     """
     # print("Classification matrix:\n",classification_matrix)
-
+    classification_matrix = copy(score_matrix)
+    for index, item in np.ndenumerate(score_matrix):
+        classification_matrix[index] = scorable.classify_score(item)
     # Changing classification matrix from 0's and 1's to True/False
     class_as_bool = classification_matrix.astype(bool)
 
@@ -243,24 +248,20 @@ def test_cluster():
     sphere2 = ProbilisticSphere(Point([0.5] * ndims), 0.3, 0.25)
     sphere3 = ProbilisticSphere(Point(0, 0, 0.8), 0.2, 0.25)
     scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
-    score_class = brute_force_grid_search(scoreable, domain, grid)
+    score_matrix = brute_force_grid_search(scoreable, domain, grid)
 
-    class_matrix = copy(score_class)
-    for index, item in np.ndenumerate(score_class):
-        class_matrix[index] = scoreable.classify_score(item)
-
-    envelopes_list = true_envelope_finding_alg(class_matrix, True)
+    envelopes_list = true_envelope_finding_alg(scoreable, score_matrix, True)
     envelopes = map(
         lambda env: list(map(grid.convert_index_to_point, env)),
         envelopes_list,
     )
 
     bound = []
-    bound1 = true_boundary_algorithm(class_matrix, envelopes_list[0])
+    bound1 = true_boundary_algorithm(scoreable, score_matrix, envelopes_list[0])
     bound.append(np.split(bound1, bound1.shape[0]))
-    bound2 = true_boundary_algorithm(class_matrix, envelopes_list[1])
+    bound2 = true_boundary_algorithm(scoreable, score_matrix, envelopes_list[1])
     bound.append(np.split(bound2, bound2.shape[0]))
-    bound3 = true_boundary_algorithm(class_matrix, envelopes_list[2])
+    bound3 = true_boundary_algorithm(scoreable, score_matrix, envelopes_list[2])
     bound.append(np.split(bound3, bound3.shape[0]))
     print(bound)
     boundaries = map(
@@ -277,12 +278,12 @@ def test_cluster():
     # # Plot for envelopes
     for env, color in zip(envelopes, colors):
         g.plot_all_points(env, color=color)
-    plt.show()
-
-    # plot for boundary points
-    # for env2, color in zip(boundaries, colors):
-    #     g.plot_all_points(env2, color=color)
     # plt.show()
+    
+    # plot for boundary points
+    for env2, color in zip(boundaries, colors):
+        g.plot_all_points(env2, color="gray")
+    plt.show()
 
 if __name__ == "__main__":
     test_cluster()
