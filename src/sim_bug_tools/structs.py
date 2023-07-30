@@ -12,7 +12,11 @@ import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 from numpy import float32, float64, int32, int64, ndarray, sqrt
+
+# from scipy.interpolate import RegularGridInterpolator
+from scipy.spatial import KDTree
 
 
 class Point:
@@ -656,20 +660,55 @@ class Grid:
 
         return index_domain
 
-    def descretize_point(self, point: Point) -> Point:
+    def discretize_point(self, point: Point) -> Point:
         """
-        Gets a point afixed to the grid. Rounds down to match grid coordinates.
+        Gets a point afixed to the grid. Rounds to match grid coordinates.
 
         Returns:
             Point
         """
-        return Point(
-            [
-                (axis - (axis % step) - o) if step is not None else axis
-                for axis, step, o in zip(point, self._res, self._origin)
-            ]
-        )
+        # return Point(
+        #     [
+        #         (axis - (axis % step) - o) if step is not None else axis
+        #         for axis, step, o in zip(point, self._res, self._origin)
+        #     ]
+        # )
 
+        return self.convert_index_to_point(self.calculate_point_index(point))
+
+    # def calculate_point_index(self, point: Point) -> ndarray:
+    #     """
+    #     Determines the point's location within a len(res) X len(res) matrix
+    #     which represents the grid's buckets as a matrix.
+    #     """
+
+    #     itp = RegularGridInterpolator()
+
+    # def calculate_point_index(self, point: Point) -> ndarray:
+    #     """
+    #     Determines the point's location within a len(res) X len(res) matrix
+    #     which represents the grid's buckets as a matrix.
+    #     PROBLEM: This solution relies heavily on floating point arithmetic,
+    #     so A) don't use a grid that has a non-zero origin and ensure that
+    #     the grid align with the boundary of your domain. Might want to fix
+    #     this in the future, but whatever.
+    #     """
+
+    #     def map_axis_to_grid(axis: float, step: float, o_axis: float):
+    #         err = round((axis - o_axis) % step)
+    #         return int32(round((axis - err - o_axis) / step))
+
+    #     return np.array(
+    #         tuple(
+    #             map(
+    #                 map_axis_to_grid,
+    #                 point,
+    #                 self._res,
+    #                 self._origin,
+    #             ),
+    #         ),
+    #         "int32",
+    #     )
     def calculate_point_index(self, point: Point) -> ndarray:
         """
         Determines the point's location within a len(res) X len(res) matrix
@@ -680,30 +719,27 @@ class Grid:
         this in the future, but whatever.
         """
 
-        def map_axis_to_grid(axis: float, step: float, o_axis: float):
-            err = round((axis - o_axis) % step)
-            return int32(round((axis - err - o_axis) / step))
-
-        return np.array(
-            tuple(
-                map(
-                    map_axis_to_grid,
-                    point,
-                    self._res,
-                    self._origin,
-                ),
-            )
+        return np.round((point.array - self.origin.array) / self.resolution).astype(
+            "int32"
         )
 
     def convert_index_to_point(self, index: ndarray):
-        return Point(
-            map(
-                lambda i, step, o: i * step + o if step is not None else i,
-                index,
-                self._res,
-                self._origin,
-            )
-        )
+        # return Point(
+        #     map(
+        #         lambda i, step, o: i * step + o if step is not None else i,
+        #         index,
+        #         self._res,
+        #         self._origin,
+        #     )
+        # )
+        return Point(self.origin.array + index * self.resolution)
+
+    def convert_indices_to_points(self, indices: ndarray) -> list[Point]:
+        return list(map(Point, self.origin + indices * self.resolution))
+
+    def calculate_points_indices(self, points: list[Point]) -> ndarray:
+        points = np.array([p.array for p in points])
+        return np.round((points - self.origin.array) / self.resolution).astype("int32")
 
     @staticmethod
     def from_matrix_dimensions(domain: Domain, shape: ndarray):
@@ -847,25 +883,17 @@ class Ellipsoid(Scaler):
 
 
 def main():
-    # point = Point([0, 0.5, 1])
-    # domain = Domain.normalized(3)
+    resolution = [0.1, 0.2, 0.5]
+    grid = Grid(resolution)
 
-    # print(point in domain)
-    p1 = Point(0, 0)
-    p2 = Point(0.5, 0)
-    p3 = Point(1, 0.5)
+    p1 = Point(0.06, 0.05, 0.05)
+    p2 = Point(1.06, 0.45, 0.35)
 
-    domain = Domain.normalized(2)
-    target_domain = Domain.from_dimensions([2, 10], Point(2, 2))
-
-    p1_ = Domain.translate_point_domains(p1, domain, target_domain)
-    p2_ = Domain.translate_point_domains(p2, domain, target_domain)
-    p3_ = Domain.translate_point_domains(p3, domain, target_domain)
-
-    print("Before:")
-    print(p1, p2, p3)
-    print("After:")
-    print(p1_, p2_, p3_)
+    print("Index")
+    print(grid.calculate_point_index(p1))
+    print(grid.calculate_point_index(p2))
+    print(grid.discretize_point(p1))
+    print(grid.discretize_point(p2))
 
 
 if __name__ == "__main__":
