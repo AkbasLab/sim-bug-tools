@@ -116,7 +116,7 @@ class Grapher:
 
                 self.ax.plot3D(*zip(p1.array, p2.array), color="b")
 
-    def draw_tree(self, tree: Tree, **kwargs):
+    def draw_tree(self, tree: Tree, linestyle="-", **kwargs):
         stack: list[Node] = [(tree.get_node(0), tree.children(0))]
 
         while len(stack) > 0:
@@ -125,7 +125,10 @@ class Grapher:
 
             for child in children:
                 self._ax.plot(
-                    *zip(parent_point, child.data[DATA_LOCATION]), "bo", linestyle="-"
+                    *zip(parent_point, child.data[DATA_LOCATION]),
+                    "bo",
+                    linestyle=linestyle,
+                    **kwargs
                 )
                 stack.append((child, tree.children(child.identifier)))
 
