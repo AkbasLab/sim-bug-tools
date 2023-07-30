@@ -10,6 +10,7 @@ from scipy.ndimage import label, generate_binary_structure, binary_erosion
 
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
+from time import time
 
 
 # Brute Force Grid Search
@@ -25,13 +26,29 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
             - `list(ndarray)` : The score matrix for each grid cell
                 - Shape is determined by the dimensions of the domain when sliced up by the grid. E.g.
     """
+    BATCH_SIZE = 1
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
 
-    # Iterating through the n-dimensional array and getting the score and classification
-    for index, item in np.ndenumerate(scored_matrix):
-        new_point = grid.convert_index_to_point(index)
-        scored_matrix[index] = scorable.score(new_point)
+    indices = np.array([index for index, _ in np.ndenumerate(scored_matrix)])
+    points = np.array(grid.convert_indices_to_points(indices))
+
+    batches = np.array_split(points, int(np.ceil(len(points) / BATCH_SIZE)))
+
+    scores = None
+    for batch in batches:
+        if scores is None:
+            scores = scorable.v_score(batch)
+        else:
+            scores = np.append(scores, scorable.v_score(batch))
+    # scores = np.array([scorable.score(Point(p)) for p in points])
+
+    scored_matrix[*indices.T] = scores
+
+    # # Iterating through the n-dimensional array and getting the score and classification
+    # for index, item in np.ndenumerate(scored_matrix):
+    #     new_point = grid.convert_index_to_point(index)
+    #     scored_matrix[index] = scorable.score(new_point)
 
     return scored_matrix
 

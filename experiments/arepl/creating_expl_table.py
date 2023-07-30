@@ -9,13 +9,14 @@ import matplotlib.pyplot as plt
 from sim_bug_tools import Point, Domain
 from sim_bug_tools.graphics import Grapher
 
+
 pairs = (
-    # ("sphere-cluster", "const"),
-    # ("sphere-cluster", "exp"),
-    ("sphere", "const"),
-    ("sphere", "exp"),
-    ("cube", "const"),
-    ("cube", "exp"),
+    ("sphere-cluster", "const"),
+    ("sphere-cluster", "exp"),
+    # ("sphere", "const"),
+    # ("sphere", "exp"),
+    # ("cube", "const"),
+    # ("cube", "exp"),
 )
 
 
