@@ -28,10 +28,11 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
 
-    # Iterating through the n-dimensional array and getting the score and classification
+    # Iterating through the n-dimensional array and getting the score
     for index, item in np.ndenumerate(scored_matrix):
         new_point = grid.convert_index_to_point(index)
         scored_matrix[index] = scorable.score(new_point)
+    
 
     return scored_matrix
 
@@ -56,6 +57,7 @@ def true_envelope_finding_alg(
     class_matrix = copy(score_matrix)
     for index, item in np.ndenumerate(score_matrix):
         class_matrix[index] = scorable.classify_score(item)
+    
     # Generates a binary matrix to serve as the connectivity stucture for the label function.
     connectivity_matrix = generate_binary_structure(
         rank=class_matrix.ndim, connectivity=connectivity
@@ -66,20 +68,20 @@ def true_envelope_finding_alg(
     labeled_groups, num_clusters = label(
         class_matrix, structure=connectivity_matrix
     )
-    print("******** LABELED ARRAY ********")
-    print(labeled_groups)
+    # print("******** LABELED ARRAY ********")
+    # print(labeled_groups)
 
     # Grouping all the indices of the matching clusters and putting them all in an array
     unique_labels = np.unique(labeled_groups)
     grouped_indices = []
-    print("\nUnique labels (aka groups) : ", unique_labels, "\n")
+    # print("\nUnique labels (aka groups) : ", unique_labels, "\n")
     for ulabel in range(1, num_clusters + 1):
         # Grouping all the index of the current label into a list
         current_group = []
         for index, item in np.ndenumerate(labeled_groups):
             if ulabel == item:
                 current_group.append(index)
-        print(" ****** CURRENT GROUP", ulabel, "*******\n", current_group)
+        # print(" ****** CURRENT GROUP", ulabel, "*******\n", current_group)
         # Appending the current group of indices to the grouped indices array
         grouped_indices.append(current_group)
 
