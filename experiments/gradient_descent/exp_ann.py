@@ -3,6 +3,7 @@ import tensorflow as tf
 
 from datetime import datetime
 from numpy import ndarray
+from rtree import index
 import random
 
 from sim_bug_tools.structs import Point, Domain
@@ -84,7 +85,7 @@ class ProbilisticSphereCluster(Graded):
         r0: float,
         p0: Point,
         lmbda: float = 0.25,
-        height: float = 100,
+        height: float = 10000,  # higher := shrink-wraps edges of circles
         min_dist_b_perc: float = -0.1,
         max_dist_b_perc: float = 0.1,
         min_rad_perc: float = 1.25,
@@ -123,6 +124,12 @@ class ProbilisticSphereCluster(Graded):
 
         self._domain = domain
         self._height = height
+
+        p = index.Property()
+        p.set_dimension(self._ndims)
+        self._index = index.Index(properties=p)
+
+        self._id = 0
 
         self.construct_cluster(p0, r0, num_points_per_point, depth)
 
@@ -178,6 +185,7 @@ class ProbilisticSphereCluster(Graded):
         while len(queue) > 0 and remaining > 0:
             p, r = queue.pop()
 
+            self._index.insert(len(self.spheres), p)
             self.spheres.append(ProbilisticSphere(p, r, self.lmbda, self._height))
             remaining -= 1
 
@@ -225,6 +233,12 @@ class ProbilisticSphereCluster(Graded):
             i += 1
 
         return (p2, r2)
+
+    def v_score(self, v: ndarray) -> ndarray:
+        dif2 = np.linalg.norm(v[:, None] - self._sph_locs, axis=-1) ** 2
+        return np.sum(
+            self._height * np.e ** (self._exp * dif2), axis=-1
+        )  # sum(self._base**dif2)
 
     def score(self, p: Point) -> ndarray:
         dif2 = np.linalg.norm(p.array - self._sph_locs, axis=1) ** 2
@@ -276,7 +290,16 @@ class ProbilisticSphereCluster(Graded):
         # linearization approach - led to high-error :(
 
         # err_v[err_v > 1] = 0  # get rid of inf due to axis alignment
-        return (self.score(b) - self.lmbda) / np.linalg.norm(self.gradient(b))
+        # return (self.score(b) - self.lmbda) / np.linalg.norm(self.gradient(b))
+
+        # nearest sphere's
+        # id = self._index.nearest(b, 1)
+        # p = self._sph_locs[id]
+        # r = self._sph_radii[id]
+        # return abs(np.linalg.norm(p - b.array) - r)
+        return min(
+            abs(np.linalg.norm(self._sph_locs - b.array, axis=1) - self._sph_radii)
+        )
 
     def true_osv(self, b: Point) -> ndarray:
         sph = self._nearest_sphere(b)

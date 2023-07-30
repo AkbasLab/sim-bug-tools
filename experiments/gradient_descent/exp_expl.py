@@ -395,16 +395,16 @@ def test_dimensions():
     # adh_type = "const"  # const, exp, adpt
 
     pairs = (
-        # ("sphere-cluster", "mesh"),
-        # ("sphere-cluster", "rrt"),
-        # ("sphere-cluster", "exp"),
+        ("sphere-cluster", "const", "rrt"),
+        ("sphere-cluster", "exp", "rrt"),
+        # ("sphere-cluster", "const", "rrt"),
         # ("sphere", "const", "mesh"),
         # ("sphere", "exp"),
         # ("cube", "const", "mesh"),
         # ("sphere", "const", "rrt"),
         # ("sphere", "exp", "rrt"),
         # ("cube", "const", "rrt"),
-        ("cube", "exp", "rrt"),
+        # ("cube", "exp", "rrt"),
         # ("cube", "exp"),
     )
 
@@ -432,7 +432,7 @@ def test_dimensions():
         for ndims in ndims_exps:
             domain = Domain.normalized(ndims)
 
-            cube = Domain.from_dimensions([0.6] * ndims, Point([0.2] * ndims))
+            # cube = Domain.from_dimensions([0.6] * ndims, Point([0.2] * ndims))
             loc = Point([0.5] * ndims)
 
             sub_results = []
@@ -525,10 +525,13 @@ def test_dimensions():
 
                     # g.draw_cube(cube)
 
-                    # g.plot_point(b0, color="red")
-                    # g.add_arrow(b0, n0, color="red")
+                    # g.plot_point(b0, marker="x", color="black")
+                    # # g.add_arrow(b0, n0, color="red")
 
-                    # g.plot_all_points(points)
+                    # g.plot_all_points(points, color="black")
+                    # g.draw_tree(results.params.explorer._tree, color="black")
+                    # print("avg-err", avg_b_err)
+                    # plt.show()
                     # plt.pause(0.1)
                     # print("h")
 
