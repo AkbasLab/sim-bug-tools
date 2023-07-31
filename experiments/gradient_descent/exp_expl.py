@@ -66,16 +66,26 @@ class ExplorationResults(ExperimentResults[ExplorationParams]):
         return len(self.bpoints) / len(self.nonbpoints)
 
 
+from sim_bug_tools.graphics import Grapher
+
+
 class ExplorationExperiment(Experiment[ExplorationParams, ExplorationResults]):
     def experiment(self, params: ExplorationParams) -> ExplorationResults:
         ble_count = 0
         oob_count = 0
         points = []
 
+        g = Grapher(
+            params.explorer.ndims == 3, Domain.normalized(params.explorer.ndims)
+        )
+
         is_complete = False
         i = 0
         sequence = []
-        while params.explorer.boundary_count < params.n_bpoints and not is_complete:
+        while (
+            (params.n_bpoints is None)
+            or params.explorer.boundary_count < params.n_bpoints
+        ) and not is_complete:
             try:
                 sequence.append(params.explorer.step())
             except BoundaryLostException:
@@ -90,11 +100,20 @@ class ExplorationExperiment(Experiment[ExplorationParams, ExplorationResults]):
                 is_complete = True
 
             if i != params.explorer.boundary_count:
-                if params.bp:
-                    params.explorer.back_propegate_prev(1)
+                # if params.bp:
+                #     params.explorer.back_propegate_prev(1)
                 points.extend(sequence)
                 sequence = []
                 i += 1
+
+                # if i == 300:
+                #     g.plot_all_points(
+                #         [b for b, n in params.explorer.boundary], color="cyan"
+                #     )
+                #     plt.pause(0.01)
+                # elif i > 300:
+                #     g.plot_point(params.explorer.boundary[-1][0], color="green")
+                #     plt.pause(0.01)
 
         nonbpoints = [
             (p, cls)

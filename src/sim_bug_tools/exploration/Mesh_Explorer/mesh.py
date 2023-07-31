@@ -31,10 +31,12 @@ class MeshExplorer(Explorer):
         adhererF: AdherenceFactory,
         scaler: Scaler,
         margin: float = -0.01,
+        back_prop_on_group=True,
     ):
         super().__init__(b0, n0, adhererF)
         self._scaler = scaler
         self._margin = margin
+        self._back_prop_on_group = back_prop_on_group
 
         # k-nearest using R-tree
         p = Property()
@@ -49,6 +51,7 @@ class MeshExplorer(Explorer):
         self._BASIS_VECTORS = tuple(np.identity(self.ndims))
 
         self._next_paths: list[PATH] = []
+        self._current_parent = 0
         self._add_child(b0, n0)
 
     @property
@@ -151,6 +154,14 @@ class MeshExplorer(Explorer):
         if finding_gap:
             raise ExplorationCompletedException()
 
+        if self._back_prop_on_group and self._current_parent != bid:
+            # When we progress to another parent
+            # to explore off from, we can efficiently
+            # backpropegate the previous parent's
+            # children OSVs
+            self.back_propegate_prev(3)
+
+        self._current_parent = bid
         return bk, nk
 
     def _pick_direction(self) -> ndarray:

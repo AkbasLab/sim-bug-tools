@@ -26,7 +26,7 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
             - `list(ndarray)` : The score matrix for each grid cell
                 - Shape is determined by the dimensions of the domain when sliced up by the grid. E.g.
     """
-    BATCH_SIZE = 1
+    BATCH_SIZE = 2048
     # bucket matrix contains domain/grid res
     scored_matrix = grid.construct_bucket_matrix(domain)
 
@@ -35,13 +35,13 @@ def brute_force_grid_search(scorable: Scorable, domain: Domain, grid: Grid) -> n
 
     batches = np.array_split(points, int(np.ceil(len(points) / BATCH_SIZE)))
 
-    scores = None
-    for batch in batches:
-        if scores is None:
-            scores = scorable.v_score(batch)
-        else:
-            scores = np.append(scores, scorable.v_score(batch))
-    # scores = np.array([scorable.score(Point(p)) for p in points])
+    # scores = None
+    # for batch in batches:
+    #     if scores is None:
+    #         scores = scorable.v_score(batch)
+    #     else:
+    #         scores = np.append(scores, scorable.v_score(batch))
+    scores = np.array([scorable.score(Point(p)) for p in points])
 
     scored_matrix[*indices.T] = scores
 
