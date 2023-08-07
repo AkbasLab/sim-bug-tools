@@ -6,12 +6,13 @@ import numpy as np
 import time
 import random
 from numpy import ndarray
-from itertools import cycle
+import itertools
 from sim_bug_tools.structs import Point, Domain, Grid
 from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 from sim_bug_tools.exploration.brute_force import brute_force_grid_search, true_envelope_finding_alg, true_boundary_algorithm
 import matplotlib.pyplot as plt
 from sim_bug_tools.graphics import Grapher
+from rtree import index
 
 class SwarmAgent():
     """
@@ -37,6 +38,8 @@ class SwarmAgent():
             "still_moving": True,
             "move_towards_score": [],
             "prev_points": [],
+            "num_samples": 0,
+            "envelopes_found": []
         }
 
         initial_position = [random.uniform(0,i) for i in self.space_shape]
@@ -44,9 +47,10 @@ class SwarmAgent():
         self.best_pt = self.point
         self.velocity = [0.0 for _ in self.space_shape]
         self.velocity = np.array(self.velocity)
+        self.teleported = True
         # "green"=moved to higher score, "red"=moved to lower score
-        # "orange"=did not move, "blue"=teleported, "black"=found best score
-        self.movement_color: str = "black"
+        # "orange"=did not move, "blue"=teleported, "black"=found best score, "pink"=spawned
+        self.movement_color: str = "pink"
         self.swarm_constants = swarm_constants
         if "teleporting" not in swarm_constants.keys():
             self.swarm_constants["teleporting"] = False
@@ -64,6 +68,7 @@ class SwarmAgent():
         self.agent_stats["still_moving"] = True
         self.agent_stats["num_teleports"] += 1
         self.velocity = np.zeros(self.space_shape)
+        self.teleported = True
         return
     
     def calculate_velocity(self) -> ndarray:
@@ -90,12 +95,17 @@ class SwarmAgent():
         self.agent_stats["prev_points"].append(self.point)
         # If the current score is less than the new score, best point is updated
         if self.compare_score(self.point, new_point):
-            if self.compare_score(self.best_pt, new_point): self.best_pt = new_point
+            if self.compare_score(self.best_pt, new_point): 
+                self.best_pt = new_point
             self.agent_stats["move_towards_score"].append(True)
             self.movement_color = "green"
         else:
             self.agent_stats["move_towards_score"].append(False)
             self.movement_color = "red"
+        if self.teleported: 
+            self.movement_color = "pink" 
+            self.teleported = False      
+        
         # Setting point to new point
         self.point = new_point
         return
@@ -124,11 +134,15 @@ class SwarmAgent():
         new_point = Point(new_p)
         self.update_point(new_point)
         self.index_in_bounds()
-        self.agent_stats["num_of_steps"] += 1
+        # If it reaches the envelope, dont update num of steps
+        if self.scorable.classify(self.point):
+            self.movement_color = "cyan"
+        else:
+            self.agent_stats["num_of_steps"] += 1
         return
-
-    # Determines if the new point is in the space shape, if not, puts it in just inside the limits
+       
     def index_in_bounds(self):
+        """ Determines if the new point is in the space shape, if not, puts it in just inside the limits """
         index = self.point.array
         for i, idx in enumerate(index):
             if idx < 0:
@@ -137,6 +151,15 @@ class SwarmAgent():
                 index[i] = self.space_shape[i] - 0.1
         self.point = Point(index)
         return
+    
+    def set_final_stats(self):
+        self.agent_stats["best_points"].append(self.best_pt)
+        a_scores = self.scorable.v_score(np.array(self.agent_stats["best_points"]))
+        self.agent_stats["best_scores"] = a_scores
+
+
+            
+        return self.agent_stats
 
 
 class StandardPSOAgent(SwarmAgent):
@@ -157,6 +180,7 @@ class StandardPSOAgent(SwarmAgent):
             global_best = (self.swarm_constants["globalC"] * random.uniform(0,1) * dist_to_global_best)
             # New velocity:
             new_v = (inertia + personal_best + global_best)
+            self.agent_stats["num_samples"] += 1
             return new_v
 
     def update_agent(self):
@@ -174,12 +198,27 @@ class AntSwarmAgent(SwarmAgent):
             self.swarm_constants["search_radius"] = len(initial_point) * 0.01
         if "search_scatter" not in self.swarm_constants.keys():
             self.swarm_constants["search_scatter"] = len(initial_point)
+        if "scatter_retries" not in self.swarm_constants.keys():
+            self.swarm_constants["scatter_retries"] = 10
+
         # Attempts at a higher score in the area
         self.attempts: int = 0
+        self.velocity = self.scatter_search()
         return
+    
+    def update_agent(self):
+        new_pos = self.point.array + self.velocity
+        if self.scorable.score(Point(new_pos)) <= self.scorable.score(self.point):
+            self.velocity = self.scatter_search()
 
-    def calculate_velocity(self) -> ndarray:
+        # Velocity is determined by a scatter search each time
+        # self.velocity = self.scatter_search()
+
+        return super().update_agent(self.velocity)
+    
+    def scatter_search(self):
         curr_pos = self.point.array
+        curr_score = self.scorable.score(self.point)
         r = self.swarm_constants["search_radius"]
         best_pos = []
         best_pt: Point = None
@@ -188,22 +227,20 @@ class AntSwarmAgent(SwarmAgent):
             new_pos = [random.uniform(i-r,i+r) for i in curr_pos]
             new_pt = Point(new_pos)
             new_score = self.scorable.score(new_pt)
+            self.agent_stats["num_samples"] += 1
+            
             if new_score > best_score:
                 best_score = new_score
                 best_pos = new_pos
+            
         new_v = best_pos - curr_pos
-        if best_score < self.scorable.score(self.point) and self.attempts < 10:
+        if best_score < curr_score and self.attempts < 10:
             self.attempts += 1
-            new_v = self.calculate_velocity()
-        elif best_score < self.scorable.score(self.point):
+            new_v = self.scatter_search()
+        elif best_score < curr_score:
             new_v = [0 for _ in curr_pos]
             self.attempts = 0
         return new_v
-    
-    def update_agent(self):
-        new_v = self.calculate_velocity()
-        return super().update_agent(new_v)
-
 
 class ParticleSwarmOptimization():
     """
@@ -224,24 +261,23 @@ class ParticleSwarmOptimization():
         - Outputs:
             - `ndarray` - The best global estimation
     """
-    def __init__(self, scorable: Scorable, space_shape: ndarray, num_agents: int, swarm_constants: dict, max_iter: int, agent_class=None) -> None:
+    def __init__(self, scorable: Scorable, space_shape: ndarray, swarm_constants: dict=None, num_agents: int=50, max_iter: int=100, agent_class=AntSwarmAgent) -> None:
         self.scorable: Scorable = scorable
         self.space_shape = space_shape
         self.num_agents: int = num_agents
+        if swarm_constants is None:
+            swarm_constants = {"agentC": 2.05, "globalC": 2.05, "w": 0.72984, "max_v": None}
         self.swarm_constants: dict = swarm_constants
         self.max_iter: int = max_iter
         self.agent_points: list[Point] = []
         self.agent_velocities: list[ndarray] = []
         self.agent_colors: list[str] = []
         self.global_best_point: Point
-        if isinstance(agent_class, SwarmAgent):
-            self.agent_class = agent_class
-        else:
-            self.agent_class = AntSwarmAgent
+        self.agent_class = agent_class
         self.swarm_stats = {
             "total_steps": int,
-            "final_score": float,
-            "final_class": bool,
+            "global_best_score": float,
+            "global_best_classification": bool,
             "avg_dir_to_score": bool,
             "average_steps": float,
             "iterations": int,
@@ -322,8 +358,11 @@ class ParticleSwarmOptimization():
         end_time = time.perf_counter()
         self.swarm_runtime = end_time - start_time
         self.swarm_stats["iterations"] = i
-        # Setting the final stats and returning the global best position
-        self.set_final_stats()    
+        # Setting the final stats and calculating runtime to do so
+        s_time = time.perf_counter()
+        self.set_final_stats()
+        e_time = time.perf_counter()
+        self.swarm_stats["post_process_runtime"] = e_time - s_time
         return
     
     def graph_swarm_3D(self, g: Grapher, colors=["black"]):
@@ -345,23 +384,36 @@ class ParticleSwarmOptimization():
         """ Sets all the final stats for sacing to file or printing """
         total_steps = 0
         all_move = 0
-        self.swarm_stats["final_score"] = self.scorable.score(self.global_best_point)
-        self.swarm_stats["final_class"] = self.scorable.classify_score(self.swarm_stats["final_score"])
+        self.swarm_stats["global_best_score"] = self.scorable.score(self.global_best_point)
+        self.swarm_stats["global_best_classification"] = self.scorable.classify_score(self.swarm_stats["global_best_score"])
         self.swarm_stats["global_best_position"] = self.global_best_point.array
         best_scores = []
-        best_pos = []
+        best_points = []
+        total_samples = 0
         for agent in self.agents:
-            
-
+            a_stats = agent.set_final_stats()
+            best_scores.append(a_stats["best_scores"])
+            best_points.append(a_stats["best_points"])
             total_steps += agent.agent_stats["num_of_steps"]
-            if agent.agent_stats["move_towards_score"].count(True) > agent.agent_stats["move_towards_score"].count(False):
+            total_samples += agent.agent_stats["num_samples"]
+            if a_stats["move_towards_score"].count(True) > a_stats["move_towards_score"].count(False):
                 all_move += 1
             else:
                 all_move -= 1
-        unique_best_scores = best_scores
-        unique_best_pos = best_pos
-        self.swarm_stats["unique_best_positions"] = unique_best_pos
-        self.swarm_stats["unique_best_scores"] = unique_best_scores
+        
+        spheres_found = []
+        sphere_num = 1
+        for sphere in self.scorable.spheres:
+            samples = 0
+            for pt in itertools.chain(*best_points):
+                if sphere.classify(pt):
+                    samples += 1
+            spheres_found.append([sphere_num, samples])
+            sphere_num += 1
+                
+        self.swarm_stats["total_samples"] = total_samples
+        self.swarm_stats["spheres_found"] = spheres_found
+        self.swarm_stats["best_scores_range"] = [min(best_scores), max(best_scores)]
         self.swarm_stats["avg_dir_to_score"] = (all_move >= 0)
         self.swarm_stats["total_steps"] = total_steps
         self.swarm_stats["average_steps"] = total_steps / self.num_agents
@@ -375,7 +427,7 @@ class ParticleSwarmOptimization():
             print("-", key, ":", str(val))
         return
 
-    def store_to_file(self, filename="PSO-Test", mode='w'):
+    def store_to_file(self, filename="PSO-Test", mode='w', other_stats: dict=None):
         # Creating and writing to a new file
         file = open(filename, mode=mode)
         file.write("Swarm final stats:")
@@ -384,81 +436,252 @@ class ParticleSwarmOptimization():
         file.write("\n- Swarm runtime: " + str(self.swarm_runtime))
         for key, val in zip(self.swarm_stats.keys(), self.swarm_stats.values()):
             file.write("\n- " + key + ": " + str(val))
+        if other_stats is not None:
+            for key, val in zip(other_stats.keys(), other_stats.values()):
+                file.write("\n- " + key + ": " + str(val))
         file.close()
         return
 
-            
-def set_spheres_scorable(g: Grapher) -> Scorable:
-    ndims = 3
-    pt1 = Point(0.5, 0.2, 0.3)
-    pt2 = Point([0.5] * ndims)
-    pt3 = Point(0, 0.1, 0.3)
-    sphere1 = ProbilisticSphere(pt1, 0.5, 0.3)
-    sphere2 = ProbilisticSphere(pt2, 0.4, 0.25)
-    sphere3 = ProbilisticSphere(pt3, 0.7, 0.80)
-    g._draw_3d_sphere(pt1, 0.5)
-    g._draw_3d_sphere(pt2, 0.4)
-    g._draw_3d_sphere(pt3, 0.7)
-    scoreable = ProbilisticSphereCluster([sphere1, sphere2, sphere3])
-    return scoreable
+# class MultiSwarm():
 
-def random_sphere_scorable(g: Grapher, num_of_spheres=3) -> Scorable:
+#     DEFAULT_GRID_SCALE = 0.1
+#     DEFAULT_NDIMS = 3
+#     DEFAULT_NUM_SWARMS = 2
+#     DEFAULT_DOMAIN = Domain.normalized(DEFAULT_NDIMS)
+#     DEFAULT_GRID = Grid([DEFAULT_GRID_SCALE]*DEFAULT_NDIMS)
+#     GRAPH_3D = Grapher(True, DEFAULT_DOMAIN)
+#     GRAPH = False
+#     DEFAULT_ITER = 100
+
+#     def __init__(self, scorable: Scorable, domain: Domain, max_iter=DEFAULT_ITER, graph_3d: bool=False, grid_scale: float=0.1, num_swarms=2, *args):
+#         self.scorable = scorable
+#         self.domain = domain
+#         self.grid = Grid([grid_scale]*len(domain.dimensions))
+#         MultiSwarm.GRAPH = graph_3d
+#         self.num_swarms = num_swarms
+#         self.max_iter = max_iter
+#         VALID_INPUTS = (dict, int, SwarmAgent)
+#         if len(args) == 0:
+#             self.default_swarms() 
+#         elif len(args) > 3 or not isinstance(args, VALID_INPUTS):
+#             raise ValueError(
+#                 f"{__class__.__name__}.__init__: Invalid arguments (args = {args})."
+#             )
+#         else:
+#             self.initialize_swarms(args)
+
+#         return
+
+
+#     def __init__(self, graph_3d: bool=False, num_swarms=DEFAULT_NUM_SWARMS, max_iter=DEFAULT_ITER):
+#         self.num_swarms = num_swarms
+#         self.max_iter = max_iter
+#         MultiSwarm.GRAPH = graph_3d
+#         self.default_scorable()
+
+    
+#     def default_swarms(self):
+#         """ Randomized and default values for swarms """
+#         space_shape = self.domain.dimensions
+#         self.swarms: list[ParticleSwarmOptimization] = []
+#         for i in range(self.num_swarms):
+#             new_swarm = ParticleSwarmOptimization(scorable=self.scorable, space_shape=space_shape)
+#             self.swarms.append(new_swarm)
+#         return
+    
+#     def set_swarms(self, *args):
+#         """ Set swarms using arguments passed in """
+#         space_shape = self.domain.dimensions
+#         self.swarms: list[ParticleSwarmOptimization] = []
+#         for i in range(self.num_swarms):
+#             new_swarm = ParticleSwarmOptimization(scorable=self.scorable, space_shape=space_shape, *args)
+#             self.swarms.append(new_swarm)
+#         return
+
+#     def default_scorable(self):
+#         """ Completely default swarms including scorable, domain, and grid """
+#         if self.GRAPH:
+#             self.scorable, _ = random_sphere_scorable(self.GRAPH_3D)
+#         else:
+#             self.scorable, _ = random_sphere_scorable()
+#         self.domain = self.DEFAULT_DOMAIN
+#         self.grid = self.DEFAULT_GRID
+#         self.default_swarms()
+#         return
+
+#     def run_swarms(self):
+#         cont = True
+#         i = 0
+#         while (i < self.max_iter) and cont:
+#             cont = False
+#             for s in self.swarms: 
+#                 if s.single_iteration(): cont = True
+#             i += 1
+#         self.iterations = i
+#         self.set_final_stats()
+#         return
+    
+#     def set_final_stats(self):
+#         swarm_best_points: list[Point] = []
+#         swarm_best_scores: list[float] = []
+#         swarm_iter_points: list[Point] = []
+#         swarm_iter_colors: list[str] = []
+#         for s in self.swarms:
+#             s.set_final_stats()
+#             s_stats = s.swarm_stats
+#             swarm_best_points.append(s_stats["global_best_position"])
+#             swarm_best_scores.append(s_stats["global_best_score"])
+#             swarm_iter_points = list(zip(swarm_iter_points, s.agent_points))
+#             # swarm_iter_points.append(s.agent_points)
+#             swarm_iter_colors.append(s.agent_colors)
+#         self.multi_swarm_stats = {
+#             "best_points": swarm_best_points,
+#             "best_scores_range": [min(swarm_best_scores), max(swarm_best_scores)]
+#         }
+#         self.iter_points = swarm_iter_points
+#         self.iter_colors = swarm_iter_colors
+#         # self.print_multi_swarm()
+#         return
+    
+#     def print_multi_swarm(self):
+#         print(vars(self))
+#         return
+    
+#     def graph_multi_swarms(self, colors=None):
+#         print(self.iter_points)
+#         for pts in self.iter_points:
+#             # for p, c in zip(pts, colors):
+#             _elements = self.GRAPH_3D.plot_all_points(pts)
+#             plt.pause(0.1)
+#             _elements.remove()
+#         self.GRAPH_3D.plot_all_points(self.multi_swarm_stats["best_points"], color="purple")
+#         plt.show()    
+#         pass
+
+
+def set_spheres_scorable(g: Grapher=None, ndims=3, lam=0.1) -> ndarray:
+    pt1 = Point([0.0 for _ in range(ndims)])
+    pt2 = Point([0.1 for _ in range(ndims)])
+    pt3 = Point([0.55 for _ in range(ndims)])
+    pt4 = Point([0.75 for _ in range(ndims)])
+    pt5 = Point([0.95 for _ in range(ndims)])
+    points = [pt1, pt2, pt3, pt4, pt5]
+    i = 1
+    radius = ndims*0.05
+    sphere_info = {}
+    spheres: list[ProbilisticSphere] = []
+    for pt in points:
+        sphere_info[("Sphere #"+str(i))] = ("\n  - " + str(pt) + "\n  - radius: " + str(radius) + "\n  - lambda: " + str(lam))
+        i += 1
+        spheres.append(ProbilisticSphere(pt, radius, lam, height=1000))
+    # sphere1 = ProbilisticSphere(pt1, 0.15, lam)
+    # sphere2 = ProbilisticSphere(pt2, 0.15, lam)
+    # sphere3 = ProbilisticSphere(pt3, 0.15, lam)
+    if g is not None:
+        for s in spheres:
+            g._draw_3d_sphere(s.loc, s.radius)
+    scoreable = ProbilisticSphereCluster(spheres)
+    return scoreable, sphere_info
+
+def random_sphere_scorable(g: Grapher=None, ndims:int=3, num_of_spheres=3, intersect=False):
     spheres = []
+    sphere_info = {}
+    lam = random.random()
     for i in range(num_of_spheres):
-        pt = Point([random.random(),random.random(),random.random()])
-        radius = random.random()*.5
-        sphere = ProbilisticSphere(pt, radius, random.random())
-        g._draw_3d_sphere(pt, radius)
+        index = [random.random() for _ in range(ndims)]
+        pt = Point(index)
+        # pt = Point([random.random(),random.random(),random.random()])
+
+        radius = random.random()
+        if abs(lam-radius) >= 0.2:
+            radius = lam - 0.25
+        sphere_info[("Sphere #"+str(i))] = ("\n  - " + str(pt) + "\n  - radius: " + str(radius) + "\n  - lambda: " + str(lam))
+        sphere = ProbilisticSphere(pt, radius, lam)
+        if g is not None and ndims < 4:
+            g._draw_3d_sphere(pt, radius)
         spheres.append(sphere)
     scoreable = ProbilisticSphereCluster(spheres)
-    return scoreable
+    return scoreable, sphere_info
 
-def test_particle_swarm_point():
+def test_PSO_no_graph(ndims: int=3, test_num=None):
+    
+    domain = Domain.normalized(ndims)
+    space_shape = domain.dimensions
+    # scorable, run_info = random_sphere_scorable(num_of_spheres=5, ndims=ndims)
+    scorable, run_info = set_spheres_scorable(ndims=ndims)
+    p: str = "C:/Users/User/OneDrive/AI Validation Research/Swarming/PSO Tests"
+
+    run_info["ndims"] = ndims
+    filename = None
+    if test_num is not None:
+        filename = p+ "\Run "+ str(test_num) + "_" + str(ndims) + "D.txt"
+    # swarm_constants = {"agentC": 2.05, "globalC": 2.05, "w": 0.72984, "max_v": None, "teleporting": False}
+    agent_type = AntSwarmAgent
+    run_info["Agent_type"] = agent_type
+    # swarm = ParticleSwarmOptimization(scoreable, space_shape, swarm_constants, 60, 100, agent_type)
+    swarm = ParticleSwarmOptimization(scorable, space_shape, num_agents=200, agent_class=agent_type)
+    swarm.run_swarm()
+    if filename is not None:
+        swarm.store_to_file(filename=filename, other_stats=run_info)
+    swarm.print_swarm_stats()
+
+
+
+
+def test_particle_swarm_point(test_num: int):
     # scoreable: Scorable, domain: Domain, score_matrix: ndarray
     ndims = 3
     domain = Domain.normalized(ndims)
     space_shape = domain.dimensions
-    grid = Grid([0.05]*ndims)
+    scale = 0.05
+    grid = Grid([scale]*ndims)
     g = Grapher(True, domain)
-    
-    
-
-    # scoreable = random_sphere_scorable(g, num_of_spheres=2)
-    scoreable = set_spheres_scorable(g)
-    
-    score_matrix = brute_force_grid_search(scoreable, domain, grid)
+    p: str = "C:/Users/User/OneDrive/AI Validation Research/Swarming/PSO Tests"
+    # scoreable, run_info = random_sphere_scorable(g, num_of_spheres=2)
+    scoreable, run_info = set_spheres_scorable(g)
+    run_info["ndims"] = ndims
+    run_info["Domain"] = domain
+    run_info["grid"] = "Grid([" + str(scale) + "]*ndims)"
+    # score_matrix = brute_force_grid_search(scoreable, domain, grid)
     
     swarm_constants = {"agentC": 2.05, "globalC": 2.05, "w": 0.72984, "max_v": None, "teleporting": False}
-    swarm = ParticleSwarmOptimization(scoreable, space_shape, 60, swarm_constants, 100, AntSwarmAgent)
+    agent_type = AntSwarmAgent
+    run_info["Agent_type"] = agent_type
+    swarm = ParticleSwarmOptimization(scoreable, space_shape, swarm_constants, 60, 100, agent_type)
     swarm.run_swarm()
-    swarm.store_to_file()
+    filename = p+ "\Run "+ str(test_num) + ".txt"
+    # swarm.store_to_file(filename=filename, other_stats=run_info)
     swarm.print_swarm_stats()
-    envelopes_list = true_envelope_finding_alg(scoreable, score_matrix)
-    envelopes = map(
-        lambda env: list(map(grid.convert_index_to_point, env)),
-        envelopes_list,
-    )
+    # envelopes_list = true_envelope_finding_alg(scoreable, score_matrix)
+    # envelopes = map(
+    #     lambda env: list(map(grid.convert_index_to_point, env)),
+    #     envelopes_list,
+    # )
     # for env in envelopes:
     #     g.plot_all_points(env, color="gray") 
     colors = ["black"]
-    swarm.graph_swarm_3D(g, colors=colors)
+    swarm.graph_swarm_3D(g)
+    graph_name = p + "\Run "+ str(test_num) + ".png"
     
-    bound = []
-    for e in envelopes_list:
-        b = true_boundary_algorithm(scoreable, score_matrix, e)
-        # b1 = np.split(b, b.shape[0])
-        bound.append(b)
+    # bound = []
+    # for e in envelopes_list:
+    #     b = true_boundary_algorithm(scoreable, score_matrix, e)
+    #     # b1 = np.split(b, b.shape[0])
+    #     bound.append(b)
     
-    boundaries = map(
-        lambda env2: list(map(grid.convert_index_to_point, env2)),
-        bound,
-    )
-    colors = ["yellow", "cyan", "gray"]
-    # plot for boundary points
-    for env2, color in zip(boundaries, colors):
-        g.plot_all_points(env2, color=color)
+    # boundaries = map(
+    #     lambda env2: list(map(grid.convert_index_to_point, env2)),
+    #     bound,
+    # )
+    # colors = ["yellow", "cyan", "gray"]
+    # # plot for boundary points
+    # for env2, color in zip(boundaries, colors):
+    #     g.plot_all_points(env2, color=color)
+    # g.save(path=graph_name)
+    # plt.pause(20)
+    # plt.close()
     plt.show()
-    
+    return
 
      
     # max_score = np.max(score_matrix)
@@ -469,35 +692,26 @@ def test_particle_swarm_point():
     # print("Max score possible:", max_score)
     # print("Rounded positions with score >= 1:", max_score_positions)
 
-    
-    
-    
-    
-     
-class ProbilisticSphere(Graded):
-    def __init__(self, loc: Point, radius: float, lmbda: float):
-        """
-        Probability density is formed from the base function f(x) = e^-(x^2),
-        such that f(radius) = lmbda and is centered around the origin with a max
-        of 1.
 
-        Args:
-            loc (Point): Where the sphere is located
-            radius (float): The radius of the sphere
-            lmbda (float): The density of the sphere at its radius
-        """
+class ProbilisticSphere(Graded):
+    def __init__(self, loc: Point, radius: float, lmbda: float, height: float = 1):
         self.loc = loc
         self.radius = radius
         self.lmda = lmbda
         self.ndims = len(loc)
+        self.height = height
 
-        self._c = 1 / radius**2 * np.log(1 / lmbda)
+        self._c = 1 / radius**2 * np.log(height / lmbda)
+
+    @property
+    def const(self) -> float:
+        return self._c
 
     def score(self, p: Point) -> ndarray:
         "Returns between 0 (far away) and 1 (center of) envelope"
         dist = self.loc.distance_to(p)
 
-        return np.array(1 / np.e ** (self._c * dist**2))
+        return self.height * np.array(1 / np.e ** (self._c * dist**2))
 
     def classify_score(self, score: ndarray) -> bool:
         return np.linalg.norm(score) > self.lmda
@@ -528,54 +742,273 @@ class ProbilisticSphere(Graded):
 
     def boundary_err(self, b: Point) -> float:
         "Negative error is inside the boundary, positive is outside"
-        return self.loc.distance_to(b) - self.radius
+        return abs(self.loc.distance_to(b) - self.radius)
 
     def _dscore(self, p: Point) -> float:
         return -self._c * self.score(p) * self.loc.distance_to(p)
 
 class ProbilisticSphereCluster(Graded):
     def __init__(self, spheres: list[ProbilisticSphere]):
-        """
-        Probability density is formed from the base function f(x) = e^-(x^2),
-        such that f(radius) = lmbda and is centered around the origin with a max
-        of 1.
-
-        Args:
-            loc (Point): Where the sphere is located
-            radius (float): The radius of the sphere
-            lmbda (float): The density of the sphere at its radius
-        """
         self.spheres = spheres
+        self._ndims = self.spheres[0].ndims
+        p = index.Property()
+        p.set_dimension(self._ndims)
+        self._index = index.Index(properties=p)
+
+        self._id = 0
+        lmbda = spheres[0].lmda
+        height = spheres[0].height
+        self._lmbda = lmbda
+        self._height = height
+        # self.construct_cluster(p0, r0, num_points_per_point, depth)
+
+        self._sph_radii = np.array([sph.radius for sph in self.spheres])
+        self._sph_lmbda = (
+            np.ones(self._sph_radii.shape) * lmbda
+        )  # np.array([sph.lmda for sph in self.spheres])
+
+        self._gradient_coef = -2 / self._sph_radii**2 * np.log(1 / lmbda)
+
+        # self._base = np.array(
+        #     [
+        #         1 / np.e ** (1 / r**2 * np.log(1 / l))
+        #         for r, l in zip(self._sph_radii, self._sph_lmbda)
+        #     ]
+        # )  # np.array([1 / np.e**sph.const for sph in self.spheres])
+        # print(self._base)
+        self._base = np.e ** (
+            -self._sph_radii ** (-2) * np.log(height / self._sph_lmbda)
+        )
+        self._exp = -self._sph_radii ** (-2) * np.log(height / self._sph_lmbda)
+        self._sph_locs = np.array([sph.loc.array for sph in self.spheres])
+
+    @property
+    def ndims(self):
+        return self._ndims
+
+    @property
+    def lmbda(self):
+        return self._lmbda
+
+    @property
+    def min_dist_b_perc(self):
+        return self._min_dist_b_perc
+
+    @property
+    def max_dist_b_perc(self):
+        return self._max_dist_b_perc
+
+    @property
+    def min_rad_perc(self):
+        return self._min_rad_perc
+
+    @property
+    def max_rad_perc(self):
+        return self._max_rad_perc
+
+    def construct_cluster(self, p0: Point, r0: float, n: int, k: int):
+        queue = [(p0, r0)]
+        self.spheres: list[ProbilisticSphere] = []
+
+        remaining = n**k
+        while len(queue) > 0 and remaining > 0:
+            p, r = queue.pop()
+
+            self._index.insert(len(self.spheres), p)
+            self.spheres.append(ProbilisticSphere(p, r, self.lmbda, self._height))
+            remaining -= 1
+
+            queue = [self.create_point_from(p, r) for i in range(n)] + queue
+
+    def create_point_from(self, p: Point, r: float) -> tuple[Point, float]:
+        ## dist
+        # r1 * (1 + min_dist_b_perc) < d < r1 * (1 + max_dist_b_perc)
+        # min = 0, d must be beyond the border
+        # min = -1, d must be beyond the r1's center
+        # max = 0, d must be before the border
+        # max = 1, d must be before twice the radius
+
+        i = 0
+        valid = False
+        while not valid:
+            if i > 100:
+                raise Exception(
+                    "100 failed attempts for generating a sphere in bounds of domain."
+                )
+
+            # pick random direction and distance to find location
+            v = np.random.rand(self.ndims)
+            v = v * 2 - 1
+            v /= np.linalg.norm(v)
+            d = self._random_between(
+                r * (1 + self.min_dist_b_perc), r * (1 + self.max_dist_b_perc)
+            )
+            p2 = p + Point(v * d)
+
+            # pick a radius that touches the parent sphere
+            min_r = (1 + self.min_rad_perc) * (d - r)
+            max_r = (1 + self.max_rad_perc) * r
+            r2 = self._random_between(min_r, max_r)
+
+            c = np.ones(p.array.shape)
+            c = c / np.linalg.norm(c) * r2
+
+            # if domain specified, do not leave domain.
+            valid = (
+                self._domain is None
+                or (p2 + c) in self._domain
+                and (p2 - c) in self._domain
+            )
+            i += 1
+
+        return (p2, r2)
+
+    def v_score(self, v: ndarray) -> ndarray:
+        dif2 = np.linalg.norm(v[:, None] - self._sph_locs, axis=-1) ** 2
+        return np.sum(
+            self._height * np.e ** (self._exp * dif2), axis=-1
+        )  # sum(self._base**dif2)
 
     def score(self, p: Point) -> ndarray:
-        "Returns between 0 (far away) and 1 (center of) envelope"
-        return sum(map(lambda s: s.score(p), self.spheres))
+        dif2 = np.linalg.norm(p.array - self._sph_locs, axis=1) ** 2
+        # return sum(self._base**dif2)
+        # closest_index = min(
+        #     enumerate(
+        #         abs(np.linalg.norm(p - self._sph_locs, axis=1) - self._sph_radii).T
+        #     ),
+        #     key=lambda pair: pair[1],
+        # )[0]
+        return sum(self._height * np.e ** (self._exp * dif2))  # sum(self._base**dif2)
+        # return np.array([sum(map(lambda sph: sph.score(p), self.spheres))])
 
     def classify_score(self, score: ndarray) -> bool:
-        return any(map(lambda s: s.classify_score(score), self.spheres))
-
-    def gradient(self, p: Point) -> np.ndarray:
-        raise NotImplementedError()
+        return np.linalg.norm(score) > self.lmbda
 
     def get_input_dims(self):
-        return len(self.spheres[0].loc)
+        return self.ndims
 
     def get_score_dims(self):
         return 1
 
     def generate_random_target(self):
-        raise NotImplementedError()
+        sph_index = random.randint(0, len(self.spheres) - 1)
+        return self.spheres[sph_index].generate_random_target()
 
     def generate_random_nontarget(self):
         raise NotImplementedError()
 
+    def _nearest_sphere(self, b: Point) -> ProbilisticSphere:
+        nearest_err = self.spheres[0].boundary_err(b)
+        nearest = self.spheres[0]
+
+        for sph in self.spheres[1:]:
+            if err := sph.boundary_err(b) < nearest_err:
+                nearest_err = err
+                nearest = sph
+
+        return nearest
+
     def boundary_err(self, b: Point) -> float:
-        raise NotImplementedError()
+        "euclidean distance from boundary"
+        # return min(abs(np.linalg.norm(b - self._sph_locs, axis=1) - self._sph_radii))
 
+        # return self._nearest_sphere(b).boundary_err(b)
+        # return min(self.spheres, key=lambda sph:
+        # sph.boundary_err(b)).boundary_err(b)
 
+        # linearization approach - led to high-error :(
+
+        # err_v[err_v > 1] = 0  # get rid of inf due to axis alignment
+        # return (self.score(b) - self.lmbda) / np.linalg.norm(self.gradient(b))
+
+        # nearest sphere's
+        # id = self._index.nearest(b, 1)
+        # p = self._sph_locs[id]
+        # r = self._sph_radii[id]
+        # return abs(np.linalg.norm(p - b.array) - r)
+        return min(
+            abs(np.linalg.norm(self._sph_locs - b.array, axis=1) - self._sph_radii)
+        )
+
+    def true_osv(self, b: Point) -> ndarray:
+        sph = self._nearest_sphere(b)
+        return self.normalize((b - sph.loc).array)
+
+    def osv_err(self, b: Point, n: ndarray) -> float:
+        return self.angle_between(self.true_osv(b), n)
+
+    def gradient(self, p: Point) -> ndarray:
+        # return sum(self.spheres, key=lambda sph: sph.gradient(p))
+        return self._gradient_coef[None].T * (p.array - self._sph_locs) * self.score(p)
+
+    @staticmethod
+    def _random_between(a, b) -> float:
+        return random.random() * (b - a) + a
+
+    @staticmethod
+    def normalize(v: ndarray) -> ndarray:
+        return v / np.linalg.norm(v)
+
+    @classmethod
+    def angle_between(cls, u, v):
+        u, v = cls.normalize(u), cls.normalize(v)
+        return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
+
+# distance/score, >1 increase distance, <1 decrease distance
 
 if __name__ == "__main__":
-    test_particle_swarm_point()
+    test_particle_swarm_point(1)
+    # test_PSO_no_graph(ndims=20, test_num=3)
+    # m = MultiSwarm()
+    # m.run_swarms()
+    # m.graph_multi_swarms()
+    # point_matrix = np.zeros((11,11))
+    # point_matrix = [Point(np.array(index)/10) for index, _ in np.ndenumerate(point_matrix)]
+    # print(point_matrix)
+    
+    # s = ProbilisticSphere(Point([0.2,0.2]), 0.2, 0.2)
+    # g = Grapher(domain=Domain.normalized(2))
+    # grid = Grid([0.1]*2)
+    # g._draw_2d_circle(Point([0.2, 0.2]), 0.2, color="green")
+    # g.plot_all_points(point_matrix)
+    
+    # gradient_matrix = [s.gradient(pt) for pt in point_matrix]
+    # for p, gr in zip(point_matrix, gradient_matrix):
+    #     print(p, "\n- Gradient:", gr, "\n- Score:", (s.score(p)), "\n- Classification:", (s.classify(p)))
+    #     if s.classify(p):
+    #         g.plot_point(p, color="red")
+        
+    # # g.plot_all_points(gradient_matrix, color="red")
+    # # plt.scatter(gradient_matrix[0], gradient_matrix[1])
+    # plt.show()
+    # prev_p = Point([0.8,0.8])
+    # prev_r = 0.1
+    # prev_score = s.score(prev_p)
+    # print(s.gradient(prev_p))
+    
+    # _cir = g._draw_2d_circle(prev_p, prev_r, color="red")
+    # _p = g.plot_point(prev_p, color="purple")
+    # for _ in range(10):
+    #     plt.pause(1)
+    #     _cir.remove()
+    #     _p.remove()
+    #     prev_pos = prev_p.array
+    #     new_p = Point([random.uniform(i-prev_r,i+prev_r) for i in prev_pos])
+    #     print(s.gradient(new_p))
+    #     new_score = s.score(new_p)
+    #     rate = (new_score-prev_score)/prev_score
+    #     if rate > 1:
+    #         new_r = prev_r - (prev_r*0.2)
+    #     else:
+    #         new_r = prev_r + (prev_r*0.2)
+    #     print(rate, "  ", new_r)
+    #     _cir = g._draw_2d_circle(new_p, new_r, color="red")
+    #     _p = g.plot_all_points([new_p], color="purple")
+    #     plt.pause(1)
+    #     prev_p = new_p
+    #     prev_r = new_r    
+    
+    # plt.show()
     
     
 
