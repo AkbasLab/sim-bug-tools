@@ -612,16 +612,14 @@ def test_PSO_no_graph(ndims: int=3, test_num=None):
     p: str = "C:/Users/User/OneDrive/AI Validation Research/Swarming/PSO Tests"
 
     run_info["ndims"] = ndims
-    filename = None
-    if test_num is not None:
-        filename = p+ "\Run "+ str(test_num) + "_" + str(ndims) + "D.txt"
     # swarm_constants = {"agentC": 2.05, "globalC": 2.05, "w": 0.72984, "max_v": None, "teleporting": False}
     agent_type = AntSwarmAgent
     run_info["Agent_type"] = agent_type
     # swarm = ParticleSwarmOptimization(scoreable, space_shape, swarm_constants, 60, 100, agent_type)
     swarm = ParticleSwarmOptimization(scorable, space_shape, num_agents=200, agent_class=agent_type)
     swarm.run_swarm()
-    if filename is not None:
+    if test_num is not None:
+        filename = p+ "\Run "+ str(test_num) + "_" + str(ndims) + "D.txt"
         swarm.store_to_file(filename=filename, other_stats=run_info)
     swarm.print_swarm_stats()
 
