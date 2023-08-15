@@ -12,7 +12,6 @@ from sim_bug_tools.simulation.simulation_core import Scorable, Graded
 import matplotlib.pyplot as plt
 from sim_bug_tools.graphics import Grapher
 from rtree import index
-import abc
 
 
 class SwarmAgent():
@@ -21,7 +20,8 @@ class SwarmAgent():
         "max_v": None, 
         "teleporting_agent": False,
         "max_teleports": 5,
-        "stop_at_envelope": True
+        "stop_at_envelope": True,
+        "v_range": None,
     }
     
     """
@@ -92,6 +92,7 @@ class SwarmAgent():
         self.agent_stats["teleport_at"].append(len(self.agent_stats["all_points"]))
         self.velocity = np.array([0.0 for _ in self.domain_shape])
         self.s = True
+        self.agent_stats["num_of_steps"] += 1 
         return
     
     def calculate_velocity(self) -> ndarray:
@@ -242,8 +243,34 @@ class StandardPSOAgent(SwarmAgent):
         new_v = self.calculate_velocity()
         super().update_agent(new_v)
         return
+    
+class VaryStandardPSOAgent(StandardPSOAgent):
+    """
+    VaryStandardPSOAgent is nearly the same as standardPSOAgent. 
+    The constants w, agentC, and globalC are updated eachc iteration with the following equations:
+        w = -3 * ( (curr_iter-total_iter) / total_iter^2 ) + 0.4
+        agentC = -3 * (curr_iter / total_iter) + 3.5
+        globalC = 3 * (curr_iter / total_iter) + 0.5
+    agentC decreasing and globalC increasing causes swarm to start with larger exploration of search space and end with greater exploitations by converging towards the global goal
+    If this agent is used with globalC set to 0, exploration will decrease as iterations go on.
 
-   
+    Note: THE update_agent() METHOD MUST TAKE THE CURRENT ITERATION AND TOTAL ITERATION.
+    """
+
+    def __init__(self, scorable: Scorable, domain_shape: ndarray, agent_params: dict):
+        super().__init__(scorable, domain_shape, agent_params)
+        
+    def update_agent(self, curr_iter: int, total_iter: int):
+        # Following equations taken from acedemic paper: https://towardsdatascience.com/particle-swarm-optimization-visually-explained-46289eeb2e14
+        self.agent_params["w"] = -3 * ((curr_iter-total_iter) / total_iter**2) + 0.4
+        # Decreases each iteration
+        self.agent_params["agentC"] = -3 * (curr_iter / total_iter) + 3.5
+        # Increases each iteration
+        self.agent_params["globalC"] = 3 * (curr_iter / total_iter) + 0.5
+        # agentC decreasing and globalC increasing causes swarm to start with larger exploration of search space and end with greater exploitations by converging towards the global goal
+        # If this agent is used with globalC set to 0, exploration will decrease as iterations go on. 
+        return super().update_agent()
+    
 class AntSwarmAgent(SwarmAgent):
     
     def __init__(self, scorable: Scorable, domain_shape: ndarray, agent_params: dict=None):
@@ -340,7 +367,7 @@ class ParticleSwarmOptimization():
     - All agents (SwarmAgent) parameters:
         - `"max_v": float = None` - Max velocity an agent can move by
         - `"teleporting_agent": bool = False` - True means agent will teleport if velocity is 0
-        - `"max_teleports": int = 3` - Maximum number of teleports an agent can make.
+        - `"max_teleports": int = 5` - Maximum number of teleports an agent can make.
         - `"stop_at_envelope": bool = True` - True means agents will stop exploration once envelope is reached. False means they will continue exploration to find max score.
         Keep this set to True when using a StandardPSOAgent to catch more envelopes.
         
@@ -350,6 +377,13 @@ class ParticleSwarmOptimization():
         - `"w": float` - Constant multiplied by velocity to obtain inertia.
         * agentC > globalC -> Exploration is higher, exploitation is lower.
         ** globalC = 0 -> Agents will not communicate. 
+
+    - VaryStandardPSOAgent (extends StandardPSOAgent):
+        - No specific parameters. Exploration decreases and exploitation increases with each iteration.
+        - Equations for w, agentC, and globalC:
+            - w = -3 * ( (curr_iter-total_iter) / total_iter^2 ) + 0.4
+            - agentC = -3 * (curr_iter / total_iter) + 3.5
+            - globalC = 3 * (curr_iter / total_iter) + 0.5 
 
     - AntSwarmAgent Parameters:
         - `"search_radius": float` - Radius of the scatter search area to obtain a new point
@@ -371,7 +405,8 @@ class ParticleSwarmOptimization():
     - `"best_scores_range": list[min_score, max_score]` - The minimum and maximum of the best scores found across all agents
     - `"post_process_runtime": float` - How long setting the final stats took in seconds.
     - `"total_teleports": int` - Total number of teleports made if teleporting agents exist.
-    - `"best_points": list[Points]" - The best points found by all agents
+    - `"best_points": list[Points]" - The best points found by all agents 
+        --> best points is set in set_final_stats() BUT IS COMMENTED OUT DUE TO LARGE SIZE IN LARGE DIMENSIONS AND WRITTING TO FILE
             
     """
     def __init__(self, scorable: Scorable, domain: Domain, swarm_params: dict=None, agent_params: dict=None) -> None:
@@ -385,6 +420,12 @@ class ParticleSwarmOptimization():
             "max_iter": 100, 
             "agent_type": AntSwarmAgent
         }
+        """
+        - `"num_agents": int` - Number of agents in swarm
+        - `"max_iter": int` - Maximum number of iterations
+        - `"agent_type": SwarmAgent` - Agent class being used in swarm
+        """
+
         if swarm_params is not None:
             self.swarm_params.update(swarm_params)
         elif len(domain.dimensions) >= 10:
@@ -467,14 +508,17 @@ class ParticleSwarmOptimization():
         return
 
 
-    def single_iteration(self) -> bool:
+    def single_iteration(self, iter_num: int) -> bool:
         """ Moves all agents in swarm a single time. Saves the agents iteration points and velocities used for graphing and final data """
         still_moving = False
         for agent in self.agents:
             # Setting agents global best position to the global best point position
             agent.global_best_position = self.global_best_point.array
             # Updating the agent (all depends on the child agent classes to calculate velocity and new position)
-            agent.update_agent()
+            if isinstance(agent, VaryStandardPSOAgent):
+                agent.update_agent(iter_num, self.swarm_params["max_iter"])
+            else:
+                agent.update_agent()
             self.check_score(agent)
             if agent.agent_stats["still_moving"] and not self.scorable.classify(agent.point):
                 still_moving = True
@@ -494,7 +538,7 @@ class ParticleSwarmOptimization():
         cont = True
         while (i < max_iter) and cont:
             # cont = False when all agents are not moving
-            cont = self.single_iteration()
+            cont = self.single_iteration(i)
             i += 1
         
         end_time = time.perf_counter()
@@ -574,7 +618,7 @@ class ParticleSwarmOptimization():
         self.swarm_stats["avg_dir_to_score"] = (all_move >= 0)
         self.swarm_stats["total_steps"] = total_steps
         self.swarm_stats["average_steps"] = total_steps / self.swarm_params["num_agents"]
-        self.swarm_stats["best_points"] = best_points
+        # self.swarm_stats["best_points"] = best_points
 
     def print_swarm_stats(self):
         """ Printing swarm dictionaries containing parameters and stats to console. """
@@ -680,6 +724,7 @@ def test_particle_swarm_point():
     # scoreable: Scorable, domain: Domain, score_matrix: ndarray
     ndims = 3
     domain = Domain.normalized(ndims)
+    d = Domain()
     scale = 0.05
     grid = Grid([scale]*ndims)
     g = Grapher(True, domain)
@@ -966,7 +1011,7 @@ class ProbilisticSphereCluster(Graded):
     def angle_between(cls, u, v):
         u, v = cls.normalize(u), cls.normalize(v)
         return np.arccos(np.clip(np.dot(u, v), -1, 1.0))
-
+    
 
 if __name__ == "__main__":
     # test_particle_swarm_point()
