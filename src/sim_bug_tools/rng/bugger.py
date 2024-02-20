@@ -40,7 +40,6 @@ class BugBuilder:
         return self._seq.get_sample(1, **self._sequence_params).points[0][0]
 
     def build_bug(self) -> Domain:
-        # random.seed(self._seed)
         """
         Returns a domain that is within the given size, and at
         with the given location domain.
