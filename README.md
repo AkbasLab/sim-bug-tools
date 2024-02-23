@@ -19,7 +19,7 @@ Annamaria Summer `summera@my.erau.edu`
 ## Citing This Work
 If you would like to cite this work. Please cite our latest paper about the topic:
 
-J. M. Thompson, Q. Goss, and M. İ. Akbaş ̧, “A Strategy for Boundary Adherence and Exploration in Black-Box Testing of Autonomous Vehicles,” in *2023 IEEE International Conference on Mobility, Operations, Services and Technologies (MOST)*, pp. 17–19, IEEE.
+J. M. Thompson, Q. Goss, and M. İ. Akbaş, “A Strategy for Boundary Adherence and Exploration in Black-Box Testing of Autonomous Vehicles,” in *2023 IEEE International Conference on Mobility, Operations, Services and Technologies (MOST)*, pp. 17–19, IEEE.
 
 ```
 @incollection{Thompson2023Strategy,
