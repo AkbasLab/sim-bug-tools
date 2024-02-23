@@ -1,7 +1,0 @@
-<routes>
-    <vType id="passenger" vClass="passenger"/>
-    <vType id="motorcycle" vClass="motorcycle"/>
-    <vType id="van" vClass="delivery"/>
-    <vType id="truck" vClass="truck"/>
-    <vType id="semitrailer" vClass="trailer" shape="truck/semitrailer"/>
-</routes>
