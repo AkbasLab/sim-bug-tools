@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="sim-bug-tools",
-    version="1.0.0",
+    version="1.0.1",
     author="Quentin Goss, John Thompson, Dr. Mustafa Ilhan Akbas",
     author_email="gossq@my.erau.edu, thomj130@my.erau.edu, akbasm@erau.edu",
     description="A toolkit for exploring bugs in software simulations.",
