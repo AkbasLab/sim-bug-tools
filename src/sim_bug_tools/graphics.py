@@ -1,6 +1,7 @@
 """
 Visualization tools
 """
+
 import itertools
 import warnings
 
@@ -68,6 +69,7 @@ class Grapher:
     def set_title(self, name: str):
         self._ax.set_title(name)
 
+    @property
     def fig(self):
         return self._fig
 
@@ -145,8 +147,8 @@ class Grapher:
         current_yval = self.ax.get_yticks()
         self.ax.set_yticklabels([fmtstr.format(x) for x in current_yval])
 
-    def save(self, path: str):
-        self._fig.savefig(path)
+    def save(self, path: str, *args, **kwargs):
+        self._fig.savefig(path, *args, **kwargs)
 
 
 class Voronoi(scipy.spatial.Voronoi):

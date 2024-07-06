@@ -86,8 +86,8 @@ class Adherer(ABC):
                 a neighboring boundary node.
             domain (Domain): The domain to constrain sampling to (Defaults to None)
         """
-        assert (
-            len(bnode[0]) == len(bnode[1])
+        assert len(bnode[0]) == len(
+            bnode[1]
         ), "Node's location and OSV have mismatching number of dimensions?"
         assert len(bnode[0]) == len(domain)
 

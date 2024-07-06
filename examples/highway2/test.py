@@ -239,9 +239,11 @@ def test1():
         "backprop-enabled": backprop_enabled,
         "backprop-params": {"k": bp_k} if backprop_enabled else None,
         "brrt-type": ADHERER_VERSION,
-        "brrt-params": {"d": d, "theta": theta}
-        if ADHERER_VERSION == "v1"
-        else {"d": d, "delta-theta": delta_theta, "r": r, "N": N},
+        "brrt-params": (
+            {"d": d, "theta": theta}
+            if ADHERER_VERSION == "v1"
+            else {"d": d, "delta-theta": delta_theta, "r": r, "N": N}
+        ),
         "meta-data": {
             "err-count": errs,
             "out-of-bounds-count": out_of_bounds_count,
